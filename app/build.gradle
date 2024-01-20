@@ -40,10 +40,12 @@ android {
             resValue "string", "app_name", "App Manager"
         }
         debug {
-            applicationIdSuffix '.debug'
-            versionNameSuffix '-DEBUG'
+            applicationIdSuffix ''
+            versionNameSuffix ''
             signingConfig signingConfigs.debug
-            resValue "string", "app_name", "AM Debug"
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            resValue "string", "app_name", "App Manager"
         }
     }
     lint {
