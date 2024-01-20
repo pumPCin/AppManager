@@ -12,8 +12,11 @@ if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,-exclude-libs,ALL -Wl,--gc-sections")
 else()
     message("Builing Debug...")
-
-    add_definitions(-DDEBUG)
+    
+    set(C_FLAGS "${C_FLAGS} -O2 -fvisibility=hidden -fvisibility-inlines-hidden")
+    set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,-exclude-libs,ALL -Wl,--gc-sections")
+    
+    # add_definitions(-DDEBUG)
 endif ()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_FLAGS}")
