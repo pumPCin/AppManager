@@ -13,7 +13,7 @@ import io.github.muntashirakon.AppManager.IShellResult;
 
 class RemoteShellImpl extends IRemoteShell.Stub {
     static {
-        Shell.enableVerboseLogging = BuildConfig.DEBUG;
+        Shell.enableVerboseLogging = false; //BuildConfig.DEBUG;
         Shell.setDefaultBuilder(Shell.Builder.create()
                 .setFlags(Shell.FLAG_MOUNT_MASTER)
                 .setTimeout(10));
