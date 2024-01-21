@@ -80,8 +80,8 @@ public class LiveLogViewerFragment extends AbsLogViewerFragment implements LogVi
         recordMenuItem.setVisible(!recordingInProgress);
 
         MenuItem crazyLoggerMenuItem = menu.findItem(R.id.action_crazy_logger_service);
-        crazyLoggerMenuItem.setEnabled(BuildConfig.DEBUG);
-        crazyLoggerMenuItem.setVisible(BuildConfig.DEBUG);
+        crazyLoggerMenuItem.setEnabled(false); //BuildConfig.DEBUG);
+        crazyLoggerMenuItem.setVisible(false); //BuildConfig.DEBUG);
     }
 
     @Override
