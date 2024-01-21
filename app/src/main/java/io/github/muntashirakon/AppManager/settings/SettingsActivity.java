@@ -26,7 +26,7 @@ import java.util.Objects;
 import io.github.muntashirakon.AppManager.BaseActivity;
 import io.github.muntashirakon.AppManager.R;
 import io.github.muntashirakon.AppManager.logs.Log;
-//import io.github.muntashirakon.AppManager.self.life.BuildExpiryChecker;
+import io.github.muntashirakon.AppManager.self.life.BuildExpiryChecker;
 import io.github.muntashirakon.AppManager.self.life.FundingCampaignChecker;
 
 public class SettingsActivity extends BaseActivity implements PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {

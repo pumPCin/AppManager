@@ -30,7 +30,7 @@ import io.github.muntashirakon.AppManager.crypto.ks.KeyStoreManager;
 import io.github.muntashirakon.AppManager.logs.Log;
 import io.github.muntashirakon.AppManager.self.SelfPermissions;
 import io.github.muntashirakon.AppManager.self.filecache.InternalCacheCleanerService;
-//import io.github.muntashirakon.AppManager.self.life.BuildExpiryChecker;
+import io.github.muntashirakon.AppManager.self.life.BuildExpiryChecker;
 import io.github.muntashirakon.AppManager.settings.Ops;
 import io.github.muntashirakon.AppManager.settings.Prefs;
 import io.github.muntashirakon.AppManager.settings.SecurityAndOpsViewModel;
