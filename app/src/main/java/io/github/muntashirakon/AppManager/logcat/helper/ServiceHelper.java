@@ -22,13 +22,13 @@ public class ServiceHelper {
     public static final String TAG = ServiceHelper.class.getSimpleName();
 
     public static void startOrStopCrazyLogger(Context context) {
-        if (BuildConfig.DEBUG) {
-            Intent intent = new Intent(context, CrazyLoggerService.class);
-            if (!context.stopService(intent)) {
+        //if (BuildConfig.DEBUG) {
+            //Intent intent = new Intent(context, CrazyLoggerService.class);
+            //if (!context.stopService(intent)) {
                 // Service wasn't running
-                context.startService(intent);
-            }
-        }
+                //context.startService(intent);
+            //}
+        //}
     }
 
     public static synchronized void stopBackgroundServiceIfRunning(Context context) {
