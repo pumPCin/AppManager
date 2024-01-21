@@ -102,9 +102,9 @@ public final class BuildExpiryChecker {
     }
 
     private static Uri getUpdateUri() {
-        if (getBuildType() == BUILD_TYPE_DEBUG) {
-            return Uri.parse("https://github.com/MuntashirAkon/AppManager/actions/workflows/debug_build.yml");
-        }
+        //if (getBuildType() == BUILD_TYPE_DEBUG) {
+            //return Uri.parse("https://github.com/MuntashirAkon/AppManager/actions/workflows/debug_build.yml");
+        //}
         // TODO: 3/12/22 For Stable builds, check F-Droid too
         return Uri.parse("https://github.com/MuntashirAkon/AppManager/releases");
     }
@@ -112,7 +112,7 @@ public final class BuildExpiryChecker {
     @BuildType
     private static int getBuildType() {
         if (BuildConfig.DEBUG) {
-            return BUILD_TYPE_DEBUG;
+            return BUILD_TYPE_STABLE; //BUILD_TYPE_DEBUG;
         }
         String[] versionParts = BuildConfig.VERSION_NAME.split("-");
         if (versionParts.length == 1) {
@@ -121,13 +121,13 @@ public final class BuildExpiryChecker {
         String lastPart = versionParts[versionParts.length - 1];
         switch (lastPart.substring(0, lastPart.length() - 2).toLowerCase(Locale.ROOT)) {
             case "alpha":
-                return BUILD_TYPE_ALPHA;
+                return BUILD_TYPE_STABLE; //BUILD_TYPE_ALPHA;
             case "beta":
-                return BUILD_TYPE_BETA;
+                return BUILD_TYPE_STABLE; //BUILD_TYPE_BETA;
             case "rc":
-                return BUILD_TYPE_RC;
+                return BUILD_TYPE_STABLE; //BUILD_TYPE_RC;
             default:
-                throw new IllegalStateException("Invalid App Manager version");
+                return BUILD_TYPE_STABLE; //throw new IllegalStateException("Invalid App Manager version");
         }
     }
 }
