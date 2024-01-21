@@ -85,9 +85,9 @@ final class LocalFileOverlay {
         int userId = UserHandleHidden.myUserId();
         String appId;
         try {
-            appId = (String) Class.forName("io.github.muntashirakon.AppManager.BuildConfig").getDeclaredField("APPLICATION_ID").get(null);
+            appId = "io.github.muntashirakon.AppManager"; //(String) Class.forName("io.github.muntashirakon.AppManager.BuildConfig").getDeclaredField("APPLICATION_ID").get(null);
         } catch (Exception e) {
-            appId = "io.github.muntashirakon.AppManager" + (BuildConfig.DEBUG ? ".debug" : "");
+            appId = "io.github.muntashirakon.AppManager"; // + (BuildConfig.DEBUG ? ".debug" : "");
         }
         put("/", ROOT_FILES); // Permission denied
         put("/apex", APEX_PKGS); // Permission denied
