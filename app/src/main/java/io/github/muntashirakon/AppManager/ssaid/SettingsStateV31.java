@@ -223,7 +223,7 @@ public final class SettingsStateV31 implements SettingsState {
             mPackageToMemoryUsage = null;
         }
 
-        mHistoricalOperations = BuildConfig.DEBUG ? new ArrayList<>(HISTORICAL_OPERATION_COUNT) : null;
+        mHistoricalOperations = null; //BuildConfig.DEBUG ? new ArrayList<>(HISTORICAL_OPERATION_COUNT) : null;
 
         synchronized (mLock) {
             readStateSyncLocked();
