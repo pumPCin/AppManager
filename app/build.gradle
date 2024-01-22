@@ -43,12 +43,12 @@ android {
             resValue "string", "app_name", "App Manager"
         }
         debug {
-            applicationIdSuffix ''
-            versionNameSuffix ''
+            applicationIdSuffix '' //.debug'
+            versionNameSuffix '' //'-DEBUG'
             signingConfig signingConfigs.debug
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            resValue "string", "app_name", "App Manager"
+            resValue "string", "app_name", "App Manager" //AM Debug"
         }
     }
     lint {

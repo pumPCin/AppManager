@@ -75,10 +75,25 @@ public final class BuildExpiryChecker {
 
     @Nullable
     public static Boolean buildExpired() {
-        return false;
+        //int buildType = getBuildType();
+        //long timeSpan = getCurrentTime() - getBuildTime();
+        //long realTimeSpan = TIME_SPAN_MILLIS[buildType];
+        //if (timeSpan <= realTimeSpan) {
+            // Build hasn't yet expired
+            return false;
+        //}
+        // Build has expired
+        //long warningPeriod = WARNING_PERIOD_MILLIS[buildType];
+        //if (timeSpan <= realTimeSpan + warningPeriod) {
+            // Build has expired but in warning period
+            //return null;
+        //}
+        // Build has completely expired and should stop working
+        //return true;
     }
 
     private static long getCurrentTime() {
+        // Ideally, we should fetch this from an SNTP server such as time.android.com
         return System.currentTimeMillis();
     }
 
@@ -87,11 +102,32 @@ public final class BuildExpiryChecker {
     }
 
     private static Uri getUpdateUri() {
+        //if (getBuildType() == BUILD_TYPE_DEBUG) {
+            //return Uri.parse("https://github.com/MuntashirAkon/AppManager/actions/workflows/debug_build.yml");
+        //}
+        // TODO: 3/12/22 For Stable builds, check F-Droid too
         return Uri.parse("https://github.com/MuntashirAkon/AppManager/releases");
     }
 
     @BuildType
     private static int getBuildType() {
-        return BUILD_TYPE_STABLE;
+        //if (BuildConfig.DEBUG) {
+            //return BUILD_TYPE_DEBUG;
+        //}
+        //String[] versionParts = BuildConfig.VERSION_NAME.split("-");
+        //if (versionParts.length == 1) {
+            return BUILD_TYPE_STABLE;
+        //}
+        //String lastPart = versionParts[versionParts.length - 1];
+        //switch (lastPart.substring(0, lastPart.length() - 2).toLowerCase(Locale.ROOT)) {
+            //case "alpha":
+                //return BUILD_TYPE_ALPHA;
+            //case "beta":
+                //return BUILD_TYPE_BETA;
+            //case "rc":
+                //return BUILD_TYPE_RC;
+            //default:
+                //throw new IllegalStateException("Invalid App Manager version");
+        //}
     }
 }
