@@ -162,7 +162,7 @@ public class LocalServer {
     @WorkerThread
     @NoOps
     private void checkFile() throws IOException {
-        AssetsUtils.copyFile(mContext, ServerConfig.JAR_NAME, ServerConfig.getDestJarFile(), BuildConfig.DEBUG);
+        AssetsUtils.copyFile(mContext, ServerConfig.JAR_NAME, ServerConfig.getDestJarFile(), false); //BuildConfig.DEBUG);
         AssetsUtils.writeScript(mContext);
     }
 
