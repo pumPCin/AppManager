@@ -33,7 +33,7 @@
         android:orientation="vertical"
         app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
 
-        <io.github.muntashirakon.widget.MaterialAlertView
+        <!--io.github.muntashirakon.widget.MaterialAlertView
             android:id="@+id/app_manager_expiring_notice"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -52,7 +52,7 @@
             android:paddingHorizontal="8dp"
             android:text="@string/funding_campaign_text"
             app:startIconDrawable="@drawable/ic_charity"
-            app:alertType="custom" />
+            app:alertType="custom" /-->
 
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/main_layout"

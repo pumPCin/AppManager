@@ -30,7 +30,7 @@ import io.github.muntashirakon.AppManager.crypto.ks.KeyStoreManager;
 import io.github.muntashirakon.AppManager.logs.Log;
 import io.github.muntashirakon.AppManager.self.SelfPermissions;
 import io.github.muntashirakon.AppManager.self.filecache.InternalCacheCleanerService;
-import io.github.muntashirakon.AppManager.self.life.BuildExpiryChecker;
+//import io.github.muntashirakon.AppManager.self.life.BuildExpiryChecker;
 import io.github.muntashirakon.AppManager.settings.Ops;
 import io.github.muntashirakon.AppManager.settings.Prefs;
 import io.github.muntashirakon.AppManager.settings.SecurityAndOpsViewModel;
@@ -90,11 +90,11 @@ public abstract class BaseActivity extends AppCompatActivity {
             initPermissionChecks();
             return;
         }
-        if (Boolean.TRUE.equals(BuildExpiryChecker.buildExpired())) {
+        //if (Boolean.TRUE.equals(BuildExpiryChecker.buildExpired())) {
             // Build has expired
-            BuildExpiryChecker.getBuildExpiredDialog(this).show();
-            return;
-        }
+            //BuildExpiryChecker.getBuildExpiredDialog(this).show();
+            //return;
+        //}
         // Run authentication
         mViewModel = new ViewModelProvider(this).get(SecurityAndOpsViewModel.class);
         mAlertDialog = UIUtils.getProgressDialog(this, getString(R.string.initializing), true);

@@ -15,7 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import io.github.muntashirakon.AppManager.R;
 import io.github.muntashirakon.AppManager.logs.Log;
-import io.github.muntashirakon.AppManager.self.life.BuildExpiryChecker;
+//import io.github.muntashirakon.AppManager.self.life.BuildExpiryChecker;
 import io.github.muntashirakon.AppManager.settings.Prefs;
 import io.github.muntashirakon.AppManager.utils.Utils;
 import io.github.muntashirakon.dialog.TextInputDialogBuilder;
@@ -29,11 +29,11 @@ public class KeyStoreActivity extends AppCompatActivity {
         setTheme(Prefs.Appearance.getTransparentAppTheme());
         EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
-        if (Boolean.TRUE.equals(BuildExpiryChecker.buildExpired())) {
+        //if (Boolean.TRUE.equals(BuildExpiryChecker.buildExpired())) {
             // Build has expired
-            BuildExpiryChecker.getBuildExpiredDialog(this).show();
-            return;
-        }
+            //BuildExpiryChecker.getBuildExpiredDialog(this).show();
+            //return;
+        //}
         if (getIntent() != null) {
             onNewIntent(getIntent());
         } else finish();
