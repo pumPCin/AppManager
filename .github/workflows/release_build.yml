@@ -25,7 +25,7 @@ jobs:
       - name: Get app version
         run: echo "APP_VERSION=v$(cat ./app/build.gradle | grep -m1 versionName | awk -F \" '{print $2}')" >> $GITHUB_ENV
       - name: Get app name
-        run: echo "APP_NAME=AppManager_${{ env.APP_VERSION }}-RELEASE#${{ github.run_number }}" >> $GITHUB_ENV
+        run: echo "APP_NAME=AppManager_${{ env.APP_VERSION }}-${{ github.run_number }}" >> $GITHUB_ENV
       - name: Inject run number
         run: sed -i -e 's|versionName "\([0-9\.]\+\)"|versionName "\1-${{ github.run_number }}"|' ./app/build.gradle
       - name: Build with Gradle
