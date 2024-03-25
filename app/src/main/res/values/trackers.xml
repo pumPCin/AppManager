@@ -713,8 +713,8 @@
         <item>com.gamesparks.sdk.</item>
         <item>com.geouniq.android.</item>
         <item>com.google.cloud.audit</item>
-        <!--<item>com.google.mlkit</item>-->
-        <item>com.android.billingclient</item>
+        <!--<item>com.google.mlkit</item>
+        <item>com.android.billingclient</item>-->
         <item>com.grab.grabidpartnersdk</item>
         <item>com.timerazor.gravysdk.</item>
         <item>com.greedygame.legacy</item>
