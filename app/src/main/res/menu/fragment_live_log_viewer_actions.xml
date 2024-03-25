@@ -73,9 +73,9 @@
         android:icon="@drawable/ic_settings"
         android:title="@string/settings" />
 
-    <item
+    <!--<item
         android:id="@+id/action_crazy_logger_service"
         android:title="Crazy Logger"
-        tools:ignore="HardcodedText" />
+        tools:ignore="HardcodedText" />-->
 
 </menu>

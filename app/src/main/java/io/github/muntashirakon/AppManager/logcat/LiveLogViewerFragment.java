@@ -79,9 +79,9 @@ public class LiveLogViewerFragment extends AbsLogViewerFragment implements LogVi
         recordMenuItem.setEnabled(!recordingInProgress);
         recordMenuItem.setVisible(!recordingInProgress);
 
-        MenuItem crazyLoggerMenuItem = menu.findItem(R.id.action_crazy_logger_service);
-        crazyLoggerMenuItem.setEnabled(false); //BuildConfig.DEBUG);
-        crazyLoggerMenuItem.setVisible(false); //BuildConfig.DEBUG);
+        //MenuItem crazyLoggerMenuItem = menu.findItem(R.id.action_crazy_logger_service);
+        //crazyLoggerMenuItem.setEnabled(BuildConfig.DEBUG);
+        //crazyLoggerMenuItem.setVisible(BuildConfig.DEBUG);
     }
 
     @Override
@@ -106,9 +106,9 @@ public class LiveLogViewerFragment extends AbsLogViewerFragment implements LogVi
                     mActivity.showRecordLogDialog();
                 }
             });
-        } else if (id == R.id.action_crazy_logger_service) {
-            ServiceHelper.startOrStopCrazyLogger(mActivity);
-        } else return super.onOptionsItemSelected(item);
+        } //else if (id == R.id.action_crazy_logger_service) {
+            //ServiceHelper.startOrStopCrazyLogger(mActivity);
+        //} else return super.onOptionsItemSelected(item);
         return true;
     }
 
