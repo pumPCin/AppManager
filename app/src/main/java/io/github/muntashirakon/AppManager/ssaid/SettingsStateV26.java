@@ -592,9 +592,9 @@ public final class SettingsStateV26 implements SettingsState {
                     + " package: " + packageName);
         }
 
-        if (DEBUG) {
-            Log.i(LOG_TAG, "Settings for package: %s size: %s bytes.", packageName, newSize);
-        }
+        //if (DEBUG) {
+            //Log.i(LOG_TAG, "Settings for package: %s size: %s bytes.", packageName, newSize);
+        //}
 
         mPackageToMemoryUsage.put(packageName, newSize);
     }
