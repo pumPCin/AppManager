@@ -106,9 +106,9 @@ public class LiveLogViewerFragment extends AbsLogViewerFragment implements LogVi
                     mActivity.showRecordLogDialog();
                 }
             });
-        } //else if (id == R.id.action_crazy_logger_service) {
+        //} else if (id == R.id.action_crazy_logger_service) {
             //ServiceHelper.startOrStopCrazyLogger(mActivity);
-        //} else return super.onOptionsItemSelected(item);
+        } else return super.onOptionsItemSelected(item);
         return true;
     }
 

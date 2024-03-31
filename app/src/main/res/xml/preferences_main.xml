@@ -2,9 +2,7 @@
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:android="http://schemas.android.com/apk/res/android">
-
 <!--
-
     <io.github.muntashirakon.preference.WarningAlertPreference
         app:key="app_manager_expiring_notice"
         app:icon="@drawable/ic_caution"
@@ -14,9 +12,7 @@
         app:key="funding_campaign_notice"
         app:icon="@drawable/ic_charity"
         app:summary="@string/funding_campaign_text" />
-
 -->
-
     <Preference
         app:key="custom_locale"
         app:icon="@drawable/ic_translate"
