@@ -2,6 +2,6 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <resources>
     <dimen name="icon_size">40dp</dimen>
-    <dimen name="title_font">14sp</dimen>
-    <dimen name="subtitle_font">12sp</dimen>
+    <dimen name="title_font">16sp</dimen>
+    <dimen name="subtitle_font">14sp</dimen>
 </resources>
