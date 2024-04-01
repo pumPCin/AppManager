@@ -299,7 +299,7 @@
     <string name="clear_data">Очистить данные</string>
     <string name="backup_restore">Резервное копирование/восстановление</string>
     <string name="disable_background">Предотвратить фоновую работу</string>
-    <string name="export_blocking_rules">Экспортировать правила блокировки</string>
+    <string name="export_blocking_rules">Экспорт правил блокировки</string>
     <plurals name="alert_failed_to_clear_data">
         <item quantity="one">Не удалось очистить данные %1$d приложения</item>
         <item quantity="other">Не удалось очистить данные %1$d приложений</item>
