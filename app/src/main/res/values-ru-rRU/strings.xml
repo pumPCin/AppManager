@@ -74,7 +74,7 @@
     <string name="more_info">Подробнее</string>
     <string name="date_installed">Дата установки</string>
     <string name="date_updated">Дата обновления</string>
-    <string name="installer_app">Установщик приложения</string>
+    <string name="installer_app">Установщик приложений</string>
     <string name="user_id">Идентификатор пользователя</string>
     <string name="main_activity">Главное активити</string>
     <string name="empty_package_name">Пустое имя пакета</string>
@@ -745,7 +745,7 @@
     <string name="no_root">Без-ROOT</string>
     <string name="close">Закрыть</string>
     <string name="comment">Комментарий</string>
-    <string name="installer">Установщик</string>
+    <string name="installer">Установщик приложений</string>
     <string name="install_location">Место установки</string>
     <string name="install_location_internal_only">Только внутренняя память</string>
     <string name="install_location_prefer_external">Предпочтительно внешняя память</string>
@@ -1511,6 +1511,6 @@
     <string name="virus_total">VirusTotal</string>
     <string name="pref_use_vt_no_internet">Для работы VirusTotal требуется интернет, который не включен. Пожалуйста, сначала включите <a href="app-manager://settings/privacy_prefs/toggle_internet">“Использовать Интернет”</a>.</string>
     <string name="pref_use_log_viewer">Использовать Просмотр Логов</string>
-    <string name="pref_installer">Использовать Установщик Приложений</string>
+    <string name="pref_installer">Использовать Установщик</string>
     <string name="pref_cat_general">Общий</string>
 </resources>
