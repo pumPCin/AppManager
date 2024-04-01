@@ -2,9 +2,9 @@
 <changelog>
     <release
         type="alpha release"
-        version="v4.0.0-alpha02"
-        code="435"
-        date="18 September 2023">
+        version="v4.0.2"
+        code="437"
+        date="1 April 2024">
         <title type="medium">Main page</title>
         <improve title="Batch ops">Added an option to create a new profile in the “Add to profile” dialog</improve>
         <fix title="Batch ops">Fixed saving APKS with dependencies</fix>
