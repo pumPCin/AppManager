@@ -297,7 +297,7 @@
     <string name="user_with_id">Пользователь: <xliff:g id="user_id" example="0">%1$d</xliff:g></string>
     <string name="user_and_uid">Пользователь: <xliff:g id="user_name" example="root">%1$s</xliff:g> (<xliff:g id="user_id" example="0">%2$d</xliff:g>)</string>
     <string name="clear_data">Очистить данные</string>
-    <string name="backup_restore">Резервное копирование/восстановление</string>
+    <string name="backup_restore">Резервирование/восстановление</string>
     <string name="disable_background">Предотвратить фоновую работу</string>
     <string name="export_blocking_rules">Экспорт правил блокировки</string>
     <plurals name="alert_failed_to_clear_data">
