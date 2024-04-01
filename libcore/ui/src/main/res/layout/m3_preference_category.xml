@@ -26,14 +26,14 @@
             android:layout_height="wrap_content"
             android:layout_gravity="start"
             android:textAlignment="viewStart"
-            android:maxLines="2"
             android:textAppearance="?attr/preferenceCategoryTitleTextAppearance"
             android:textColor="?attr/preferenceCategoryTitleTextColor"
             tools:text="@tools:sample/lorem[10]" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@android:id/summary"
-            android:ellipsize="end"
+            android:ellipsize="marquee"
+            android:singleLine="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@android:id/title"
