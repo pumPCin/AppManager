@@ -68,8 +68,8 @@
     <string name="paths_and_directories">Пути и каталоги</string>
     <string name="source_dir">Исходный каталог</string>
     <string name="data_dir">Каталог данных</string>
-    <string name="sdk_min">Мин. версия</string>
-    <string name="sdk_max">Целевая версия</string>
+    <string name="sdk_min">Минимальный</string>
+    <string name="sdk_max">Целевой</string>
     <string name="sdk_flags">Флаги</string>
     <string name="more_info">Подробнее</string>
     <string name="date_installed">Дата установки</string>
@@ -1165,8 +1165,8 @@
     <string name="search_type_prefix">префикс</string>
     <string name="search_type_suffix">суффикс</string>
     <string name="search_type_regular_expressions">регулярные выражения</string>
-    <string name="toggle_internet">Использовать интернет</string>
-    <string name="pref_toggle_internet_msg">Использовать интернет в App Manager</string>
+    <string name="toggle_internet">Интернет данные</string>
+    <string name="pref_toggle_internet_msg">Разрешить App Manager использовать данные интернета</string>
     <string name="vt_checking">VirusTotal: проверка…</string>
     <string name="vt_uploading">VirusTotal: загрузка…</string>
     <string name="vt_queued">VirusTotal: в очереди</string>
@@ -1373,7 +1373,7 @@
     <string name="optimize_option_clear_profile_data">Очистка данных предыдущего профиля</string>
     <string name="optimize_option_check_profiles">Учитывать данные профиля во время оптимизации DEX</string>
     <string name="optimize_option_force_compilation">Принудительная компиляция, даже если она не требуется</string>
-    <string name="optimize_option_force_dexopt">Немедленное выполнение оптимизации DEX</string>
+    <string name="optimize_option_force_dexopt">Немедленная оптимизация DEX</string>
     <string name="title_perform_runtime_optimization_to_apps">Оптимизация среды выполнения</string>
     <string name="action_run">Пуск</string>
     <string name="summary_perform_runtime_optimization_to_apps">Оптимизация DEX и (в Android 10 и более поздних версиях) макетов для повышения производительности приложений.</string>
@@ -1485,7 +1485,7 @@
     <string name="tap_to_open_notification_settings">Нажмите, чтобы скрыть</string>
     <string name="app_manager_is_unlocked">App Manager разблокирован</string>
     <string name="action_lock_app">Блокировка</string>
-    <string name="pref_enable_persistent_session">Запуск App Manager в фоновом режиме</string>
+    <string name="pref_enable_persistent_session">Фоновый режим</string>
     <string name="pref_enable_persistent_session_msg">Запуск App Manager в фоновом режиме уменьшает задержку инициализации. Полезно, если вы часто используете App Manager.</string>
     <string name="pref_enable_auto_lock">Автоматическая блокировка</string>
     <string name="pref_enable_auto_lock_msg">Блокировка App Manager\'а при заблокированном устройстве.</string>
@@ -1501,7 +1501,7 @@
     <string name="copy_profile_id">Копировать ID профиля</string>
     <string name="launch_activity_dialog_title">Запуск Активити: Требуется Действие</string>
     <string name="launch_activity_dialog_message">App Manager пытается запустить активити с помощью <b>Search assistant</b> (обычно Google Assistant), но не может этого сделать из-за недостаточных разрешений. Чтобы запустить активити, активируйте  <b>Search assistant</b> вручную (обычно это делается долгим нажатием кнопки Home). Нажмите на кнопку <b>Close</b> после завершения запуска активити, чтобы вернуться к оригинальному ассистенту.</string>
-    <string name="finder_title">Finder</string>
+    <string name="finder_title">Поисковик</string>
     <string name="select_filter">Выберите фильтр</string>
     <string name="size_in_bytes">Размер (в байтах)</string>
     <string name="invalid_regex">Недопустимое регулярное выражение!</string>
@@ -1511,6 +1511,6 @@
     <string name="virus_total">VirusTotal</string>
     <string name="pref_use_vt_no_internet">Для работы VirusTotal требуется интернет, который не включен. Пожалуйста, сначала включите <a href="app-manager://settings/privacy_prefs/toggle_internet">“Использовать Интернет”</a>.</string>
     <string name="pref_use_log_viewer">Использовать Просмотр Логов</string>
-    <string name="pref_installer">Использовать Установщик</string>
+    <string name="pref_installer">Использовать Установщик Приложений</string>
     <string name="pref_cat_general">Общий</string>
 </resources>
