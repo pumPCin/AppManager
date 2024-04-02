@@ -39,6 +39,15 @@
                 android:textAppearance="?attr/textAppearanceBodySmall"
                 tools:text="@tools:sample/lorem" />
 
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/perm_toggle_btn"
+                android:layout_width="56dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="0"
+                android:clickable="false"
+                android:focusable="false" />
+			
             <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/op_accept_reject_time"
                 android:layout_width="match_parent"
@@ -87,15 +96,6 @@
                 tools:text="@tools:sample/lorem" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/perm_toggle_btn"
-            android:layout_width="56dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_weight="0"
-            android:clickable="false"
-            android:focusable="false" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
