@@ -29,7 +29,7 @@
                 android:layout_height="wrap_content"
                 android:textIsSelectable="true"
                 android:textAppearance="?android:attr/textAppearanceListItem"
-                android:textSize="12sp"
+                android:textSize="14sp"
                 tools:text="android.permission.A_VERY_LONG_PERMISSION_NAME" />
 
             <androidx.appcompat.widget.AppCompatTextView
