@@ -6,9 +6,9 @@
     <dimen name="padding_small">8dp</dimen>
     <dimen name="padding_very_small">4dp</dimen>
 
-    <dimen name="font_size_larger">14sp</dimen>
-    <dimen name="font_size_large">12sp</dimen>
-    <dimen name="font_size_medium">11sp</dimen>
+    <dimen name="font_size_larger">16sp</dimen>
+    <dimen name="font_size_large">14sp</dimen>
+    <dimen name="font_size_medium">12sp</dimen>
     <dimen name="font_size_small">10sp</dimen>
     <dimen name="font_size_smaller">9sp</dimen>
 
