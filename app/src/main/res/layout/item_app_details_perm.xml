@@ -28,8 +28,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textIsSelectable="true"
-                android:textAppearance="?android:attr/textAppearanceListItem"
-                android:textSize="14sp"
+                android:textAppearance="?android:attr/textAppearanceBodyMedium"
                 tools:text="android.permission.A_VERY_LONG_PERMISSION_NAME" />
 
             <androidx.appcompat.widget.AppCompatTextView

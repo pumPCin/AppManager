@@ -55,8 +55,7 @@
                     android:gravity="center"
                     android:maxLines="2"
                     android:textIsSelectable="true"
-                    android:textAppearance="?android:attr/textAppearanceListItem"
-                    android:textSize="14sp"
+                    android:textAppearance="?android:attr/textAppearanceBodyMedium"
                     tools:text="@tools:sample/lorem" />
 
                 <com.google.android.material.textview.MaterialTextView
@@ -144,7 +143,7 @@
                 android:layout_marginHorizontal="@dimen/padding_small"
                 android:layout_marginVertical="@dimen/padding_very_small"
                 android:layout_weight="1"
-                android:maxLines="2"
+                android:singleLine="true"
                 android:textSize="11sp"
                 android:text="@string/launch"
                 tools:ignore="SmallSp" />
@@ -157,7 +156,7 @@
                 android:layout_marginHorizontal="@dimen/padding_small"
                 android:layout_marginVertical="@dimen/padding_very_small"
                 android:layout_weight="1"
-                android:maxLines="2"
+                android:singleLine="true"
                 android:textSize="11sp"
                 android:text="@string/create_shortcut"
                 tools:ignore="SmallSp" />

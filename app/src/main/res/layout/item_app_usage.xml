@@ -115,7 +115,7 @@
                         android:id="@+id/date"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:maxLines="2"
+                        android:singleLine="true"
                         android:textAppearance="?attr/textAppearanceBodySmall"
                         tools:text="@tools:sample/date/mmddyy" />
 
@@ -123,7 +123,7 @@
                         android:id="@+id/screen_time"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:maxLines="2"
+                        android:singleLine="true"
                         android:textAppearance="?attr/textAppearanceBodySmall"
                         tools:text="@tools:sample/lorem" />
 
@@ -139,7 +139,7 @@
                         android:id="@+id/data_usage"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:maxLines="2"
+                        android:singleLine="true"
                         android:textAppearance="?attr/textAppearanceBodySmall"
                         tools:text="@tools:sample/us_zipcodes[0]" />
 
@@ -147,7 +147,7 @@
                         android:id="@+id/wifi_usage"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:maxLines="2"
+                        android:singleLine="true"
                         android:textAppearance="?attr/textAppearanceBodySmall"
                         tools:text="@tools:sample/us_zipcodes[1]" />
 

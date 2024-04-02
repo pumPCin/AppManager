@@ -35,7 +35,7 @@
                 android:id="@+id/expiry_date"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:maxLines="2"
+                android:singleLine="true"
                 android:importantForAutofill="no"
                 android:inputType="date"
                 tools:text="@tools:sample/full_names" />
@@ -54,7 +54,7 @@
                 android:id="@+id/common_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:maxLines="2"
+                android:singleLine="true"
                 android:importantForAutofill="no"
                 android:inputType="text"
                 tools:text="@tools:sample/full_names" />
@@ -73,7 +73,7 @@
                 android:id="@+id/organization_unit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:maxLines="2"
+                android:singleLine="true"
                 android:importantForAutofill="no"
                 android:inputType="text"
                 tools:text="@tools:sample/full_names" />
@@ -92,7 +92,7 @@
                 android:id="@+id/organization_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:maxLines="2"
+                android:singleLine="true"
                 android:importantForAutofill="no"
                 android:inputType="text"
                 tools:text="@tools:sample/full_names" />
@@ -111,7 +111,7 @@
                 android:id="@+id/locality_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:maxLines="2"
+                android:singleLine="true"
                 android:importantForAutofill="no"
                 android:inputType="text"
                 tools:text="@tools:sample/full_names" />
@@ -130,7 +130,7 @@
                 android:id="@+id/state_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:maxLines="2"
+                android:singleLine="true"
                 android:importantForAutofill="no"
                 android:inputType="text"
                 tools:text="@tools:sample/full_names" />
@@ -149,7 +149,7 @@
                 android:id="@+id/country_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:maxLines="2"
+                android:singleLine="true"
                 android:importantForAutofill="no"
                 android:inputType="text"
                 tools:text="@tools:sample/full_names" />

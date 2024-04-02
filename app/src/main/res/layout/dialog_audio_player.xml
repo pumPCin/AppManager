@@ -39,7 +39,7 @@
                     android:id="@+id/size"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:maxLines="2"
+                    android:singleLine="true"
                     android:textAppearance="?attr/textAppearanceListItemSecondary"
                     android:textSize="9sp"
                     tools:text="1/12"

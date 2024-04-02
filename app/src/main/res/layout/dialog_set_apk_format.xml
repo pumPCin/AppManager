@@ -21,7 +21,7 @@
                 android:id="@+id/input_apk_name_format"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:maxLines="2"
+                android:singleLine="true"
                 android:fontFamily="monospace"
                 android:imeOptions="actionDone|flagNoPersonalizedLearning"
                 tools:text="%label%_%version%" />

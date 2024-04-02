@@ -27,8 +27,7 @@
                 android:id="@+id/op_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceListItem"
-                android:textSize="14sp"
+                android:textAppearance="?android:attr/textAppearanceBodyMedium"
                 android:textIsSelectable="true"
                 tools:text="@tools:sample/lorem" />
 
