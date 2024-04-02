@@ -29,6 +29,7 @@
                 android:layout_height="wrap_content"
                 android:textIsSelectable="true"
                 android:textAppearance="?android:attr/textAppearanceListItem"
+                android:textSize="12sp"
                 tools:text="android.permission.A_VERY_LONG_PERMISSION_NAME" />
 
             <androidx.appcompat.widget.AppCompatTextView
@@ -36,6 +37,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textSize="9sp"
                 tools:text="@tools:sample/lorem[10]" />
 
             <androidx.appcompat.widget.AppCompatTextView
