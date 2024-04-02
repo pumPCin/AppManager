@@ -56,6 +56,7 @@
                     android:maxLines="2"
                     android:textIsSelectable="true"
                     android:textAppearance="?android:attr/textAppearanceListItem"
+                    android:textSize="14sp"
                     tools:text="@tools:sample/lorem" />
 
                 <com.google.android.material.textview.MaterialTextView
