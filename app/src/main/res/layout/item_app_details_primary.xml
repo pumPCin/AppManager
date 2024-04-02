@@ -55,7 +55,8 @@
                     android:gravity="center"
                     android:maxLines="2"
                     android:textIsSelectable="true"
-                    android:textAppearance="?android:attr/textAppearanceBodyMedium"
+                    android:textAppearance="?android:attr/textAppearanceListItem"
+                    android:textSize="16sp"
                     tools:text="@tools:sample/lorem" />
 
                 <com.google.android.material.textview.MaterialTextView
