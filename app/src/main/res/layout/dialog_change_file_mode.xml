@@ -20,27 +20,27 @@
             <com.google.android.material.textview.MaterialTextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:singleLine="true" />
+                android:maxLines="2" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:layout_width="match_parent"
                 android:layout_height="32dp"
                 android:gravity="center_vertical"
-                android:singleLine="true"
+                android:maxLines="2"
                 android:text="Owner" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:layout_width="match_parent"
                 android:layout_height="32dp"
                 android:gravity="center_vertical"
-                android:singleLine="true"
+                android:maxLines="2"
                 android:text="Group" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:layout_width="match_parent"
                 android:layout_height="32dp"
                 android:gravity="center_vertical"
-                android:singleLine="true"
+                android:maxLines="2"
                 android:text="Others" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
@@ -56,7 +56,7 @@
             <com.google.android.material.textview.MaterialTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:singleLine="true"
+                android:maxLines="2"
                 android:text="Read" />
 
             <com.google.android.material.checkbox.MaterialCheckBox
@@ -87,7 +87,7 @@
             <com.google.android.material.textview.MaterialTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:singleLine="true"
+                android:maxLines="2"
                 android:text="Write" />
 
             <com.google.android.material.checkbox.MaterialCheckBox
@@ -118,7 +118,7 @@
             <com.google.android.material.textview.MaterialTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:singleLine="true"
+                android:maxLines="2"
                 android:text="Execute" />
 
             <com.google.android.material.checkbox.MaterialCheckBox

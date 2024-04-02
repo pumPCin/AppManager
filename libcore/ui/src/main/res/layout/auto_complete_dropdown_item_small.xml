@@ -8,6 +8,6 @@
     android:paddingHorizontal="16dp"
     android:ellipsize="marquee"
     android:marqueeRepeatLimit="marquee_forever"
-    android:singleLine="true"
+    android:maxLines="2"
     android:textAppearance="?attr/textAppearanceBodyMedium"
     tools:text="@tools:sample/lorem/random" />

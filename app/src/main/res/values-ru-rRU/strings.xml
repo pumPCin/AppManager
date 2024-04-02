@@ -527,7 +527,7 @@
     <string name="clear">Очистить</string>
     <string name="block">Заблокировать</string>
     <string name="unblock">Разблокировать</string>
-    <string name="block_unblock_trackers">Блокировать/разблокировать трекеры</string>
+    <string name="block_unblock_trackers">Операции с трекерами</string>
     <string name="no_matching_package_found">Не удалось найти такое приложение</string>
     <string name="export_icon">Извлечь значок</string>
     <string name="open_in_termux">Открыть в Termux</string>

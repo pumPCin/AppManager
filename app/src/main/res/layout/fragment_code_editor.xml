@@ -50,7 +50,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="text"
-                    android:singleLine="true"
+                    android:maxLines="2"
                     tools:text="@tools:sample/full_names" />
 
             </com.google.android.material.textfield.TextInputLayout>
@@ -67,7 +67,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="text"
-                    android:singleLine="true"
+                    android:maxLines="2"
                     tools:text="@tools:sample/full_names" />
 
             </com.google.android.material.textfield.TextInputLayout>
@@ -84,7 +84,7 @@
                     android:layout_weight="1"
                     android:layout_gravity="center_vertical"
                     android:paddingHorizontal="16dp"
-                    android:singleLine="true"
+                    android:maxLines="2"
                     android:ellipsize="end"
                     tools:text="10 results" />
 

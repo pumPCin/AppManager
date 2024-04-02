@@ -66,7 +66,7 @@
                     android:id="@+id/label"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:singleLine="true"
+                    android:maxLines="2"
                     android:textAppearance="?android:attr/textAppearanceListItem"
                     tools:text="@string/app_name" />
 
@@ -74,7 +74,7 @@
                     android:id="@+id/packageName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:singleLine="true"
+                    android:maxLines="2"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textStyle="italic"
                     tools:text="io.github.muntashirakon.AppManager" />
@@ -88,7 +88,7 @@
                         android:id="@+id/date"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:singleLine="true"
+                        android:maxLines="2"
                         android:textAppearance="?attr/textAppearanceBodySmall"
                         tools:text="@tools:sample/date/mmddyy" />
 
@@ -98,7 +98,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:paddingEnd="25sp"
-                        android:singleLine="true"
+                        android:maxLines="2"
                         android:textAppearance="?attr/textAppearanceBodySmall"
                         android:textSize="10sp"
                         tools:text="@tools:sample/us_zipcodes"
@@ -110,7 +110,7 @@
                     android:id="@+id/issuer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:singleLine="true"
+                    android:maxLines="2"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textSize="9sp"
                     tools:text="CN=Android,OU=Android"
@@ -120,7 +120,7 @@
                     android:id="@+id/backup_info"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:singleLine="true"
+                    android:maxLines="2"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textSize="10sp"
                     tools:text="@tools:sample/lorem[6]"
@@ -141,7 +141,7 @@
                 android:id="@+id/version"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:singleLine="true"
+                android:maxLines="2"
                 android:textAppearance="?attr/textAppearanceBodySmall"
                 tools:text="v3.0.0" />
 
@@ -149,7 +149,7 @@
                 android:id="@+id/isSystem"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:singleLine="true"
+                android:maxLines="2"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 tools:text="User" />
 
@@ -157,7 +157,7 @@
                 android:id="@+id/size"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:singleLine="true"
+                android:maxLines="2"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 tools:text="SDK 30" />
 
@@ -165,7 +165,7 @@
                 android:id="@+id/sha"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:singleLine="true"
+                android:maxLines="2"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textSize="11sp"
                 tools:text="SHA256withRSA" />
@@ -174,7 +174,7 @@
                 android:id="@+id/backup_info_ext"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:singleLine="true"
+                android:maxLines="2"
                 android:textAppearance="?attr/textAppearanceBodySmall"
                 android:textSize="10sp"
                 tools:text="APK+Data"

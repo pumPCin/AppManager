@@ -30,7 +30,7 @@
                 android:id="@+id/key_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:singleLine="true"
+                android:maxLines="2"
                 android:importantForAutofill="no"
                 android:inputType="text"
                 android:scrollHorizontally="true"
@@ -70,7 +70,7 @@
                 android:id="@+id/input_float"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:singleLine="true"
+                android:maxLines="2"
                 android:importantForAutofill="no"
                 android:inputType="numberDecimal"
                 tools:text="@tools:sample/full_names" />
@@ -90,7 +90,7 @@
                 android:id="@+id/input_int"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:singleLine="true"
+                android:maxLines="2"
                 android:importantForAutofill="no"
                 android:inputType="number"
                 tools:text="@tools:sample/full_names" />
@@ -110,7 +110,7 @@
                 android:id="@+id/input_long"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:singleLine="true"
+                android:maxLines="2"
                 android:importantForAutofill="no"
                 android:inputType="number"
                 tools:text="@tools:sample/full_names" />
@@ -130,7 +130,7 @@
                 android:id="@+id/input_string"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:singleLine="true"
+                android:maxLines="2"
                 android:importantForAutofill="no"
                 android:inputType="textMultiLine"
                 tools:text="@tools:sample/full_names" />

@@ -123,7 +123,7 @@
                 android:id="@android:id/input"
                 android:layout_width="match_parent"
                 android:layout_height="34dp"
-                android:singleLine="true" />
+                android:maxLines="2" />
 
         </com.google.android.material.textfield.TextInputLayout>
 

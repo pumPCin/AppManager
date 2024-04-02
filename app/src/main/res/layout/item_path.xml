@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:paddingHorizontal="@dimen/padding_small"
         android:paddingVertical="@dimen/padding_small"
-        android:singleLine="true"
+        android:maxLines="2"
         tools:text="» Path" />
 
 </com.google.android.material.card.MaterialCardView>
