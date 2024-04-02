@@ -547,7 +547,7 @@
         <item name="android:padding">16dp</item>
         <item name="android:textAppearance">?android:attr/textAppearanceListItem</item>
         <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">12sp</item>
         <item name="iconGravity">textTop</item>
         <item name="iconSize">30dp</item>
         <item name="iconTint">?attr/colorOnSurfaceVariant</item>
@@ -660,6 +660,6 @@
     <style name="TextAppearance.AppTheme.LabelSmall" parent="TextAppearance.Material3.LabelSmall" />
 
     <style name="TextAppearance.AppTheme.LabelSmaller" parent="TextAppearance.Material3.LabelSmall">
-        <item name="android:textSize">10sp</item>
+        <item name="android:textSize">9sp</item>
     </style>
 </resources>
