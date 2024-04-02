@@ -43,5 +43,5 @@ ext {
 
     // Test dependencies
     junit_version = "4.13.2"
-    robolectric_version = "4.12"
+    robolectric_version = "4.9.2"
 }
