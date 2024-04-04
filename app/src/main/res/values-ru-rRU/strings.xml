@@ -160,10 +160,10 @@
     <string name="tracker_classes">Классы трекера</string>
     <string name="all_classes">Все классы</string>
     <plurals name="main_list_date_days">
-        <item quantity="one"><xliff:g id="last_update_date" example="20/10/2020">%1$s</xliff:g> <xliff:g id="day_no" example="5">%2$d</xliff:g> день</item>
-        <item quantity="few"><xliff:g id="last_update_date" example="20/10/2020">%1$s</xliff:g> <xliff:g id="day_no" example="5">%2$d</xliff:g> дня</item>
-        <item quantity="many"><xliff:g id="last_update_date" example="20/10/2020">%1$s</xliff:g> <xliff:g id="day_no" example="5">%2$d</xliff:g> дней</item>
-        <item quantity="other"><xliff:g id="last_update_date" example="20/10/2020">%1$s</xliff:g> <xliff:g id="day_no" example="5">%2$d</xliff:g> дней</item>
+        <item quantity="one"><xliff:g id="last_update_date" example="20/10/2020">%1$s</xliff:g>|<xliff:g id="day_no" example="5">%2$d</xliff:g> день</item>
+        <item quantity="few"><xliff:g id="last_update_date" example="20/10/2020">%1$s</xliff:g>|<xliff:g id="day_no" example="5">%2$d</xliff:g> дня</item>
+        <item quantity="many"><xliff:g id="last_update_date" example="20/10/2020">%1$s</xliff:g>|<xliff:g id="day_no" example="5">%2$d</xliff:g> дней</item>
+        <item quantity="other"><xliff:g id="last_update_date" example="20/10/2020">%1$s</xliff:g>|<xliff:g id="day_no" example="5">%2$d</xliff:g> дней</item>
     </plurals>
     <string name="no_shared_libs">Нет общих библиотек</string>
     <string name="no_tracker_class">Нет классов трекера</string>
@@ -409,7 +409,7 @@
     <string name="clear_cache">Очистить кэш</string>
     <string name="block_unblock_trackers_description">Блокировать или разблокировать рекламу и компоненты трекеров во всех установленных приложениях</string>
     <string name="block_components_dots">Блокировать компоненты…</string>
-    <string name="block_unblock_components_dots">Блокировать/разблокировать компоненты…</string>
+    <string name="block_unblock_components_dots">Операции с компонентами…</string>
     <string name="unblock_components_dots">Разблокировать компоненты…</string>
     <string name="block_unblock_components_description">Блокировать или разблокировать все компоненты, идентифицированные данными подписями</string>
     <string name="deny_app_ops_description">Установите режим для операций приложения, определяемых постоянными значениями, например <tt>63</tt> или <tt>RUN_IN_BACKGROUND</tt></string>
@@ -1510,7 +1510,15 @@
     <string name="pref_use_vt">Использовать VirusTotal</string>
     <string name="virus_total">VirusTotal</string>
     <string name="pref_use_vt_no_internet">Для работы VirusTotal требуется интернет, который не включен. Пожалуйста, сначала включите <a href="app-manager://settings/privacy_prefs/toggle_internet">“Использовать Интернет”</a>.</string>
-    <string name="pref_use_log_viewer">Использовать Просмотр Логов</string>
+    <string name="pref_use_log_viewer">Использовать Просмотр логов</string>
     <string name="pref_installer">Использовать Установщик</string>
     <string name="pref_cat_general">Общий</string>
+    <string name="status_remote_server_active">Удаленный сервер активен</string>
+    <string name="status_remote_server_inactive">Удаленный сервер не активен</string>
+    <string name="status_remote_services_active">Удаленные службы активны</string>
+    <string name="status_remote_services_inactive">Удаленные службы не активны</string>
+    <string name="status_connecting">Подключение…</string>
+    <string name="status_connecting_via_mode">Подключение через %s</string>
+    <string name="status_connected_via_mode">Подключен через %s</string>
+    <string name="status_not_connected_via_mode">Не удалось подключиться через %s</string>
 </resources>
