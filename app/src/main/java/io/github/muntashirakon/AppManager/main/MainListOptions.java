@@ -52,6 +52,7 @@ public class MainListOptions extends ListOptions {
             SORT_BY_OPEN_COUNT,
             SORT_BY_SCREEN_TIME,
             SORT_BY_LAST_USAGE_TIME,
+            SORT_BY_INSTALLER_APP
     })
     @Retention(RetentionPolicy.SOURCE)
     public @interface SortOrder {
