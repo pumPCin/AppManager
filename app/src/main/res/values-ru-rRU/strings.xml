@@ -1226,7 +1226,6 @@
     <string name="regenerate_auth_key_warning">Вы уверены\? Все сторонние приложения должны быть перенастроены с использованием нового ключа авторизации.</string>
     <string name="shortcut_icon">Значок быстрого доступа</string>
     <string name="sort_by_installation_date">Дата установки</string>
-    <string name="sort_by_installer_app">Установщик приложений</string>
     <string name="backup_volume_unavailable_warning">Выбранный том резервных копий в настоящее время недоступен. Если он находится на внешнем накопителе, подключите его или измените том для резервных копий.</string>
     <string name="change_backup_volume">Изменить том</string>
     <string name="external">Внешний</string>

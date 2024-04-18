@@ -117,9 +117,6 @@ public class App implements Serializable {
     @ColumnInfo(name = "last_action_time", defaultValue = "0")
     public long lastActionTime;
 
-    @ColumnInfo(name = "installer_app", defaultValue = "")
-    public String installerApp;
-
     public boolean isSystemApp() {
         return (flags & ApplicationInfo.FLAG_SYSTEM) != 0;
     }
@@ -153,7 +150,6 @@ public class App implements Serializable {
         app.rulesCount = 0;
         app.trackerCount = ComponentUtils.getTrackerComponentsForPackage(packageInfo).size();
         app.lastActionTime = System.currentTimeMillis();
-        app.installerApp = applicationInfo.installerApp;
         return app;
     }
 
