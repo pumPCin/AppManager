@@ -819,8 +819,8 @@
     <string name="backup_obb_media_description">Резервное копирование OBB и папок с медиафайлами.</string>
     <string name="backup_cache_description">Резервное копирование папок <b>cache</b>, <b>no_cache</b> и <b>no_backup</b>.</string>
     <string name="backup_extras">Дополнительно</string>
-    <string name="backup_extras_description">Резервное копирование разрешений приложения, экономия батареи, параметры использования данных, статус MagiskHide, SSAID и т.д.
-        <font fgcolor="#ff0000">В зависимости от разрешений не все правила можно восстановить.</font>
+    <string name="backup_extras_description">Резервное копирование разрешений приложений, параметров экономии заряда батареи и использования данных, состояние MagiskHide, SSAID и т.д.
+        <font fgcolor="#ff0000">В зависимости от разрешений не все extras можно восстановить.</font>
     </string>
     <string name="backup_rules_description">Резервное копирование правил, настроенных в App Manager.
         <font fgcolor="#ff0000">В зависимости от разрешений не все правила можно повторно применить во время восстановления.</font>
@@ -1494,7 +1494,7 @@
     <string name="scan_report_from_pithus">Отчет Pithus</string>
     <string name="action_checking">Проверка…</string>
     <string name="report_not_available">Не доступно</string>
-    <string name="profile_modified_are_you_sure">Профиль был изменен. Отменить все изменения и выйти?</string>
+    <string name="profile_modified_are_you_sure">Профиль был изменен. Отменить все изменения и выйти\?</string>
     <string name="apply_profile">Применить профиль “%1$s”</string>
     <string name="choose_a_profile_state">Выберите состояние профиля</string>
     <string name="profile_id">ID профиля</string>
