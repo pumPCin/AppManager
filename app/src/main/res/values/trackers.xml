@@ -991,6 +991,11 @@
         <item>jp.pinable.ssbp.</item>
         <item>com.smixx.fabric.</item>
         <item>com.tabtale</item>
+        <item>io.appmetrica.</item>
+        <item>ru.rustore.sdk.metrics.</item>
+        <item>ru.rustore.sdk.pushclient.</item>
+        <item>.service.RuStorePushService</item>
+        <item>.pushservice.rustore.</item>
     </string-array>
     <string-array name="tracker_names">
         <item>360Dialog</item>
@@ -1982,5 +1987,10 @@
         <item>²pinable</item>
         <item>²react-native-fabric</item>
         <item>²tabtale</item>
+        <item>App Metrica</item>
+        <item>SendMetricsEventJobService</item>
+        <item>Ru Store Push Client</item>
+        <item>Ru Store Push Service</item>
+        <item>Ru Store Push Service</item>
     </string-array>
 </resources>
