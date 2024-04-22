@@ -1156,7 +1156,7 @@
     <string name="intent_firewall_and_disable">IFW + отключение</string>
     <string name="intent_firewall">IFW</string>
     <string name="pref_default_blocking_method">Метод блокировки по умолчанию</string>
-    <string name="pref_default_blocking_method_description">Метод, используемый по умолчанию там, где нет возможности выбора метода блокировки.</string>
+    <string name="pref_default_blocking_method_description">Метод, используемый по умолчанию там, где нет возможности выбора метода блокировки.\n<b>Примечание:</b> “IFW” не работает с поставщиками, вместо него используется “отключить”.</string>
     <string name="pref_intent_firewall_and_disable_description">Блокировка компонентов с помощью Intent Firewall и также отключения. Рекомендуемый метод для root пользователей.</string>
     <string name="pref_intent_firewall_description">Блокировка компонентов с использованием только Intent Firewall. Не рекомендуется, поскольку некоторые системные приложения могут обходить этот метод блокировки.</string>
     <string name="pref_disable_description">Только отключение компонентов. Не рекомендуется для root пользователей, поскольку приложения могут обходить этот метод блокировки. С помощью этого метода можно отключить только тестовые приложения в режиме ADB.</string>
@@ -1531,4 +1531,5 @@
     <string name="adb_pairing_retry_pairing">Повторить</string>
     <string name="mode_of_op_custom_command_title">Пользовательская команда</string>
     <string name="mode_of_op_custom_command">Если нет возможности использовать ни один из режимов, можете выполнить эту команду в любом Shell\'е, чтобы запустить App Manager в привилегированном режиме:</string>
+    <string name="mode_of_op_alternative_custom_command">Если будет ошибка “permission denied”, то вместо команды выше выполните эту команду:</string>
 </resources>
