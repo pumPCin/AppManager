@@ -59,7 +59,7 @@ public final class ServerConfig {
         SERVER_RUNNER_JAR[0] = new File(externalCachePath, Constants.JAR_NAME);
         SERVER_RUNNER_JAR[1] = new File(deStorage, Constants.JAR_NAME);
         // Copy JAR
-        boolean force = BuildConfig.DEBUG;
+        boolean force = false; //BuildConfig.DEBUG;
         AssetsUtils.copyFile(context, Constants.JAR_NAME, SERVER_RUNNER_JAR[0], force);
         AssetsUtils.copyFile(context, Constants.JAR_NAME, SERVER_RUNNER_JAR[1], force);
         // Write script
