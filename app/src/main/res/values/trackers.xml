@@ -713,8 +713,8 @@
         <item>com.gamesparks.sdk.</item>
         <item>com.geouniq.android.</item>
         <item>com.google.cloud.audit</item>
-        <item>com.google.mlkit</item>
-        <item>com.android.billingclient</item>
+        <!--<item>com.google.mlkit</item>
+        <item>com.android.billingclient</item>-->
         <item>com.grab.grabidpartnersdk</item>
         <item>com.timerazor.gravysdk.</item>
         <item>com.greedygame.legacy</item>
@@ -952,8 +952,8 @@
         <item>com.woopra.tracking.</item>
         <item>com.woorlds.woorldssdk.</item>
         <item>com.wortise.</item>
-        <item>com.xiaomi.push</item>
-        <item>com.xiaomi.mipush.</item>
+        <!--<item>com.xiaomi.push</item>
+        <item>com.xiaomi.mipush.</item>-->
         <item>jp.co.yahoo.android.yssens.YSSensDataShareService</item>
         <item>jp.co.yahoo.yconnect.sdk.SharedDataService</item>
         <item>jp.co.yahoo.android.hssens.HSSensDataShareService</item>
@@ -1704,8 +1704,8 @@
         <item>²Game Sparks</item>
         <item>²GeoUniq (Cloud4Win)</item>
         <item>²Google Cloud Audit</item>
-        <item>²Google ML Kit</item>
-        <item>²Google Play Billing Library / Service</item>
+        <!--<item>²Google ML Kit</item>
+        <item>²Google Play Billing Library / Service</item>-->
         <item>²Grab Analytics</item>
         <item>²Gravy Analytics</item>
         <item>²GreedyGame</item>
@@ -1943,8 +1943,8 @@
         <item>²Woopra</item>
         <item>²Woorlds</item>
         <item>²Wortise</item>
-        <item>²Xiaomi Push Service</item>
-        <item>²Xiaomi Push Service</item>
+        <!--<item>²Xiaomi Push Service</item>
+        <item>²Xiaomi Push Service</item>-->
         <item>²Yahoo!Japan DataShare</item>
         <item>²Yahoo!Japan DataShare</item>
         <item>²Yahoo!Japan DataShare</item>
