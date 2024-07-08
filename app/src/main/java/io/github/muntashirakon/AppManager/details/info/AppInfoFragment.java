@@ -90,7 +90,7 @@ import io.github.muntashirakon.AppManager.accessibility.NoRootAccessibilityServi
 import io.github.muntashirakon.AppManager.apk.ApkFile;
 import io.github.muntashirakon.AppManager.apk.ApkSource;
 import io.github.muntashirakon.AppManager.apk.ApkUtils;
-import io.github.muntashirakon.AppManager.apk.behavior.DexOptDialog;
+import io.github.muntashirakon.AppManager.apk.dexopt.DexOptDialog;
 import io.github.muntashirakon.AppManager.apk.behavior.FreezeUnfreezeShortcutInfo;
 import io.github.muntashirakon.AppManager.apk.installer.PackageInstallerActivity;
 import io.github.muntashirakon.AppManager.apk.installer.PackageInstallerCompat;
@@ -421,8 +421,8 @@ public class AppInfoFragment extends Fragment implements SwipeRefreshLayout.OnRe
             });
         } else if (itemId == R.id.action_backup) {
             if (mMainModel == null) return true;
-            BackupRestoreDialogFragment fragment = BackupRestoreDialogFragment.getInstance(
-                    Collections.singletonList(new UserPackagePair(mPackageName, mUserId)));
+            BackupRestoreDialogFragment fragment = BackupRestoreDialogFragment.getInstanceWithPref(
+                    Collections.singletonList(new UserPackagePair(mPackageName, mUserId)), mUserId);
             fragment.setOnActionBeginListener(mode -> showProgressIndicator(true));
             fragment.setOnActionCompleteListener((mode, failedPackages) -> showProgressIndicator(false));
             fragment.show(getParentFragmentManager(), BackupRestoreDialogFragment.TAG);
