@@ -1532,4 +1532,8 @@
     <string name="mode_of_op_custom_command_title">Пользовательская команда</string>
     <string name="mode_of_op_custom_command">Если нет возможности использовать ни один из режимов, можете выполнить эту команду в любом Shell\'е, чтобы запустить App Manager в привилегированном режиме:</string>
     <string name="mode_of_op_alternative_custom_command">Если будет ошибка “permission denied”, то вместо команды выше выполните эту команду:</string>
+    <string name="sensors">Сенсоры</string>
+    <string name="tag_sensors_disabled">Сенсоры отключены</string>
+    <string name="pref_use_system_font">Системный шрифт</string>
+    <string name="pref_use_system_font_msg">Использовать установленный системный шрифт по умолчанию. <font fgcolor="#ff0000">Это экспериментальная функция.</font></string>
 </resources>
