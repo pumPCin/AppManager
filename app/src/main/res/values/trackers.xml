@@ -381,8 +381,8 @@
         <item>com.google.firebase.analytics.FirebaseAnalytics</item>
         <item>com.google.android.gms.measurement.</item>
         <item>com.google.firebase.firebase_analytics</item>
-        <item>com.google.mlkit</item>
-        <item>com.android.billingclient</item>
+        <!--<item>com.google.mlkit</item>
+        <item>com.android.billingclient</item>-->
         <item>com.google.tagmanager</item>
         <item>com.google.android.gms.tagmanager</item>
         <item>com.grab.grabidpartnersdk</item>
@@ -1792,8 +1792,8 @@
         <item>Google Firebase Analytics</item>
         <item>Google Firebase Analytics</item>
         <item>Google Firebase Analytics</item>
-        <item>Google ML Kit</item>
-        <item>Google Play Billing Library / Service</item>
+        <!--<item>Google ML Kit</item>
+        <item>Google Play Billing Library / Service</item>-->
         <item>Google Tag Manager</item>
         <item>Google Tag Manager</item>
         <item>Grab Analytics</item>
@@ -2347,8 +2347,8 @@
         <item>X-Mode</item>
         <item>X-Mode</item>
         <item>X-Mode</item>
-        <item>Xiaomi Push Service</item>
-        <item>Xiaomi Push Service</item>
+        <!--<item>Xiaomi Push Service</item>
+        <item>Xiaomi Push Service</item>-->
         <item>YOC VIS.X</item>
         <item>Yahoo Ads</item>
         <item>Yahoo!Japan DataShare</item>
