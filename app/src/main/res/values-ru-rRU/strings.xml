@@ -355,7 +355,7 @@
     <string name="block_trackers">Блокировать трекеры</string>
     <string name="sort_by_component_name">Название компонента</string>
     <string name="reset_to_default">Сброс по умолчанию</string>
-    <string name="deny_dangerous_app_ops">Отклонить опасные операции приложения</string>
+    <string name="deny_dangerous_app_ops">Отклонить опасные операции</string>
     <string name="sort_by_app_ops_names">Имена операций приложения</string>
     <string name="sort_by_denied_app_ops">Сначала отклоненные</string>
     <string name="sort_by_app_ops_values">Значение операций приложения</string>
@@ -539,7 +539,7 @@
     <string name="pref_remove_all_rules_msg">Разрешения будут предоставлены, операциям приложения и компонентам вернутся значения по умолчанию.</string>
     <string name="are_you_sure">Вы уверены?</string>
     <string name="filter_apps_with_activities">С активити</string>
-    <string name="toggle_default_app_ops">Переключение операций приложения по умолчанию</string>
+    <string name="toggle_default_app_ops">Вернуть операции по умолчанию</string>
     <string name="installer_error_aborted">Установка не удалась, потому что она была отменена, или сеанс был неожиданно закрыт</string>
     <string name="installer_error_blocked_device">устройством</string>
     <string name="installer_error_blocked">Установка заблокирована <xliff:g id="app_name" example="App Manager">%1$s</xliff:g></string>
@@ -791,7 +791,7 @@
     <string name="share">Поделиться</string>
     <string name="resend_intent">Повторная отправка намерения</string>
     <string name="interceptor">Перехватчик</string>
-    <string name="set_custom_app_op">Пользовательская настройка операции приложения</string>
+    <string name="set_custom_app_op">Своя настройка операции</string>
     <string name="about_device">Об устройстве</string>
     <string name="pref_about_device_msg">Информация об устройстве, включая версию Android, ЦП, ГП, ОЗУ, аккумулятор и т.д.</string>
     <string name="brand_name">Марка</string>
