@@ -1407,6 +1407,13 @@
         <item>ru.rustore.sdk.pushclient.</item>
         <item>.service.RuStorePushService</item>
         <item>.pushservice.rustore.</item>
+        <item>com.google.android.gms.ads.</item>
+        <item>.bigo.ads.</item>
+        <item>com.tradplus.ads.</item>
+        <item>com.taurusx.tax.</item>
+        <item>com.tp.adx.</item>
+        <item>com.vungle.ads.</item>
+        <item>com.flatads.sdk.</item>
     </string-array>
     <string-array name="tracker_names">
         <item>360Dialog</item>
@@ -2829,5 +2836,12 @@
         <item>Ru Store Push Client</item>
         <item>Ru Store Push Service</item>
         <item>Ru Store Push Service</item>
+        <item>Google AdMob</item>
+        <item>Bigo Ads</item>
+        <item>Tradplus Ads</item>
+        <item>Taurusx Ads</item>
+        <item>Tp Ads</item>
+        <item>Vungle Ads</item>
+        <item>Flatads</item>
     </string-array>
 </resources>
