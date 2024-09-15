@@ -15,10 +15,14 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.CallSuper;
 import androidx.annotation.IdRes;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.menu.MenuBuilder;
+import androidx.biometric.BiometricPrompt;
+import androidx.biometric.BiometricPrompt.AuthenticationResult;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
@@ -27,6 +31,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import io.github.muntashirakon.AppManager.compat.BiometricAuthenticatorsCompat;
+import io.github.muntashirakon.AppManager.crypto.auth.AuthManager;
 import io.github.muntashirakon.AppManager.crypto.ks.KeyStoreActivity;
 import io.github.muntashirakon.AppManager.crypto.ks.KeyStoreManager;
 import io.github.muntashirakon.AppManager.logs.Log;
@@ -48,26 +54,19 @@ public abstract class BaseActivity extends AppCompatActivity {
         }
     }};
 
+    public static final String EXTRA_AUTH = "auth";
+
     @Nullable
     private AlertDialog mAlertDialog;
     @Nullable
     private SecurityAndOpsViewModel mViewModel;
     private boolean mDisplayLoader = true;
+    private BiometricPrompt mBiometricPrompt;
 
     private final ActivityResultLauncher<Intent> mKeyStoreActivity = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), result -> {
                 // Need authentication and/or verify mode of operation
                 ensureSecurityAndModeOfOp();
-            });
-    private final ActivityResultLauncher<Intent> mAuthActivity = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (result.getResultCode() == RESULT_OK) {
-                    // Success
-                    handleMigrationAndModeOfOp();
-                } else {
-                    // Authentication failed
-                    finishAndRemoveTask();
-                }
             });
     private final ActivityResultLauncher<String[]> mPermissionCheckActivity = registerForActivityResult(
             new ActivityResultContracts.RequestMultiplePermissions(),
@@ -91,6 +90,25 @@ public abstract class BaseActivity extends AppCompatActivity {
         //}
         // Run authentication
         mViewModel = new ViewModelProvider(this).get(SecurityAndOpsViewModel.class);
+        mBiometricPrompt = new BiometricPrompt(this, ContextCompat.getMainExecutor(this),
+                new BiometricPrompt.AuthenticationCallback() {
+                    @Override
+                    public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
+                        super.onAuthenticationError(errorCode, errString);
+                        finishAndRemoveTask();
+                    }
+
+                    @Override
+                    public void onAuthenticationSucceeded(@NonNull AuthenticationResult result) {
+                        super.onAuthenticationSucceeded(result);
+                        handleMigrationAndModeOfOp();
+                    }
+
+                    @Override
+                    public void onAuthenticationFailed() {
+                        super.onAuthenticationFailed();
+                    }
+                });
         mAlertDialog = UIUtils.getProgressDialog(this, getString(R.string.initializing), true);
         Log.d(TAG, "Waiting to be authenticated.");
         mViewModel.authenticationStatus().observe(this, status -> {
@@ -215,12 +233,25 @@ public abstract class BaseActivity extends AppCompatActivity {
             handleMigrationAndModeOfOp();
             return;
         }
-        Log.d(TAG, "Security enabled.");
+        if (getIntent().hasExtra(EXTRA_AUTH)) {
+            Log.i(TAG, "Screen lock-bypass enabled.");
+            // Check for auth
+            String auth = getIntent().getStringExtra(EXTRA_AUTH);
+            if (AuthManager.getKey().equals(auth)) {
+                // Auth successful
+                handleMigrationAndModeOfOp();
+                return;
+            } // else // Invalid authorization key, fallback to security
+        }
+        Log.i(TAG, "Screen lock enabled.");
         KeyguardManager keyguardManager = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
         if (keyguardManager.isKeyguardSecure()) {
             // Screen lock enabled
-            Intent intent = keyguardManager.createConfirmDeviceCredentialIntent(getString(R.string.unlock_app_manager), null);
-            mAuthActivity.launch(intent);
+            BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
+                    .setTitle(getString(R.string.unlock_app_manager))
+                    .setAllowedAuthenticators(new BiometricAuthenticatorsCompat.Builder().allowEverything(true).build())
+                    .build();
+            mBiometricPrompt.authenticate(promptInfo);
         } else {
             // Screen lock disabled
             UIUtils.displayLongToast(R.string.screen_lock_not_enabled);
