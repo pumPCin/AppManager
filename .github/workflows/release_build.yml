@@ -28,7 +28,7 @@ jobs:
       - name: Inject run number
         run: sed -i -e 's|versionName "\([0-9\.]\+\)"|versionName "\1-${{ github.run_number }}"|' ./app/build.gradle
       - name: Grant execute permission
-        run:  ls /home/runner/work/AppManager/AppManager/scripts/ && chmod +x *.sh
+        run: chmod +x /home/runner/work/AppManager/AppManager/scripts/make_docs.sh
       - name: Build with Gradle
         run: ./gradlew packageReleaseUniversalApk
       - name: Rename the APK file
