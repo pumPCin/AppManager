@@ -32,7 +32,6 @@ import java.util.Locale;
 import io.github.muntashirakon.AppManager.BuildConfig;
 import io.github.muntashirakon.AppManager.R;
 import io.github.muntashirakon.AppManager.details.AppDetailsActivity;
-import io.github.muntashirakon.util.AdapterUtils;
 import io.github.muntashirakon.AppManager.utils.DateUtils;
 import io.github.muntashirakon.dialog.CapsuleBottomSheetDialogFragment;
 import io.github.muntashirakon.dialog.DialogTitleBuilder;
@@ -159,8 +158,12 @@ public class AppUsageDetailsDialog extends CapsuleBottomSheetDialogFragment {
         void setDefaultList(@NonNull PackageUsageInfo usageInfo) {
             mUsageInfo = usageInfo;
             synchronized (mAdapterList) {
-                AdapterUtils.notifyDataSetChanged(this, mAdapterList, usageInfo.entries);
+                mAdapterList.clear();
+                if (usageInfo.entries != null) {
+                    mAdapterList.addAll(usageInfo.entries);
+                }
             }
+            notifyDataSetChanged();
         }
 
         @Override

@@ -34,11 +34,8 @@
 
         <!-- Preferences -->
         <item name="preferenceStyle">@style/Preference.M3</item>
-        <item name="alertPreferenceStyle">@style/Preference.M3.Alert</item>
         <item name="checkBoxPreferenceStyle">@style/Preference.M3.CheckBoxPreference</item>
         <item name="dialogPreferenceStyle">@style/Preference.M3.DialogPreference</item>
-        <item name="primaryButtonPreferenceStyle">@style/Preference.M3.ButtonPreference.Primary</item>
-        <item name="topSwitchPreferenceStyle">@style/Preference.M3.TopSwitchPreference</item>
 
         <item name="dropdownPreferenceStyle">@style/Preference.DropDown.Material</item>
 
@@ -116,43 +113,17 @@
     </style>
 
     <!-- MaterialSpinner -->
-    <style name="Widget.AppTheme.MaterialSpinner" parent="Widget.AppTheme.TextInputLayout.ExposedDropdownMenu" />
-
-    <style name="Widget.AppTheme.MaterialSpinner.Small" parent="Widget.AppTheme.TextInputLayout.ExposedDropdownMenu.Small" />
-
-    <style name="Widget.AppTheme.MaterialSpinner.Spinner" parent="Widget.AppTheme.MaterialSpinner">
+    <style name="Widget.AppTheme.MaterialSpinner" parent="Widget.AppTheme.TextInputLayout.ExposedDropdownMenu">
         <item name="boxStrokeWidth">0dp</item>
-        <item name="boxBackgroundColor">?attr/colorPrimaryContainer</item>
-        <item name="materialThemeOverlay">@style/ThemeOverlay.AppTheme.MaterialSpinner</item>
     </style>
 
-    <style name="Widget.AppTheme.MaterialSpinner.Spinner.Small" parent="Widget.AppTheme.MaterialSpinner.Small">
+    <style name="Widget.AppTheme.MaterialSpinner.Small" parent="Widget.AppTheme.TextInputLayout.ExposedDropdownMenu.Small">
         <item name="boxStrokeWidth">0dp</item>
-        <item name="boxBackgroundColor">?attr/colorPrimaryContainer</item>
-        <item name="materialThemeOverlay">@style/ThemeOverlay.AppTheme.MaterialSpinner.Small</item>
     </style>
 
-    <style name="ThemeOverlay.AppTheme.MaterialSpinner" parent="">
-        <item name="autoCompleteTextViewStyle">@style/Widget.AppTheme.MaterialSpinner.AutoCompleteTextView</item>
-    </style>
+    <style name="Widget.AppTheme.MaterialSpinner.Outlined" parent="Widget.AppTheme.TextInputLayout.ExposedDropdownMenu" />
 
-    <style name="ThemeOverlay.AppTheme.MaterialSpinner.Small" parent="">
-        <item name="autoCompleteTextViewStyle">@style/Widget.AppTheme.MaterialSpinner.AutoCompleteTextView.Small</item>
-        <item name="endIconMinSize">18dp</item> <!-- 34 - 8*2 -->
-    </style>
-
-    <style name="Widget.AppTheme.MaterialSpinner.AutoCompleteTextView" parent="Widget.Material3.AutoCompleteTextView.OutlinedBox.Dense">
-        <item name="simpleItemLayout">@layout/auto_complete_dropdown_item</item>
-        <item name="android:dropDownSelector">?attr/listChoiceBackgroundIndicator</item>
-    </style>
-
-    <style name="Widget.AppTheme.MaterialSpinner.AutoCompleteTextView.Small" parent="Widget.AppTheme.AutoCompleteTextView">
-        <item name="android:paddingStart">12dp</item>
-        <item name="android:paddingEnd">12dp</item>
-        <item name="android:paddingTop">8dp</item>
-        <item name="android:paddingBottom">8dp</item>
-        <item name="android:minHeight">34dp</item>
-    </style>
+    <style name="Widget.AppTheme.MaterialSpinner.Outlined.Small" parent="Widget.AppTheme.TextInputLayout.ExposedDropdownMenu.Small" />
 
     <!-- MaterialAlertDialog -->
     <style name="MaterialAlertDialog.Material3.Body.Text.Large" parent="MaterialAlertDialog.Material3.Body.Text">
@@ -269,12 +240,6 @@
         <item name="cardBackgroundColor">@android:color/transparent</item>
     </style>
 
-    <style name="Widget.AppTheme.CardView.ListItem.Outlined" parent="Widget.Material3.CardView.Outlined">
-        <item name="cardCornerRadius">?attr/listItemCornerRadius</item>
-        <item name="strokeWidth">1dp</item>
-        <item name="cardBackgroundColor">@macro/m3_comp_elevated_card_container_color</item>
-    </style>
-
     <style name="Widget.AppTheme.CardView.ListItem.Padded" parent="Widget.AppTheme.CardView.ListItem">
         <!-- Fix margin issue -->
         <item name="android:layout_marginTop">@dimen/padding_very_small</item>
@@ -349,13 +314,9 @@
 
     <!-- ProgressIndicator -->
     <style name="Widget.AppTheme.LinearProgressIndicator" parent="Widget.Material3.LinearProgressIndicator" />
-
     <style name="Widget.AppTheme.CircularProgressIndicator" parent="Widget.Material3.CircularProgressIndicator" />
-
     <style name="Widget.AppTheme.CircularProgressIndicator.Medium" parent="Widget.Material3.CircularProgressIndicator.Medium" />
-
     <style name="Widget.AppTheme.CircularProgressIndicator.Small" parent="Widget.Material3.CircularProgressIndicator.Small" />
-
     <style name="Widget.AppTheme.CircularProgressIndicator.ExtraSmall" parent="Widget.Material3.CircularProgressIndicator.ExtraSmall" />
 
     <!-- SwipeRefreshLayout -->
@@ -408,10 +369,6 @@
         <item name="android:layout">@layout/m3_preference</item>
     </style>
 
-    <style name="Preference.M3.Alert" parent="Preference.Material">
-        <item name="android:layout">@layout/m3_preference_alert</item>
-    </style>
-
     <style name="Preference.M3.Category" parent="Preference.Category.Material">
         <item name="android:layout">@layout/m3_preference_category</item>
         <item name="allowDividerAbove">false</item>
@@ -433,10 +390,6 @@
         <item name="android:layout">@layout/m3_preference</item>
     </style>
 
-    <style name="Preference.M3.ButtonPreference.Primary" parent="Preference.Material">
-        <item name="android:layout">@layout/m3_preference_button</item>
-    </style>
-
     <style name="Preference.M3.SwitchPreference" parent="Preference.SwitchPreference.Material">
         <item name="android:layout">@layout/m3_preference</item>
     </style>
@@ -444,11 +397,6 @@
     <style name="Preference.M3.SwitchPreferenceCompat" parent="Preference.SwitchPreferenceCompat.Material">
         <item name="android:layout">@layout/m3_preference</item>
         <item name="android:widgetLayout">@layout/m3_preference_widget_material_switch</item>
-    </style>
-
-    <style name="Preference.M3.TopSwitchPreference" parent="Preference.M3.SwitchPreferenceCompat">
-        <item name="android:layout">@layout/m3_preference_top_switch</item>
-        <item name="listItemPaddingVertical">@dimen/padding_medium</item>
     </style>
 
     <!-- TextInputLayout -->
@@ -480,7 +428,7 @@
     <style name="ThemeOverlay.AppTheme.TextInputLayout.Small" parent="">
         <item name="autoCompleteTextViewStyle">@style/Widget.AppTheme.AutoCompleteTextView.Small</item>
         <item name="editTextStyle">@style/Widget.AppTheme.TextInputEditText.Small</item>
-        <item name="endIconMinSize">40dp</item>
+        <item name="endIconMinSize">18dp</item> <!-- 34 - 8*2 -->
     </style>
 
     <!-- TextInputEditText -->
@@ -520,17 +468,7 @@
 
     <style name="Widget.AppTheme.Button.FilledButton" parent="Widget.Material3.Button" />
 
-    <style name="Widget.AppTheme.Button.FilledButton.Dense" parent="Widget.AppTheme.Button.FilledButton">
-        <item name="android:minWidth">0dp</item>
-        <item name="android:minHeight">0dp</item>
-    </style>
-
     <style name="Widget.AppTheme.Button.FilledTonalButton" parent="Widget.Material3.Button.TonalButton" />
-
-    <style name="Widget.AppTheme.Button.FilledTonalButton.Dense" parent="Widget.AppTheme.Button.FilledTonalButton">
-        <item name="android:minWidth">0dp</item>
-        <item name="android:minHeight">0dp</item>
-    </style>
 
     <style name="Widget.AppTheme.Button.OutlinedButton" parent="Widget.Material3.Button.OutlinedButton" />
 

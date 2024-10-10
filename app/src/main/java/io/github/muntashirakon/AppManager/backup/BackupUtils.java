@@ -5,6 +5,7 @@ package io.github.muntashirakon.AppManager.backup;
 import android.annotation.SuppressLint;
 import android.annotation.UserIdInt;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.os.Build;
 import android.os.UserHandleHidden;
@@ -28,8 +29,8 @@ import io.github.muntashirakon.AppManager.db.utils.AppDb;
 import io.github.muntashirakon.AppManager.logcat.helper.SaveLogHelper;
 import io.github.muntashirakon.AppManager.logs.Log;
 import io.github.muntashirakon.AppManager.misc.OsEnvironment;
+import io.github.muntashirakon.AppManager.types.PackageChangeReceiver;
 import io.github.muntashirakon.AppManager.users.Users;
-import io.github.muntashirakon.AppManager.utils.BroadcastUtils;
 import io.github.muntashirakon.AppManager.utils.Utils;
 import io.github.muntashirakon.io.Path;
 import io.github.muntashirakon.io.Paths;
@@ -79,7 +80,7 @@ public final class BackupUtils {
         HashMap<String, List<MetadataManager.Metadata>> allBackupMetadata = getAllMetadata();
         List<Backup> backups = new ArrayList<>();
         for (List<MetadataManager.Metadata> metadataList : allBackupMetadata.values()) {
-            if (metadataList.isEmpty()) continue;
+            if (metadataList.size() == 0) continue;
             Backup latestBackup = null;
             Backup backup;
             for (MetadataManager.Metadata metadata : metadataList) {
@@ -116,14 +117,20 @@ public final class BackupUtils {
         AppDb appDb = new AppDb();
         appDb.insert(Backup.fromBackupMetadata(metadata));
         appDb.updateApplication(context, metadata.packageName);
-        BroadcastUtils.sendDbPackageAltered(context, new String[]{metadata.packageName});
+        Intent intent = new Intent(PackageChangeReceiver.ACTION_DB_PACKAGE_ALTERED);
+        intent.setPackage(context.getPackageName());
+        intent.putExtra(Intent.EXTRA_CHANGED_PACKAGE_LIST, new String[]{metadata.packageName});
+        context.sendBroadcast(intent);
     }
 
     public static void deleteBackupToDbAndBroadcast(@NonNull Context context, @NonNull MetadataManager.Metadata metadata) {
         AppDb appDb = new AppDb();
         appDb.deleteBackup(Backup.fromBackupMetadata(metadata));
         appDb.updateApplication(context, metadata.packageName);
-        BroadcastUtils.sendDbPackageAltered(context, new String[]{metadata.packageName});
+        Intent intent = new Intent(PackageChangeReceiver.ACTION_DB_PACKAGE_REMOVED);
+        intent.setPackage(context.getPackageName());
+        intent.putExtra(Intent.EXTRA_CHANGED_PACKAGE_LIST, new String[]{metadata.packageName});
+        context.sendBroadcast(intent);
     }
 
     @WorkerThread
@@ -216,7 +223,7 @@ public final class BackupUtils {
     }
 
     @NonNull
-    static String[] getExcludeDirs(boolean includeCache, @Nullable String ...others) {
+    static String[] getExcludeDirs(boolean includeCache, @Nullable String[] others) {
         // Lib dirs has to be ignored by default
         List<String> excludeDirs = new ArrayList<>(Arrays.asList(BackupManager.LIB_DIR));
         if (includeCache) {

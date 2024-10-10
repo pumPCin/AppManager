@@ -143,10 +143,13 @@ public final class DataTransmission implements Closeable {
      * @see #sendMessage(String)
      * @see #sendMessage(byte[])
      */
-    @NonNull
-    public synchronized byte[] sendAndReceiveMessage(@NonNull byte[] messageBytes) throws IOException {
-        sendMessage(messageBytes);
-        return readMessage();
+    @Nullable
+    public synchronized byte[] sendAndReceiveMessage(byte[] messageBytes) throws IOException {
+        if (messageBytes != null) {
+            sendMessage(messageBytes);
+            return readMessage();
+        }
+        return null;
     }
 
     /**

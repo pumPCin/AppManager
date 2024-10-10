@@ -73,14 +73,12 @@ public class LabsActivity extends BaseActivity {
                         startActivity(intent);
                     });
         }
-        if (FeatureController.isCodeEditorEnabled()) {
-            addAction(this, flowLayout, R.string.title_code_editor, R.drawable.ic_code)
-                    .setOnClickListener(v -> {
-                        Intent intent = new Intent(this, CodeEditorActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(intent);
-                    });
-        }
+        addAction(this, flowLayout, R.string.title_code_editor, R.drawable.ic_code)
+                .setOnClickListener(v -> {
+                    Intent intent = new Intent(this, CodeEditorActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                });
     }
 
     @Override

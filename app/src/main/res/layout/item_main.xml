@@ -1,12 +1,10 @@
 <!-- SPDX-License-Identifier: Apache-2.0 AND GPL-3.0-or-later -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    style="@style/Widget.AppTheme.CardView.ListItem.Outlined"
+    style="@style/Widget.AppTheme.CardView.ListItem"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:clickable="true"
     android:focusable="true"
-    android:checkable="true"
     android:layout_marginHorizontal="?attr/listItemMarginHorizontal"
     android:layout_marginVertical="?attr/listItemMarginVertical">
 
@@ -66,7 +64,7 @@
                     android:id="@+id/label"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:maxLines="2"
+                    android:singleLine="true"
                     android:textAppearance="?android:attr/textAppearanceListItem"
                     tools:text="@string/app_name" />
 
@@ -74,7 +72,7 @@
                     android:id="@+id/packageName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:maxLines="2"
+                    android:singleLine="true"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textStyle="italic"
                     tools:text="io.github.muntashirakon.AppManager" />
@@ -98,7 +96,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:paddingEnd="25sp"
-                        android:maxLines="2"
+                        android:singleLine="true"
                         android:textAppearance="?attr/textAppearanceBodySmall"
                         android:textSize="10sp"
                         tools:text="@tools:sample/us_zipcodes"
@@ -120,7 +118,7 @@
                     android:id="@+id/backup_info"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:maxLines="2"
+                    android:singleLine="true"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textSize="10sp"
                     tools:text="@tools:sample/lorem[6]"
@@ -141,7 +139,7 @@
                 android:id="@+id/version"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:maxLines="3"
+                android:singleLine="true"
                 android:textAppearance="?attr/textAppearanceBodySmall"
                 tools:text="v3.0.0" />
 
@@ -149,9 +147,8 @@
                 android:id="@+id/isSystem"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:maxLines="2"
-                android:textAppearance="?attr/textAppearanceBodySmall"
-                android:textSize="9sp"
+                android:singleLine="true"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
                 tools:text="User" />
 
             <androidx.appcompat.widget.AppCompatTextView
@@ -159,7 +156,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:singleLine="true"
-                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
                 tools:text="SDK 30" />
 
             <androidx.appcompat.widget.AppCompatTextView
@@ -167,8 +164,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:singleLine="true"
-                android:textAppearance="?attr/textAppearanceBodySmall"
-                android:textSize="9sp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textSize="11sp"
                 tools:text="SHA256withRSA" />
 
             <androidx.appcompat.widget.AppCompatTextView
@@ -184,5 +181,11 @@
         </androidx.appcompat.widget.LinearLayoutCompat>
 
     </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <com.google.android.material.divider.MaterialDivider
+        android:id="@+id/divider"
+        android:layout_width="?attr/listItemIndicatorWidth"
+        android:layout_height="match_parent"
+        android:layout_gravity="start" />
 
 </com.google.android.material.card.MaterialCardView>

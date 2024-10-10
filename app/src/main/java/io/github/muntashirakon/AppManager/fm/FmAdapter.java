@@ -42,7 +42,6 @@ import io.github.muntashirakon.AppManager.utils.UIUtils;
 import io.github.muntashirakon.AppManager.utils.Utils;
 import io.github.muntashirakon.AppManager.utils.appearance.ColorCodes;
 import io.github.muntashirakon.io.Path;
-import io.github.muntashirakon.util.AdapterUtils;
 import io.github.muntashirakon.widget.MultiSelectionView;
 
 class FmAdapter extends MultiSelectionView.Adapter<FmAdapter.ViewHolder> {
@@ -51,15 +50,25 @@ class FmAdapter extends MultiSelectionView.Adapter<FmAdapter.ViewHolder> {
     private final List<FmItem> mAdapterList = Collections.synchronizedList(new ArrayList<>());
     private final FmViewModel mViewModel;
     private final FmActivity mFmActivity;
+    @ColorInt
+    private final int mHighlightColor;
 
     public FmAdapter(FmViewModel viewModel, FmActivity activity) {
         mViewModel = viewModel;
         mFmActivity = activity;
+        mHighlightColor = ColorCodes.getListItemSelectionColor(activity);
     }
 
     public void setFmList(List<FmItem> list) {
-        AdapterUtils.notifyDataSetChanged(this, mAdapterList, list);
+        mAdapterList.clear();
+        mAdapterList.addAll(list);
         notifySelectionChange();
+        notifyDataSetChanged();
+    }
+
+    @Override
+    public int getHighlightColor() {
+        return mHighlightColor;
     }
 
     @NonNull

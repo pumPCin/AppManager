@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -27,7 +28,6 @@ import io.github.muntashirakon.AppManager.logcat.helper.WidgetHelper;
 import io.github.muntashirakon.AppManager.settings.LogViewerPreferences;
 import io.github.muntashirakon.AppManager.settings.Prefs;
 import io.github.muntashirakon.AppManager.utils.ThreadUtils;
-import io.github.muntashirakon.AppManager.utils.UIUtils;
 import io.github.muntashirakon.dialog.TextInputDialogBuilder;
 import io.github.muntashirakon.dialog.TextInputDropdownDialogBuilder;
 
@@ -73,12 +73,12 @@ public class RecordLogDialogFragment extends DialogFragment {
         String logFilename = SaveLogHelper.createLogFilename();
         mLogLevel = Prefs.LogViewer.getLogLevel();
         mFilterQuery = "";
-        return new TextInputDialogBuilder(mActivity, R.string.enter_filename)
+        AlertDialog alertDialog = new TextInputDialogBuilder(mActivity, R.string.enter_filename)
                 .setTitle(R.string.record_log)
                 .setInputText(logFilename)
                 .setPositiveButton(R.string.ok, (dialog, which, inputText, isChecked) -> {
                     if (SaveLogHelper.isInvalidFilename(inputText)) {
-                        UIUtils.displayShortToast(R.string.enter_good_filename);
+                        Toast.makeText(mActivity, R.string.enter_good_filename, Toast.LENGTH_SHORT).show();
                     } else {
                         //noinspection ConstantConditions
                         String filename = inputText.toString();
@@ -100,15 +100,16 @@ public class RecordLogDialogFragment extends DialogFragment {
                 .setNegativeButton(R.string.cancel, (dialog, which, inputText, isChecked) ->
                         WidgetHelper.updateWidgets(mActivity))
                 .setNeutralButton(R.string.text_filter_ellipsis, null)
-                .setOnShowListener(dialog -> {
-                    AlertDialog dialog1 = (AlertDialog) dialog;
-                    Button filterButton = dialog1.getButton(AlertDialog.BUTTON_NEUTRAL);
-                    filterButton.setOnClickListener(v -> {
-                        WidgetHelper.updateWidgets(mActivity);
-                        showFilterDialogForRecording(suggestions != null ? Arrays.asList(suggestions) : Collections.emptyList());
-                    });
-                })
                 .create();
+        alertDialog.setOnShowListener(dialog -> {
+            AlertDialog dialog1 = (AlertDialog) dialog;
+            Button filterButton = dialog1.getButton(AlertDialog.BUTTON_NEUTRAL);
+            filterButton.setOnClickListener(v -> {
+                WidgetHelper.updateWidgets(mActivity);
+                showFilterDialogForRecording(suggestions != null ? Arrays.asList(suggestions) : Collections.emptyList());
+            });
+        });
+        return alertDialog;
     }
 
     @Override

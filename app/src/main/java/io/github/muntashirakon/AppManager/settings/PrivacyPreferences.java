@@ -2,19 +2,20 @@
 
 package io.github.muntashirakon.AppManager.settings;
 
-import android.Manifest;
 import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
+import androidx.preference.Preference;
 import androidx.preference.SwitchPreferenceCompat;
 
 import com.google.android.material.transition.MaterialSharedAxis;
 
+import java.util.Objects;
+
 import io.github.muntashirakon.AppManager.R;
 import io.github.muntashirakon.AppManager.crypto.auth.AuthManagerActivity;
-import io.github.muntashirakon.AppManager.self.SelfPermissions;
 import io.github.muntashirakon.AppManager.session.SessionMonitoringService;
 
 public class PrivacyPreferences extends PreferenceFragment {
@@ -25,7 +26,7 @@ public class PrivacyPreferences extends PreferenceFragment {
         boolean isScreenLockEnabled = Prefs.Privacy.isScreenLockEnabled();
         boolean isPersistentSessionEnabled = Prefs.Privacy.isPersistentSessionAllowed();
         // Auto lock
-        SwitchPreferenceCompat autoLock = requirePreference("enable_auto_lock");
+        SwitchPreferenceCompat autoLock = Objects.requireNonNull(findPreference("enable_auto_lock"));
         autoLock.setVisible(isScreenLockEnabled && isPersistentSessionEnabled);
         autoLock.setChecked(Prefs.Privacy.isAutoLockEnabled());
         autoLock.setOnPreferenceChangeListener((preference, newValue) -> {
@@ -34,7 +35,7 @@ public class PrivacyPreferences extends PreferenceFragment {
             return true;
         });
         // Screen lock
-        SwitchPreferenceCompat screenLock = requirePreference("enable_screen_lock");
+        SwitchPreferenceCompat screenLock = Objects.requireNonNull(findPreference("enable_screen_lock"));
         screenLock.setChecked(isScreenLockEnabled);
         screenLock.setOnPreferenceChangeListener((preference, newValue) -> {
             boolean enabled = (boolean) newValue;
@@ -46,7 +47,7 @@ public class PrivacyPreferences extends PreferenceFragment {
             return true;
         });
         // Persistent session
-        SwitchPreferenceCompat persistentSession = requirePreference("enable_persistent_session");
+        SwitchPreferenceCompat persistentSession = Objects.requireNonNull(findPreference("enable_persistent_session"));
         persistentSession.setChecked(isPersistentSessionEnabled);
         persistentSession.setOnPreferenceChangeListener((preference, newValue) -> {
             boolean enabled = (boolean) newValue;
@@ -57,20 +58,12 @@ public class PrivacyPreferences extends PreferenceFragment {
             restartServiceIfNeeded(null, null, enabled);
             return true;
         });
-        // Toggle Internet
-        SwitchPreferenceCompat toggleInternet = requirePreference("toggle_internet");
-        toggleInternet.setEnabled(SelfPermissions.checkSelfPermission(Manifest.permission.INTERNET));
-        toggleInternet.setChecked(FeatureController.isInternetEnabled());
-        toggleInternet.setOnPreferenceChangeListener((preference, newValue) -> {
-            boolean isEnabled = (boolean) newValue;
-            FeatureController.getInstance().modifyState(FeatureController.FEAT_INTERNET, isEnabled);
-            return true;
-        });
         // Authorization Management
-        requirePreference("auth_manager").setOnPreferenceClickListener(preference -> {
-            startActivity(new Intent(requireContext(), AuthManagerActivity.class));
-            return true;
-        });
+        ((Preference) Objects.requireNonNull(findPreference("auth_manager")))
+                .setOnPreferenceClickListener(preference -> {
+                    startActivity(new Intent(requireContext(), AuthManagerActivity.class));
+                    return true;
+                });
     }
 
     @Override

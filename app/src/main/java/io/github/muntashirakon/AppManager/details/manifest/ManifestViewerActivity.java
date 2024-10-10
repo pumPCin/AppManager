@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.UiThread;
@@ -20,7 +21,6 @@ import io.github.muntashirakon.AppManager.R;
 import io.github.muntashirakon.AppManager.apk.ApkSource;
 import io.github.muntashirakon.AppManager.editor.CodeEditorFragment;
 import io.github.muntashirakon.AppManager.intercept.IntentCompat;
-import io.github.muntashirakon.AppManager.utils.UIUtils;
 
 public class ManifestViewerActivity extends BaseActivity {
     public static final String EXTRA_PACKAGE_NAME = "pkg";
@@ -66,7 +66,7 @@ public class ManifestViewerActivity extends BaseActivity {
 
     @UiThread
     private void showErrorAndFinish() {
-        UIUtils.displayShortToast(R.string.error);
+        Toast.makeText(this, getString(R.string.error), Toast.LENGTH_LONG).show();
         finish();
     }
 

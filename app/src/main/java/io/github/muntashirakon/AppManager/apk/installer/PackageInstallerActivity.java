@@ -58,7 +58,6 @@ import io.github.muntashirakon.AppManager.apk.CachedApkSource;
 import io.github.muntashirakon.AppManager.apk.splitapk.SplitApkChooser;
 import io.github.muntashirakon.AppManager.apk.whatsnew.WhatsNewFragment;
 import io.github.muntashirakon.AppManager.compat.ApplicationInfoCompat;
-import io.github.muntashirakon.AppManager.compat.PackageManagerCompat;
 import io.github.muntashirakon.AppManager.details.AppDetailsActivity;
 import io.github.muntashirakon.AppManager.intercept.IntentCompat;
 import io.github.muntashirakon.AppManager.logs.Log;
@@ -150,13 +149,12 @@ public class PackageInstallerActivity extends BaseActivity implements InstallerD
             goToNext();
         }
     };
-    private final InstallerOptions mInstallerOptions = InstallerOptions.getDefault();
+    private final InstallerOptions mInstallerOptions = new InstallerOptions();
     private final Queue<ApkQueueItem> mApkQueue = new LinkedList<>();
     private final ActivityResultLauncher<Intent> mConfirmIntentLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), result -> {
                 // User did some interaction and the installer screen is closed now
                 Intent broadcastIntent = new Intent(PackageInstallerCompat.ACTION_INSTALL_INTERACTION_END);
-                broadcastIntent.setPackage(getPackageName());
                 broadcastIntent.putExtra(PackageInstaller.EXTRA_PACKAGE_NAME, mPackageName);
                 broadcastIntent.putExtra(PackageInstaller.EXTRA_SESSION_ID, mSessionId);
                 getApplicationContext().sendBroadcast(broadcastIntent);
@@ -203,7 +201,7 @@ public class PackageInstallerActivity extends BaseActivity implements InstallerD
             throw new RuntimeException("Unable to bind PackageInstallerService");
         }
         synchronized (mApkQueue) {
-            mApkQueue.addAll(ApkQueueItem.fromIntent(intent, Utils.getRealReferrer(this)));
+            mApkQueue.addAll(ApkQueueItem.fromIntent(intent));
         }
         ApkSource apkSource = IntentCompat.getParcelableExtra(intent, EXTRA_APK_FILE_LINK, ApkSource.class);
         if (apkSource != null) {
@@ -381,7 +379,6 @@ public class PackageInstallerActivity extends BaseActivity implements InstallerD
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         Log.d(TAG, "New intent called: %s", intent);
-        setIntent(intent);
         // Check for action first
         if (ACTION_PACKAGE_INSTALLED.equals(intent.getAction())) {
             mSessionId = intent.getIntExtra(PackageInstaller.EXTRA_SESSION_ID, -1);
@@ -403,7 +400,7 @@ public class PackageInstallerActivity extends BaseActivity implements InstallerD
         }
         // New APK files added
         synchronized (mApkQueue) {
-            mApkQueue.addAll(ApkQueueItem.fromIntent(intent, Utils.getRealReferrer(this)));
+            mApkQueue.addAll(ApkQueueItem.fromIntent(intent));
         }
         UIUtils.displayShortToast(R.string.added_to_queue);
     }
@@ -532,7 +529,7 @@ public class PackageInstallerActivity extends BaseActivity implements InstallerD
         if (statusMessage != null) {
             ssb.append("\n\n").append(UIUtils.getItalicString(statusMessage));
         }
-        Intent intent = PackageManagerCompat.getLaunchIntentForPackage(packageName, UserHandleHidden.myUserId());
+        Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
         mDialogHelper.showInstallFinishedDialog(ssb, hasNext() ? R.string.next : R.string.close, v -> goToNext(),
                 displayOpenAndAppInfo && intent != null ? v -> {
                     try {

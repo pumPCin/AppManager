@@ -2,7 +2,10 @@
 
 package io.github.muntashirakon.AppManager.runningapps;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Process;
 import android.text.TextUtils;
@@ -26,8 +29,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import io.github.muntashirakon.AppManager.BaseActivity;
 import io.github.muntashirakon.AppManager.R;
@@ -43,13 +44,14 @@ import io.github.muntashirakon.AppManager.self.SelfPermissions;
 import io.github.muntashirakon.AppManager.settings.FeatureController;
 import io.github.muntashirakon.AppManager.settings.Ops;
 import io.github.muntashirakon.AppManager.settings.Prefs;
-import io.github.muntashirakon.AppManager.utils.ThreadUtils;
 import io.github.muntashirakon.AppManager.utils.UIUtils;
 import io.github.muntashirakon.multiselection.MultiSelectionActionsView;
 import io.github.muntashirakon.widget.MultiSelectionView;
+import io.github.muntashirakon.widget.SwipeRefreshLayout;
 
 public class RunningAppsActivity extends BaseActivity implements MultiSelectionView.OnSelectionChangeListener,
-        MultiSelectionActionsView.OnItemSelectedListener, AdvancedSearchView.OnQueryTextListener {
+        MultiSelectionActionsView.OnItemSelectedListener, AdvancedSearchView.OnQueryTextListener,
+        SwipeRefreshLayout.OnRefreshListener {
 
     @IntDef(value = {
             SORT_BY_PID,
@@ -95,10 +97,18 @@ public class RunningAppsActivity extends BaseActivity implements MultiSelectionV
     @Nullable
     private LinearProgressIndicator mProgressIndicator;
     @Nullable
+    private SwipeRefreshLayout mSwipeRefresh;
+    @Nullable
     private MultiSelectionView mMultiSelectionView;
     @Nullable
     private Menu mSelectionMenu;
-    private Timer mTimer;
+
+    private final BroadcastReceiver mBatchOpsBroadCastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            refresh();
+        }
+    };
 
     @Override
     protected void onAuthenticated(Bundle savedInstanceState) {
@@ -112,10 +122,11 @@ public class RunningAppsActivity extends BaseActivity implements MultiSelectionV
         model = new ViewModelProvider(this).get(RunningAppsViewModel.class);
         mProgressIndicator = findViewById(R.id.progress_linear);
         mProgressIndicator.setVisibilityAfterHide(View.GONE);
+        mSwipeRefresh = findViewById(R.id.swipe_refresh);
+        mSwipeRefresh.setOnRefreshListener(this);
         RecyclerView recyclerView = findViewById(R.id.scrollView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         mAdapter = new RunningAppsAdapter(this);
-        mAdapter.setHasStableIds(false);
         recyclerView.setAdapter(mAdapter);
         // Recycler view is focused by default
         recyclerView.requestFocus();
@@ -137,11 +148,9 @@ public class RunningAppsActivity extends BaseActivity implements MultiSelectionV
             }
         });
         model.observeKillSelectedProcess().observe(this, processInfoList -> {
-            if (!processInfoList.isEmpty()) {
+            if (processInfoList.size() != 0) {
                 List<String> processNames = new ArrayList<String>() {{
-                    for (ProcessItem processItem : processInfoList) {
-                        add(processItem.name);
-                    }
+                    for (ProcessItem processItem : processInfoList) add(processItem.name);
                 }};
                 UIUtils.displayLongToast(R.string.failed_to_stop, TextUtils.join(", ", processNames));
             }
@@ -254,6 +263,9 @@ public class RunningAppsActivity extends BaseActivity implements MultiSelectionV
             mEnableKillForSystem = !mEnableKillForSystem;
             Prefs.RunningApps.setEnableKillForSystemApps(mEnableKillForSystem);
             refresh();
+        } else if (id == R.id.action_refresh) {
+            refresh();
+            // Sort
         } else if (id == R.id.action_sort_by_pid) {
             model.setSortOrder(SORT_BY_PID);
             item.setChecked(true);
@@ -282,25 +294,23 @@ public class RunningAppsActivity extends BaseActivity implements MultiSelectionV
     @Override
     protected void onResume() {
         super.onResume();
-        mTimer = new Timer("running_apps");
-        mTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                ThreadUtils.postOnMainThread(() -> {
-                    if (model != null) {
-                        model.loadProcesses();
-                        model.loadMemoryInfo();
-                    }
-                });
-            }
-        }, 0, 10_000);
+        refresh();
+        ContextCompat.registerReceiver(this, mBatchOpsBroadCastReceiver,
+                new IntentFilter(BatchOpsService.ACTION_BATCH_OPS_COMPLETED), ContextCompat.RECEIVER_NOT_EXPORTED);
     }
 
     @Override
     protected void onPause() {
-        mTimer.cancel();
-        mTimer.purge();
         super.onPause();
+        unregisterReceiver(mBatchOpsBroadCastReceiver);
+    }
+
+    @Override
+    public void onRefresh() {
+        if (mSwipeRefresh != null) {
+            mSwipeRefresh.setRefreshing(false);
+        }
+        refresh();
     }
 
     @Override
@@ -361,7 +371,7 @@ public class RunningAppsActivity extends BaseActivity implements MultiSelectionV
         forceStop.setEnabled(appsCount != 0 && appsCount == selectedItems.size());
         forceStop.setVisible(SelfPermissions.checkSelfOrRemotePermission(ManifestCompat.permission.FORCE_STOP_PACKAGES));
         preventBackground.setEnabled(appsCount != 0 && appsCount == selectedItems.size());
-        boolean killEnabled = Ops.isWorkingUidRoot();
+        boolean killEnabled = Ops.isRoot();
         if (killEnabled && !mEnableKillForSystem) {
             for (ProcessItem item : selectedItems) {
                 if (item.uid < Process.FIRST_APPLICATION_UID) {
@@ -370,7 +380,7 @@ public class RunningAppsActivity extends BaseActivity implements MultiSelectionV
                 }
             }
         }
-        kill.setEnabled(!selectedItems.isEmpty() && killEnabled);
+        kill.setEnabled(selectedItems.size() != 0 && killEnabled);
         return true;
     }
 

@@ -4,11 +4,11 @@ package io.github.muntashirakon.AppManager.db.utils;
 
 import static io.github.muntashirakon.AppManager.compat.PackageManagerCompat.GET_SIGNING_CERTIFICATES;
 import static io.github.muntashirakon.AppManager.compat.PackageManagerCompat.MATCH_DISABLED_COMPONENTS;
-import static io.github.muntashirakon.AppManager.compat.PackageManagerCompat.MATCH_STATIC_SHARED_AND_SDK_LIBRARIES;
 import static io.github.muntashirakon.AppManager.compat.PackageManagerCompat.MATCH_UNINSTALLED_PACKAGES;
 
 import android.annotation.UserIdInt;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -41,13 +41,13 @@ import io.github.muntashirakon.AppManager.rules.compontents.ComponentsBlocker;
 import io.github.muntashirakon.AppManager.self.SelfPermissions;
 import io.github.muntashirakon.AppManager.settings.FeatureController;
 import io.github.muntashirakon.AppManager.ssaid.SsaidSettings;
+import io.github.muntashirakon.AppManager.types.PackageChangeReceiver;
 import io.github.muntashirakon.AppManager.types.PackageSizeInfo;
 import io.github.muntashirakon.AppManager.uri.UriManager;
 import io.github.muntashirakon.AppManager.usage.AppUsageStatsManager;
 import io.github.muntashirakon.AppManager.usage.PackageUsageInfo;
 import io.github.muntashirakon.AppManager.usage.UsageUtils;
 import io.github.muntashirakon.AppManager.users.Users;
-import io.github.muntashirakon.AppManager.utils.BroadcastUtils;
 import io.github.muntashirakon.AppManager.utils.ExUtils;
 import io.github.muntashirakon.AppManager.utils.KeyStoreUtils;
 import io.github.muntashirakon.AppManager.utils.PackageUtils;
@@ -81,12 +81,6 @@ public class AppDb {
     public List<App> getAllApplications(String packageName) {
         synchronized (sLock) {
             return mAppDao.getAll(packageName);
-        }
-    }
-
-    public List<App> getAllApplications(String packageName, @UserIdInt int userId) {
-        synchronized (sLock) {
-            return mAppDao.getAll(packageName, userId);
         }
     }
 
@@ -207,7 +201,7 @@ public class AppDb {
                         PackageManager.GET_META_DATA | GET_SIGNING_CERTIFICATES | PackageManager.GET_ACTIVITIES
                                 | PackageManager.GET_RECEIVERS | PackageManager.GET_PROVIDERS
                                 | PackageManager.GET_SERVICES | MATCH_DISABLED_COMPONENTS | MATCH_UNINSTALLED_PACKAGES
-                                | MATCH_STATIC_SHARED_AND_SDK_LIBRARIES, userId);
+                                | PackageManagerCompat.MATCH_STATIC_SHARED_AND_SDK_LIBRARIES, userId);
             } catch (RemoteException | PackageManager.NameNotFoundException | SecurityException e) {
                 // Package does not exist
             }
@@ -261,11 +255,16 @@ public class AppDb {
                 // Interrupt thread on request
                 if (ThreadUtils.isInterrupted()) return;
 
-                List<PackageInfo> packageInfoList = PackageManagerCompat.getInstalledPackages(
-                        GET_SIGNING_CERTIFICATES | PackageManager.GET_ACTIVITIES
-                                | PackageManager.GET_RECEIVERS | PackageManager.GET_PROVIDERS
-                                | PackageManager.GET_SERVICES | MATCH_DISABLED_COMPONENTS
-                                | MATCH_UNINSTALLED_PACKAGES | MATCH_STATIC_SHARED_AND_SDK_LIBRARIES, userId);
+                List<PackageInfo> packageInfoList;
+                try {
+                    packageInfoList = PackageManagerCompat.getInstalledPackages(GET_SIGNING_CERTIFICATES
+                            | PackageManager.GET_ACTIVITIES | PackageManager.GET_RECEIVERS | PackageManager.GET_PROVIDERS
+                            | PackageManager.GET_SERVICES | MATCH_DISABLED_COMPONENTS | MATCH_UNINSTALLED_PACKAGES
+                            | PackageManagerCompat.MATCH_STATIC_SHARED_AND_SDK_LIBRARIES, userId);
+                } catch (Exception e) {
+                    Log.w(TAG, "Could not retrieve package info list for user %d", e, userId);
+                    continue;
+                }
 
                 for (PackageInfo packageInfo : packageInfoList) {
                     // Interrupt thread on request
@@ -322,18 +321,26 @@ public class AppDb {
             mAppDao.insert(modifiedApps);
             if (!oldApps.isEmpty()) {
                 // Delete broadcast
-                BroadcastUtils.sendDbPackageRemoved(context, getPackageNamesFromApps(oldApps));
+                Intent intent = new Intent(PackageChangeReceiver.ACTION_DB_PACKAGE_REMOVED);
+                intent.setPackage(context.getPackageName());
+                intent.putExtra(Intent.EXTRA_CHANGED_PACKAGE_LIST, getPackageNamesFromApps(oldApps));
+                context.sendBroadcast(intent);
             }
             if (!newApps.isEmpty()) {
                 // New apps
-                BroadcastUtils.sendDbPackageAdded(context, newApps.toArray(new String[0]));
+                Intent intent = new Intent(PackageChangeReceiver.ACTION_DB_PACKAGE_ADDED);
+                intent.setPackage(context.getPackageName());
+                intent.putExtra(Intent.EXTRA_CHANGED_PACKAGE_LIST, newApps.toArray(new String[0]));
+                context.sendBroadcast(intent);
             }
             if (!updatedApps.isEmpty()) {
                 // Altered apps
-                BroadcastUtils.sendDbPackageAltered(context, updatedApps.toArray(new String[0]));
+                Intent intent = new Intent(PackageChangeReceiver.ACTION_DB_PACKAGE_ALTERED);
+                intent.setPackage(context.getPackageName());
+                intent.putExtra(Intent.EXTRA_CHANGED_PACKAGE_LIST, updatedApps.toArray(new String[0]));
+                context.sendBroadcast(intent);
             }
         }
-
     }
 
     @WorkerThread
@@ -366,7 +373,7 @@ public class AppDb {
                 try {
                     userIdSsaidSettingsMap.put(userId, new SsaidSettings(userId));
                 } catch (IOException e) {
-                    Log.w(TAG, "Error: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
         }

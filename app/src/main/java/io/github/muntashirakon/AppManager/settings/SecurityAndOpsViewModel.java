@@ -7,6 +7,7 @@ import android.os.Build;
 
 import androidx.annotation.AnyThread;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
@@ -17,12 +18,14 @@ import io.github.muntashirakon.AppManager.logs.Log;
 import io.github.muntashirakon.AppManager.self.Migrations;
 import io.github.muntashirakon.AppManager.utils.AppPref;
 import io.github.muntashirakon.AppManager.utils.MultithreadedExecutor;
+import io.github.muntashirakon.adb.android.AdbMdns;
 
 public class SecurityAndOpsViewModel extends AndroidViewModel implements Ops.AdbConnectionInterface {
     public static final String TAG = SecurityAndOpsViewModel.class.getSimpleName();
 
     private boolean mIsAuthenticating = false;
     private final MutableLiveData<Integer> mAuthenticationStatus = new MutableLiveData<>();
+    private final MutableLiveData<Integer> mAdbPairingPort = new MutableLiveData<>();
     private final MultithreadedExecutor mExecutor = MultithreadedExecutor.getNewInstance();
 
     public SecurityAndOpsViewModel(@NonNull Application application) {
@@ -77,11 +80,11 @@ public class SecurityAndOpsViewModel extends AndroidViewModel implements Ops.Adb
 
     @AnyThread
     @RequiresApi(Build.VERSION_CODES.R)
-    public void autoConnectWirelessDebugging() {
+    public void autoConnectAdb(int returnCodeOnFailure) {
         mExecutor.submit(() -> {
-            Log.d(TAG, "Before Ops::autoConnectWirelessDebugging");
-            int status = Ops.autoConnectWirelessDebugging(getApplication());
-            Log.d(TAG, "After Ops::autoConnectWirelessDebugging");
+            Log.d(TAG, "Before Ops::autoConnectAdb");
+            int status = Ops.autoConnectAdb(getApplication(), returnCodeOnFailure);
+            Log.d(TAG, "After Ops::autoConnectAdb");
             mAuthenticationStatus.postValue(status);
         });
     }
@@ -100,10 +103,10 @@ public class SecurityAndOpsViewModel extends AndroidViewModel implements Ops.Adb
     @Override
     @AnyThread
     @RequiresApi(Build.VERSION_CODES.R)
-    public void pairAdb() {
+    public void pairAdb(@Nullable String pairingCode, int port) {
         mExecutor.submit(() -> {
             Log.d(TAG, "Before Ops::pairAdb");
-            int status = Ops.pairAdb(getApplication());
+            int status = Ops.pairAdb(getApplication(), pairingCode, port);
             Log.d(TAG, "After Ops::pairAdb");
             mAuthenticationStatus.postValue(status);
         });
@@ -112,5 +115,30 @@ public class SecurityAndOpsViewModel extends AndroidViewModel implements Ops.Adb
     @Override
     public void onStatusReceived(int status) {
         mAuthenticationStatus.postValue(status);
+    }
+
+    private AdbMdns mAdbMdnsPairing;
+
+    @NonNull
+    @Override
+    public LiveData<Integer> startObservingAdbPairingPort() {
+        mExecutor.submit(() -> {
+            if (mAdbMdnsPairing == null) {
+                mAdbMdnsPairing = new AdbMdns(getApplication(), AdbMdns.SERVICE_TYPE_TLS_PAIRING, (hostAddress, port) -> {
+                    if (port != -1) {
+                        mAdbPairingPort.postValue(port);
+                    }
+                });
+            }
+            mAdbMdnsPairing.start();
+        });
+        return mAdbPairingPort;
+    }
+
+    @Override
+    public void stopObservingAdbPairingPort() {
+        if (mAdbMdnsPairing != null) {
+            mAdbMdnsPairing.stop();
+        }
     }
 }

@@ -23,7 +23,6 @@ import android.content.pm.PackageInstaller;
 import android.content.pm.PackageInstallerHidden;
 import android.content.pm.PackageManager;
 import android.content.pm.VersionedPackage;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -64,17 +63,17 @@ import io.github.muntashirakon.AppManager.ipc.ProxyBinder;
 import io.github.muntashirakon.AppManager.logs.Log;
 import io.github.muntashirakon.AppManager.progress.ProgressHandler;
 import io.github.muntashirakon.AppManager.self.SelfPermissions;
-import io.github.muntashirakon.AppManager.types.UserPackagePair;
 import io.github.muntashirakon.AppManager.users.Users;
 import io.github.muntashirakon.AppManager.utils.BroadcastUtils;
 import io.github.muntashirakon.AppManager.utils.ContextUtils;
 import io.github.muntashirakon.AppManager.utils.FileUtils;
 import io.github.muntashirakon.AppManager.utils.MiuiUtils;
-import io.github.muntashirakon.AppManager.utils.PackageUtils;
 import io.github.muntashirakon.AppManager.utils.ThreadUtils;
 import io.github.muntashirakon.AppManager.utils.UIUtils;
 import io.github.muntashirakon.io.Path;
 
+// FIXME: 21/1/23 This class has too many design issues that has to be addressed at some later time.
+//  One example is the handling of userId, which should be independent of the class itself.k
 @SuppressLint("ShiftFlags")
 public final class PackageInstallerCompat {
     public static final String TAG = PackageInstallerCompat.class.getSimpleName();
@@ -390,7 +389,7 @@ public final class PackageInstallerCompat {
     public static final int INSTALL_ALLOW_DOWNGRADE = 0x00000080;
 
     /**
-     * Flag parameter for {@code #installPackage} to bypass the low targer sdk version block
+     * Flag parameter for {@code #installPackage} to bypass the low target sdk version block
      * for this install.
      */
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
@@ -591,7 +590,7 @@ public final class PackageInstallerCompat {
         ThreadUtils.ensureWorkerThread();
         try {
             mApkFile = apkFile;
-            mPackageName = Objects.requireNonNull(apkFile.getPackageName());
+            mPackageName = apkFile.getPackageName();
             initBroadcastReceiver();
             int userId = options.getUserId();
             int installFlags = getInstallFlags(userId);
@@ -618,10 +617,7 @@ public final class PackageInstallerCompat {
             });
             userId = allRequestedUsers[0];
             Log.d(TAG, "Install: opening session...");
-            if (!openSession(userId, installFlags, options.getInstallerName(),
-                    options.getInstallLocation(), options.getOriginatingPackage(),
-                    options.getOriginatingUri(), options.getInstallScenario(),
-                    options.getPackageSource(), options.requestUpdateOwnership())) {
+            if (!openSession(userId, installFlags, options.getInstallerName(), options.getInstallLocation())) {
                 return false;
             }
             List<ApkFile.Entry> selectedEntries = new ArrayList<>();
@@ -674,7 +670,7 @@ public final class PackageInstallerCompat {
         ThreadUtils.ensureWorkerThread();
         try {
             mApkFile = null;
-            mPackageName = Objects.requireNonNull(packageName);
+            mPackageName = packageName;
             initBroadcastReceiver();
             int userId = options.getUserId();
             int installFlags = getInstallFlags(userId);
@@ -693,10 +689,7 @@ public final class PackageInstallerCompat {
                 }
             }
             userId = allRequestedUsers[0];
-            if (!openSession(userId, installFlags, options.getInstallerName(),
-                    options.getInstallLocation(), options.getOriginatingPackage(),
-                    options.getOriginatingUri(), options.getInstallScenario(),
-                    options.getPackageSource(), options.requestUpdateOwnership())) {
+            if (!openSession(userId, installFlags, options.getInstallerName(), options.getInstallLocation())) {
                 return false;
             }
             long totalSize = 0;
@@ -784,11 +777,7 @@ public final class PackageInstallerCompat {
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean openSession(@UserIdInt int userId, @InstallFlags int installFlags,
-                                String installerName, int installLocation,
-                                @Nullable String originatingPackage, @Nullable Uri originatingUri,
-                                int installScenario, int packageSource,
-                                boolean requestUpdateOwnership) {
+    private boolean openSession(@UserIdInt int userId, @InstallFlags int installFlags, String installerName, int installLocation) {
         String requestedInstallerPackageName = mHasInstallPackagePermission ? installerName : null;
         String installerPackageName = Build.VERSION.SDK_INT < Build.VERSION_CODES.P && mHasInstallPackagePermission
                 ? installerName : BuildConfig.APPLICATION_ID;
@@ -809,36 +798,11 @@ public final class PackageInstallerCompat {
         }
         // Set installation location
         sessionParams.setInstallLocation(installLocation);
-        // Set origin
-        if (originatingUri != null) {
-            sessionParams.setOriginatingUri(originatingUri);
-        }
-        if (originatingPackage != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            int uid = PackageUtils.getAppUid(new UserPackagePair(originatingPackage,
-                    UserHandleHidden.myUserId()));
-            if (uid >= 0) {
-                sessionParams.setOriginatingUid(uid);
-                Log.d(TAG, "Setting originating uid: %d for %s", uid, originatingPackage);
-            }
-        }
-        // Set install reason
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             sessionParams.setInstallReason(PackageManager.INSTALL_REASON_USER);
         }
-        // Set install user action and install scenario
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            // We hope system will not prompt an install confirmation
             sessionParams.setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_NOT_REQUIRED);
-            sessionParams.setInstallScenario(installScenario);
-        }
-        // Set package source (shell uses PACKAGE_SOURCE_OTHER)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            sessionParams.setPackageSource(packageSource);
-        }
-        // Set ownership (disable by default in shell)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            sessionParams.setApplicationEnabledSettingPersistent();
-            sessionParams.setRequestUpdateOwnership(requestUpdateOwnership);
         }
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -883,7 +847,6 @@ public final class PackageInstallerCompat {
 
     public boolean installExisting(@NonNull String packageName, @UserIdInt int userId) {
         ThreadUtils.ensureWorkerThread();
-        mPackageName = Objects.requireNonNull(packageName);
         if (mOnInstallListener != null) {
             mOnInstallListener.onStartInstall(mSessionId, packageName);
         }
@@ -1070,7 +1033,7 @@ public final class PackageInstallerCompat {
     public boolean uninstall(String packageName, @UserIdInt int userId, boolean keepData) {
         ThreadUtils.ensureWorkerThread();
         boolean hasDeletePackagesPermission = SelfPermissions.checkSelfOrRemotePermission(Manifest.permission.DELETE_PACKAGES);
-        mPackageName = Objects.requireNonNull(packageName);
+        mPackageName = packageName;
         String callerPackageName = SelfPermissions.getCallingPackage(Users.getSelfOrRemoteUid());
         initBroadcastReceiver();
         try {
@@ -1271,7 +1234,6 @@ public final class PackageInstallerCompat {
 
     private void sendStartedBroadcast(@NonNull String packageName, int sessionId) {
         Intent broadcastIntent = new Intent(ACTION_INSTALL_STARTED);
-        broadcastIntent.setPackage(mContext.getPackageName());
         broadcastIntent.putExtra(PackageInstaller.EXTRA_PACKAGE_NAME, packageName);
         broadcastIntent.putExtra(PackageInstaller.EXTRA_SESSION_ID, sessionId);
         mContext.sendBroadcast(broadcastIntent);
@@ -1280,7 +1242,6 @@ public final class PackageInstallerCompat {
     static void sendCompletedBroadcast(@NonNull Context context, @NonNull String packageName, @Status int status,
                                        int sessionId) {
         Intent broadcastIntent = new Intent(ACTION_INSTALL_COMPLETED);
-        broadcastIntent.setPackage(context.getPackageName());
         broadcastIntent.putExtra(PackageInstaller.EXTRA_PACKAGE_NAME, packageName);
         broadcastIntent.putExtra(PackageInstaller.EXTRA_STATUS, status);
         broadcastIntent.putExtra(PackageInstaller.EXTRA_SESSION_ID, sessionId);

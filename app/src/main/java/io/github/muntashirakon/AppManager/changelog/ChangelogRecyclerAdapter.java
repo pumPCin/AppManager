@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.github.muntashirakon.AppManager.R;
-import io.github.muntashirakon.util.AdapterUtils;
 import io.github.muntashirakon.util.UiUtils;
 
 
@@ -38,7 +37,9 @@ public class ChangelogRecyclerAdapter extends RecyclerView.Adapter<ChangelogRecy
 
     public void setAdapterList(@NonNull List<ChangelogItem> list) {
         synchronized (mAdapterList) {
-            AdapterUtils.notifyDataSetChanged(this, mAdapterList, list);
+            mAdapterList.clear();
+            mAdapterList.addAll(list);
+            notifyDataSetChanged();
         }
     }
 

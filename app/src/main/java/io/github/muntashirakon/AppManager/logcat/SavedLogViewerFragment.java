@@ -68,22 +68,23 @@ public class SavedLogViewerFragment extends AbsLogViewerFragment implements LogV
     }
 
     @Override
-    public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
-        menuInflater.inflate(R.menu.fragment_saved_log_viewer_actions, menu);
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        inflater.inflate(R.menu.fragment_saved_log_viewer_actions, menu);
     }
 
     @Override
-    public boolean onMenuItemSelected(@NonNull MenuItem item) {
-        return super.onMenuItemSelected(item);
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
     public void onNewLogsAvailable(@NonNull List<LogLine> logLines) {
         mActivity.hideProgressBar();
         for (LogLine logLine : logLines) {
-            mLogListAdapter.addWithFilter(logLine, "", true);
+            mLogListAdapter.addWithFilter(logLine, "", false);
             mActivity.addToAutocompleteSuggestions(logLine);
         }
+        mLogListAdapter.notifyDataSetChanged();
 
         mRecyclerView.scrollToPosition(mLogListAdapter.getItemCount() - 1);
     }

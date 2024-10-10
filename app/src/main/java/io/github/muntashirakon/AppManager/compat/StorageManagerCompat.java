@@ -7,6 +7,7 @@ import static io.github.muntashirakon.io.IoUtils.DEFAULT_BUFFER_SIZE;
 import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.ParcelFileDescriptor;
 import android.os.Process;
 import android.os.storage.StorageManager;
@@ -147,10 +148,12 @@ public final class StorageManagerCompat {
     }
 
     public static abstract class ProxyFileDescriptorCallbackCompat {
+        private final HandlerThread mCallbackThread;
         private final Handler mHandler;
 
-        public ProxyFileDescriptorCallbackCompat(@NonNull Handler callbackHandler) {
-            mHandler = callbackHandler;
+        public ProxyFileDescriptorCallbackCompat(HandlerThread callbackThread) {
+            mCallbackThread = callbackThread;
+            mHandler = new Handler(mCallbackThread.getLooper());
         }
 
         /**
@@ -209,6 +212,7 @@ public final class StorageManagerCompat {
          * Invoked after the file is closed.
          */
         protected void onRelease() {
+            mCallbackThread.quitSafely();
         }
     }
 }

@@ -10,8 +10,6 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.jetbrains.annotations.Contract;
-
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -189,8 +187,7 @@ public class SaveLogHelper {
                 + "-" + second + ".am.log";
     }
 
-    @Contract("null -> true")
-    public static boolean isInvalidFilename(@Nullable CharSequence filename) {
+    public static boolean isInvalidFilename(CharSequence filename) {
         String filenameAsString;
         return TextUtils.isEmpty(filename)
                 || (filenameAsString = filename.toString()).contains("/")

@@ -14,7 +14,6 @@ import android.app.INotificationManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.system.ErrnoException;
 
@@ -342,12 +341,9 @@ class RestoreOp implements Closeable {
                 throw new BackupException("Failed to extract the apk file(s).", th);
             }
             // A normal update will do it now
-            InstallerOptions options = InstallerOptions.getDefault();
+            InstallerOptions options = new InstallerOptions();
             options.setInstallerName(mMetadata.installer);
             options.setUserId(mUserId);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                options.setInstallScenario(PackageManager.INSTALL_SCENARIO_BULK);
-            }
             PackageInstallerCompat packageInstaller = PackageInstallerCompat.getNewInstance();
             packageInstaller.setOnInstallListener(new PackageInstallerCompat.OnInstallListener() {
                 @Override

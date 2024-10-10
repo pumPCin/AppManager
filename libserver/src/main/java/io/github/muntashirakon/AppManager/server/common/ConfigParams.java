@@ -10,14 +10,16 @@ public final class ConfigParams {
     public static final String PARAM_PATH = "path";
     public static final String PARAM_RUN_IN_BACKGROUND = "bgrun";
     public static final String PARAM_TOKEN = "token";
-    public static final String PARAM_UID = "uid";
+    public static final String PARAM_TYPE = "type";
+    public static final String PARAM_TYPE_ROOT = "root";
+    public static final String PARAM_TYPE_ADB = "adb";
 
     private boolean mIsDebug;
     private String mAppName;
     private String mPath;
     private boolean mRunInBackground;
     private String mToken;
-    private String mUid;
+    private String mType;
 
     public ConfigParams() {
     }
@@ -39,8 +41,8 @@ public final class ConfigParams {
             case PARAM_TOKEN:
                 mToken = value;
                 break;
-            case PARAM_UID:
-                mUid = value;
+            case PARAM_TYPE:
+                mType = PARAM_TYPE_ADB.equals(value) ? PARAM_TYPE_ADB : PARAM_TYPE_ROOT;
         }
     }
 
@@ -64,8 +66,8 @@ public final class ConfigParams {
         return mToken;
     }
 
-    public String getUid() {
-        return mUid;
+    public String getType() {
+        return mType;
     }
 
     @NonNull
@@ -76,7 +78,7 @@ public final class ConfigParams {
                 ", mPath='" + mPath + '\'' +
                 ", mRunInBackground=" + mRunInBackground +
                 ", mToken='" + mToken + '\'' +
-                ", mUid='" + mUid + '\'' +
+                ", mType='" + mType + '\'' +
                 '}';
     }
 }

@@ -554,13 +554,13 @@ public class ProfileViewModel extends AndroidViewModel {
     }
 
     @Nullable
-    public String[] getAppOpsStr() {
+    public String[] getAppOps() {
         if (mProfile == null) return null;
         int[] appOps = mProfile.appOps;
         if (appOps == null) return null;
         String[] appOpsStr = new String[appOps.length];
         for (int i = 0; i < appOps.length; ++i) {
-            appOpsStr[i] = AppOpsManagerCompat.opToName(appOps[i]);
+            appOpsStr[i] = String.valueOf(appOps[i]);
         }
         return appOpsStr;
     }

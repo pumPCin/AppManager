@@ -25,7 +25,6 @@ import java.util.Objects;
 
 import io.github.muntashirakon.AppManager.R;
 import io.github.muntashirakon.AppManager.self.imagecache.ImageLoader;
-import io.github.muntashirakon.util.AdapterUtils;
 import io.github.muntashirakon.widget.RecyclerView;
 import io.github.muntashirakon.widget.SwipeRefreshLayout;
 
@@ -82,6 +81,7 @@ public class AppsFragment extends Fragment implements SwipeRefreshLayout.OnRefre
         mSwipeRefresh = view.findViewById(R.id.swipe_refresh);
         mSwipeRefresh.setOnRefreshListener(this);
         RecyclerView recyclerView = view.findViewById(R.id.scrollView);
+        recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(mActivity, LinearLayoutManager.VERTICAL, false));
         final TextView emptyView = view.findViewById(android.R.id.empty);
         emptyView.setText(R.string.no_apps);
@@ -124,7 +124,9 @@ public class AppsFragment extends Fragment implements SwipeRefreshLayout.OnRefre
         }
 
         void setList(List<AppsFragmentItem> list) {
-            AdapterUtils.notifyDataSetChanged(this, packages, list);
+            packages.clear();
+            packages.addAll(list);
+            notifyDataSetChanged();
         }
 
         @NonNull

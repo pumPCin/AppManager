@@ -36,7 +36,6 @@ import io.github.muntashirakon.AppManager.R;
 import io.github.muntashirakon.AppManager.StaticDataset;
 import io.github.muntashirakon.AppManager.db.utils.AppDb;
 import io.github.muntashirakon.AppManager.details.AppDetailsActivity;
-import io.github.muntashirakon.util.AdapterUtils;
 import io.github.muntashirakon.AppManager.utils.ThreadUtils;
 import io.github.muntashirakon.AppManager.utils.UIUtils;
 import io.github.muntashirakon.AppManager.utils.appearance.ColorCodes;
@@ -255,7 +254,9 @@ public class BloatwareDetailsDialog extends CapsuleBottomSheetDialogFragment {
         }
 
         public void setList(@NonNull List<SuggestionObject> suggestions) {
-            AdapterUtils.notifyDataSetChanged(this, mSuggestions, suggestions);
+            mSuggestions.clear();
+            mSuggestions.addAll(suggestions);
+            notifyDataSetChanged();
         }
 
         @NonNull

@@ -14,46 +14,28 @@
         android:layout_height="match_parent"
         app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
 
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_height="match_parent">
 
-            <io.github.muntashirakon.widget.MaterialSpinner
-                style="@style/Widget.AppTheme.MaterialSpinner.Spinner.Small"
-                android:id="@+id/spinner"
-                android:layout_width="130dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical|start"
-                android:layout_marginVertical="@dimen/padding_small"
-                android:layout_marginHorizontal="@dimen/padding_large"
-                android:nextFocusDown="@id/recycler_view"
-                tools:hint="Interval" />
-
-            <FrameLayout
+            <io.github.muntashirakon.widget.RecyclerView
+                android:id="@+id/scrollView"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="wrap_content"
+                android:fitsSystemWindows="true"
+                app:fastScrollerEnabled="true"
+                tools:listitem="@layout/item_app_usage" />
 
-                <io.github.muntashirakon.widget.RecyclerView
-                    android:id="@+id/scrollView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fitsSystemWindows="true"
-                    app:fastScrollerEnabled="true"
-                    tools:listitem="@layout/item_app_usage" />
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@android:id/empty"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:focusable="false"
+                android:text="@string/no_usage_in_this_time_range"
+                tools:visibility="gone" />
 
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@android:id/empty"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:focusable="false"
-                    android:text="@string/no_usage_in_this_time_range"
-                    tools:visibility="visible" />
-
-            </FrameLayout>
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
+        </FrameLayout>
 
     </io.github.muntashirakon.widget.SwipeRefreshLayout>
 

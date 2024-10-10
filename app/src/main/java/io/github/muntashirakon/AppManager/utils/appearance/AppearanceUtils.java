@@ -94,9 +94,6 @@ public final class AppearanceUtils {
         application.registerActivityLifecycleCallbacks(new ActivityAppearanceCallback());
         application.registerComponentCallbacks(new ComponentAppearanceCallback(application));
         applyOnlyLocale(application);
-        if (Prefs.Appearance.useSystemFont()) {
-            TypefaceUtil.replaceFontsWithSystem(application);
-        }
     }
 
     /**

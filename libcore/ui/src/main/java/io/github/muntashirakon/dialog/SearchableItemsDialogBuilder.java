@@ -32,7 +32,6 @@ import java.util.Locale;
 import java.util.Set;
 
 import io.github.muntashirakon.ui.R;
-import io.github.muntashirakon.util.AdapterUtils;
 import io.github.muntashirakon.widget.SearchView;
 
 public class SearchableItemsDialogBuilder<T extends CharSequence> {
@@ -67,6 +66,7 @@ public class SearchableItemsDialogBuilder<T extends CharSequence> {
     public SearchableItemsDialogBuilder(@NonNull Context context, @NonNull List<T> itemNames) {
         View view = View.inflate(context, R.layout.dialog_searchable_single_choice, null);
         RecyclerView recyclerView = view.findViewById(android.R.id.list);
+        recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
         mSearchView = view.findViewById(R.id.action_search);
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -115,7 +115,7 @@ public class SearchableItemsDialogBuilder<T extends CharSequence> {
     }
 
     public SearchableItemsDialogBuilder<T> reloadListUi() {
-        mAdapter.notifyItemRangeChanged(0, mAdapter.getItemCount());
+        mAdapter.notifyDataSetChanged();
         return this;
     }
 
@@ -221,14 +221,13 @@ public class SearchableItemsDialogBuilder<T extends CharSequence> {
         void setFilteredItems(CharSequence constraint) {
             Locale locale = Locale.getDefault();
             synchronized (mFilteredItems) {
-                int previousCount = mFilteredItems.size();
                 mFilteredItems.clear();
                 for (int i = 0; i < mItems.size(); ++i) {
                     if (mItems.get(i).toString().toLowerCase(locale).contains(constraint)) {
                         mFilteredItems.add(i);
                     }
                 }
-                AdapterUtils.notifyDataSetChanged(this, previousCount, mFilteredItems.size());
+                notifyDataSetChanged();
             }
         }
 

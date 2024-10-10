@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.github.muntashirakon.AppManager.R;
-import io.github.muntashirakon.util.AdapterUtils;
 
 import static io.github.muntashirakon.AppManager.details.info.ListItem.LIST_ITEM_GROUP_BEGIN;
 import static io.github.muntashirakon.AppManager.details.info.ListItem.LIST_ITEM_INLINE;
@@ -37,7 +36,9 @@ class AppInfoRecyclerAdapter extends RecyclerView.Adapter<AppInfoRecyclerAdapter
     }
 
     void setAdapterList(@NonNull List<ListItem> list) {
-        AdapterUtils.notifyDataSetChanged(this, mAdapterList, list);
+        mAdapterList.clear();
+        mAdapterList.addAll(list);
+        notifyDataSetChanged();
     }
 
     @Override

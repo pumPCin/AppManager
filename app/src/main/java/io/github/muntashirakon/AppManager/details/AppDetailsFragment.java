@@ -13,9 +13,7 @@ import androidx.annotation.CallSuper;
 import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -33,7 +31,7 @@ import io.github.muntashirakon.widget.RecyclerView;
 import io.github.muntashirakon.widget.SwipeRefreshLayout;
 
 public abstract class AppDetailsFragment extends Fragment implements AdvancedSearchView.OnQueryTextListener,
-        SwipeRefreshLayout.OnRefreshListener, MenuProvider {
+        SwipeRefreshLayout.OnRefreshListener {
     @IntDef(value = {
             APP_INFO,
             ACTIVITIES,
@@ -111,6 +109,7 @@ public abstract class AppDetailsFragment extends Fragment implements AdvancedSea
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
         activity = (AppDetailsActivity) requireActivity();
         viewModel = new ViewModelProvider(activity).get(AppDetailsViewModel.class);
         packageManager = activity.getPackageManager();
@@ -141,7 +140,6 @@ public abstract class AppDetailsFragment extends Fragment implements AdvancedSea
         alertView.setEndIconDrawable(com.google.android.material.R.drawable.mtrl_ic_cancel);
         alertView.setEndIconContentDescription(R.string.close);
         swipeRefresh.setOnChildScrollUpCallback((parent, child) -> recyclerView.canScrollVertically(-1));
-        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
     }
 
     @CallSuper

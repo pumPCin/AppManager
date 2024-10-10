@@ -20,6 +20,7 @@ import androidx.fragment.app.FragmentActivity;
 
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.color.MaterialColors;
+import com.google.android.material.divider.MaterialDivider;
 import com.google.android.material.textview.MaterialTextView;
 
 import java.util.Collections;
@@ -27,13 +28,14 @@ import java.util.List;
 
 import io.github.muntashirakon.AppManager.R;
 import io.github.muntashirakon.AppManager.utils.appearance.ColorCodes;
-import io.github.muntashirakon.util.AdapterUtils;
 import io.github.muntashirakon.widget.MultiSelectionView;
 
 public class DebloaterRecyclerViewAdapter extends MultiSelectionView.Adapter<DebloaterRecyclerViewAdapter.ViewHolder> {
     private List<DebloatObject> mAdapterList = Collections.emptyList();
 
     private final FragmentActivity mActivity;
+    @ColorInt
+    private final int mHighlightColor;
     @ColorInt
     private final int mRemovalSafeColor;
     @ColorInt
@@ -50,6 +52,7 @@ public class DebloaterRecyclerViewAdapter extends MultiSelectionView.Adapter<Deb
 
     public DebloaterRecyclerViewAdapter(DebloaterActivity activity) {
         mActivity = activity;
+        mHighlightColor = ColorCodes.getListItemSelectionColor(activity);
         mRemovalSafeColor = ColorCodes.getRemovalSafeIndicatorColor(activity);
         mRemovalReplaceColor = ColorCodes.getRemovalReplaceIndicatorColor(activity);
         mRemovalCautionColor = ColorCodes.getRemovalCautionIndicatorColor(activity);
@@ -61,10 +64,14 @@ public class DebloaterRecyclerViewAdapter extends MultiSelectionView.Adapter<Deb
 
     public void setAdapterList(List<DebloatObject> adapterList) {
         synchronized (mLock) {
-            int previousCount = mAdapterList.size();
             mAdapterList = adapterList;
-            AdapterUtils.notifyDataSetChanged(this, previousCount, mAdapterList.size());
+            notifyDataSetChanged();
         }
+    }
+
+    @Override
+    public int getHighlightColor() {
+        return mHighlightColor;
     }
 
     @NonNull
@@ -111,7 +118,7 @@ public class DebloaterRecyclerViewAdapter extends MultiSelectionView.Adapter<Deb
         holder.listTypeView.setText(debloatObject.type);
         holder.packageNameView.setText(debloatObject.packageName);
         holder.descriptionView.setText(sb);
-        holder.itemView.setStrokeColor(removalColor);
+        holder.removalIndicator.setDividerColor(removalColor);
         holder.labelView.setText(label);
         holder.itemView.setOnLongClickListener(v -> {
             toggleSelection(position);
@@ -126,6 +133,7 @@ public class DebloaterRecyclerViewAdapter extends MultiSelectionView.Adapter<Deb
                 dialog.show(mActivity.getSupportFragmentManager(), BloatwareDetailsDialog.TAG);
             }
         });
+        holder.itemView.setCardBackgroundColor(mColorSurface);
         super.onBindViewHolder(holder, position);
     }
 
@@ -182,6 +190,7 @@ public class DebloaterRecyclerViewAdapter extends MultiSelectionView.Adapter<Deb
 
     public static class ViewHolder extends MultiSelectionView.ViewHolder {
         public final MaterialCardView itemView;
+        public final MaterialDivider removalIndicator;
         public final AppCompatImageView iconView;
         public final MaterialTextView listTypeView;
         public final MaterialTextView labelView;
@@ -191,6 +200,7 @@ public class DebloaterRecyclerViewAdapter extends MultiSelectionView.Adapter<Deb
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             this.itemView = (MaterialCardView) itemView;
+            removalIndicator = itemView.findViewById(R.id.divider);
             iconView = itemView.findViewById(R.id.icon);
             listTypeView = itemView.findViewById(R.id.list_type);
             labelView = itemView.findViewById(R.id.label);

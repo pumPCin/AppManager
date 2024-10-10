@@ -18,7 +18,9 @@ import io.github.muntashirakon.AppManager.server.common.ConfigParams;
 import io.github.muntashirakon.AppManager.server.common.Constants;
 import io.github.muntashirakon.AppManager.server.common.FLog;
 
-import static io.github.muntashirakon.AppManager.server.common.ConfigParams.PARAM_UID;
+import static io.github.muntashirakon.AppManager.server.common.ConfigParams.PARAM_TYPE;
+import static io.github.muntashirakon.AppManager.server.common.ConfigParams.PARAM_TYPE_ADB;
+import static io.github.muntashirakon.AppManager.server.common.ConfigParams.PARAM_TYPE_ROOT;
 
 /**
  * ServerRunner runs the server based on the parameters given. It takes two arguments:
@@ -68,13 +70,13 @@ public final class ServerRunner {
                 String[] param = s.split(":");
                 configParams.put(param[0], param[1]);
             }
-            configParams.put(PARAM_UID, "" + Process.myUid());
+            configParams.put(PARAM_TYPE, Process.myUid() == 0 ? PARAM_TYPE_ROOT : PARAM_TYPE_ADB);
             // Set server info
             LifecycleAgent.sServerInfo.startArgs = paramsStr;
             LifecycleAgent.sServerInfo.startTime = System.currentTimeMillis();
             LifecycleAgent.sServerInfo.startRealTime = SystemClock.elapsedRealtime();
             // Print debug
-            System.out.println("UID: " + configParams.getUid() + ", UID: " + Process.myUid());
+            System.out.println("Type: " + configParams.getType() + ", UID: " + Process.myUid());
             System.out.println("Params: " + configParams);
             // Kill old server if requested
             if (oldPid != -1) {

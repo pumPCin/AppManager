@@ -28,6 +28,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckedTextView;
+import android.widget.Toast;
 
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
@@ -58,9 +59,7 @@ import io.github.muntashirakon.AppManager.filters.options.FilterOption;
 import io.github.muntashirakon.AppManager.filters.options.FilterOptions;
 import io.github.muntashirakon.AppManager.utils.ContextUtils;
 import io.github.muntashirakon.AppManager.utils.DateUtils;
-import io.github.muntashirakon.AppManager.utils.UIUtils;
 import io.github.muntashirakon.adapters.SelectedArrayAdapter;
-import io.github.muntashirakon.util.AdapterUtils;
 import io.github.muntashirakon.view.TextInputLayoutCompat;
 import io.github.muntashirakon.widget.MaterialSpinner;
 import io.github.muntashirakon.widget.RecyclerView;
@@ -252,7 +251,7 @@ public class EditFilterOptionFragment extends DialogFragment {
         builder.setView(view)
                 .setPositiveButton(editMode ? R.string.update : R.string.add, (dialog, which) -> {
                     if (mCurrentFilterOption == null) {
-                        UIUtils.displayLongToast(R.string.key_name_cannot_be_null);
+                        Toast.makeText(getActivity(), R.string.key_name_cannot_be_null, Toast.LENGTH_LONG).show();
                         return;
                     }
                     WrappedFilterOption newWrappedFilterOption;
@@ -268,7 +267,7 @@ public class EditFilterOptionFragment extends DialogFragment {
                         mCurrentFilterOption.setKeyValue(mCurrentKey, TextUtils.isEmpty(editable) ? null : editable.toString());
                     } catch (Exception e) {
                         e.printStackTrace();
-                        UIUtils.displayLongToast(R.string.error_evaluating_input);
+                        Toast.makeText(getActivity(), R.string.error_evaluating_input, Toast.LENGTH_LONG).show();
                         return;
                     }
                     if (editMode) {
@@ -396,7 +395,9 @@ public class EditFilterOptionFragment extends DialogFragment {
 
         public void setFlagMap(@NonNull Map<Integer, CharSequence> flagMap) {
             mFlagMap = flagMap;
-            AdapterUtils.notifyDataSetChanged(this, mFlags, flagMap.keySet());
+            mFlags.clear();
+            mFlags.addAll(flagMap.keySet());
+            notifyItemRangeChanged(0, mFlags.size());
         }
 
         public void setFlag(int flag) {

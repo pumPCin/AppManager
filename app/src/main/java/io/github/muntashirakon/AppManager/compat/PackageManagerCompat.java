@@ -21,8 +21,6 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.IPackageInstaller;
 import android.content.pm.IPackageManager;
 import android.content.pm.IPackageManagerN;
-import android.content.pm.LauncherActivityInfo;
-import android.content.pm.LauncherApps;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ParceledListSlice;
@@ -31,18 +29,17 @@ import android.content.pm.ProviderInfo;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.content.pm.SuspendDialogInfo;
-import android.os.BadParcelableException;
 import android.os.Build;
 import android.os.DeadObjectException;
 import android.os.RemoteException;
 import android.os.SystemClock;
-import android.os.UserHandle;
 import android.os.UserHandleHidden;
 import android.util.AndroidException;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.OptIn;
 import androidx.annotation.RequiresApi;
 import androidx.annotation.RequiresPermission;
 import androidx.annotation.WorkerThread;
@@ -50,7 +47,6 @@ import androidx.annotation.WorkerThread;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -66,7 +62,6 @@ import io.github.muntashirakon.AppManager.utils.BroadcastUtils;
 import io.github.muntashirakon.AppManager.utils.ContextUtils;
 import io.github.muntashirakon.AppManager.utils.ExUtils;
 import io.github.muntashirakon.AppManager.utils.ThreadUtils;
-import io.github.muntashirakon.AppManager.utils.Utils;
 
 public final class PackageManagerCompat {
     public static final String TAG = PackageManagerCompat.class.getSimpleName();
@@ -124,7 +119,7 @@ public final class PackageManagerCompat {
 
     @WorkerThread
     @NonNull
-    public static List<PackageInfo> getInstalledPackages(int flags, @UserIdInt int userId) {
+    public static List<PackageInfo> getInstalledPackages(int flags, @UserIdInt int userId) throws RemoteException {
         IPackageManager pm = getPackageManager();
         // Here we've compromised performance to fix issues in some devices where Binder transaction limit is too small.
         List<PackageInfo> refPackages = getInstalledPackagesInternal(pm, flags & NEEDED_FLAGS, userId);
@@ -151,12 +146,10 @@ public final class PackageManagerCompat {
             if (ThreadUtils.isInterrupted()) {
                 break;
             }
-            String packageName = refPackages.get(i).packageName;
             try {
-                packageInfoList.add(getPackageInfo(pm, packageName, flags, userId));
+                packageInfoList.add(getPackageInfo(pm, refPackages.get(i).packageName, flags, userId));
             } catch (Exception ex) {
-                Log.e(TAG, "Could not retrieve package info for " + packageName + " and user " + userId);
-                continue;
+                throw (RemoteException) new RemoteException(ex.getMessage()).initCause(ex);
             }
             if (i % 100 == 0) {
                 // Prevent DeadObjectException
@@ -167,20 +160,12 @@ public final class PackageManagerCompat {
     }
 
     @SuppressWarnings("deprecation")
-    private static List<PackageInfo> getInstalledPackagesInternal(@NonNull IPackageManager pm,
-                                                                  int flags,
-                                                                  @UserIdInt int userId) {
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                return pm.getInstalledPackages((long) flags, userId).getList();
-            }
-            return pm.getInstalledPackages(flags, userId).getList();
-        } catch (RemoteException e) {
-            return ExUtils.rethrowFromSystemServer(e);
-        } catch (BadParcelableException e) {
-            Log.w(TAG, "Could not retrieve all packages for user " + userId, e);
-            return Collections.emptyList();
+    private static List<PackageInfo> getInstalledPackagesInternal(@NonNull IPackageManager pm, int flags,
+                                                                  @UserIdInt int userHandle) throws RemoteException {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return pm.getInstalledPackages((long) flags, userHandle).getList();
         }
+        return pm.getInstalledPackages(flags, userHandle).getList();
     }
 
     @WorkerThread
@@ -293,11 +278,7 @@ public final class PackageManagerCompat {
     @Nullable
     public static String getInstallerPackageName(@NonNull String packageName, @UserIdInt int userId) {
         try {
-            InstallSourceInfoCompat installSource = getInstallSourceInfo(packageName, userId);
-            if (installSource.getInstallingPackageName() != null) {
-                return installSource.getInstallingPackageName();
-            }
-            return installSource.getInitiatingPackageName();
+            return getInstallSourceInfo(packageName, userId).getInstallingPackageName();
         } catch (RemoteException | SecurityException e) {
             return null;
         }
@@ -324,38 +305,6 @@ public final class PackageManagerCompat {
             }
         }
         return new InstallSourceInfoCompat(installerPackageName);
-    }
-
-    @Nullable
-    public static Intent getLaunchIntentForPackage(@NonNull String packageName, @UserIdInt int userId) {
-        Context context = ContextUtils.getContext();
-        if (userId == UserHandleHidden.myUserId()) {
-            PackageManager pm = context.getPackageManager();
-            return Utils.isTv(context)
-                    ? pm.getLeanbackLaunchIntentForPackage(packageName)
-                    : pm.getLaunchIntentForPackage(packageName);
-        }
-        UserHandle userHandle = Users.getUserHandle(userId);
-        if (userHandle == null) {
-            // No supported user present
-            return null;
-        }
-        LauncherApps launcherApps = (LauncherApps) context.getSystemService(Context.LAUNCHER_APPS_SERVICE);
-        if (!launcherApps.isPackageEnabled(packageName, userHandle)) {
-            // Package not enabled
-            return null;
-        }
-        List<LauncherActivityInfo> activityInfoList = launcherApps.getActivityList(packageName, userHandle);
-        if (activityInfoList.isEmpty()) {
-            // No activities
-            return null;
-        }
-        // Return the first openable activity
-        LauncherActivityInfo info = activityInfoList.get(0);
-        return new Intent(Intent.ACTION_MAIN)
-                .addCategory(Intent.CATEGORY_LAUNCHER)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
-                .setComponent(info.getComponentName());
     }
 
     @SuppressLint("NewApi")
@@ -464,14 +413,10 @@ public final class PackageManagerCompat {
                 if (hidden) {
                     if (hide) {
                         BroadcastUtils.sendPackageRemoved(ContextUtils.getContext(), new String[]{packageName});
-                    } else {
-                        BroadcastUtils.sendPackageAdded(ContextUtils.getContext(), new String[]{packageName});
-                    }
+                    } else BroadcastUtils.sendPackageAdded(ContextUtils.getContext(), new String[]{packageName});
                 }
             }
-        } else {
-            throw new RemoteException("Missing required permission: android.permission.MANAGE_USERS.");
-        }
+        } else throw new RemoteException("Missing required permission: android.permission.MANAGE_USERS.");
     }
 
     public static boolean isPackageHidden(String packageName, @UserIdInt int userId) throws RemoteException {
@@ -499,16 +444,13 @@ public final class PackageManagerCompat {
     public static int installExistingPackageAsUser(@NonNull String packageName, @UserIdInt int userId, int installFlags,
                                                    int installReason, @Nullable List<String> whiteListedPermissions)
             throws RemoteException {
-        int returnCode;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            returnCode = getPackageManager().installExistingPackageAsUser(packageName, userId, installFlags, installReason, whiteListedPermissions);
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            returnCode = getPackageManager().installExistingPackageAsUser(packageName, userId, installFlags, installReason);
-        } else returnCode = getPackageManager().installExistingPackageAsUser(packageName, userId);
-        if (userId != UserHandleHidden.myUserId()) {
-            BroadcastUtils.sendPackageAdded(ContextUtils.getContext(), new String[]{packageName});
+            return getPackageManager().installExistingPackageAsUser(packageName, userId, installFlags, installReason, whiteListedPermissions);
         }
-        return returnCode;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            return getPackageManager().installExistingPackageAsUser(packageName, userId, installFlags, installReason);
+        }
+        return getPackageManager().installExistingPackageAsUser(packageName, userId);
     }
 
     @RequiresPermission(ManifestCompat.permission.CLEAR_APP_USER_DATA)
@@ -528,7 +470,9 @@ public final class PackageManagerCompat {
         if (!obs.isSuccessful()) {
             throw new AndroidException("Could not clear data of package " + pair);
         }
-        BroadcastUtils.sendPackageAltered(ContextUtils.getContext(), new String[]{pair.getPackageName()});
+        if (pair.getUserId() != UserHandleHidden.myUserId()) {
+            BroadcastUtils.sendPackageAltered(ContextUtils.getContext(), new String[]{pair.getPackageName()});
+        }
     }
 
     @RequiresPermission(ManifestCompat.permission.CLEAR_APP_USER_DATA)
@@ -564,7 +508,9 @@ public final class PackageManagerCompat {
         if (!obs.isSuccessful()) {
             throw new AndroidException("Could not clear cache of package " + pair);
         }
-        BroadcastUtils.sendPackageAltered(ContextUtils.getContext(), new String[]{pair.getPackageName()});
+        if (pair.getUserId() != UserHandleHidden.myUserId()) {
+            BroadcastUtils.sendPackageAltered(ContextUtils.getContext(), new String[]{pair.getPackageName()});
+        }
     }
 
     @RequiresPermission(allOf = {
@@ -582,12 +528,10 @@ public final class PackageManagerCompat {
     }
 
     @RequiresPermission(ManifestCompat.permission.FORCE_STOP_PACKAGES)
-    public static void forceStopPackage(String packageName, int userId) throws RemoteException, SecurityException {
-        try {
-            ActivityManagerCompat.getActivityManager().forceStopPackage(packageName, userId);
+    public static void forceStopPackage(String packageName, int userId) throws RemoteException {
+        ActivityManagerCompat.getActivityManager().forceStopPackage(packageName, userId);
+        if (userId != UserHandleHidden.myUserId()) {
             BroadcastUtils.sendPackageAltered(ContextUtils.getContext(), new String[]{packageName});
-        } catch (RemoteException e) {
-            ExUtils.rethrowFromSystemServer(e);
         }
     }
 
@@ -615,9 +559,7 @@ public final class PackageManagerCompat {
             boolean hasPermission;
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
                 hasPermission = SelfPermissions.checkSelfOrRemotePermission(ManifestCompat.permission.INTERNAL_DELETE_CACHE_FILES);
-            } else {
-                hasPermission = SelfPermissions.checkSelfOrRemotePermission(Manifest.permission.DELETE_CACHE_FILES);
-            }
+            } else hasPermission = SelfPermissions.checkSelfOrRemotePermission(Manifest.permission.DELETE_CACHE_FILES);
             if (!hasPermission) {
                 // Does not have enough permission
                 return;

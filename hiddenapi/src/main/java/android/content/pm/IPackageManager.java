@@ -981,10 +981,6 @@ public interface IPackageManager extends IInterface {
     @RequiresApi(Build.VERSION_CODES.N)
     void dumpProfiles(String packageName) throws RemoteException;
 
-    /**
-     * @deprecated Removed in API 34 (Android 14)
-     */
-    @Deprecated
     void forceDexOpt(String packageName) throws RemoteException;
 
     /**

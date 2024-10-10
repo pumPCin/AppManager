@@ -151,6 +151,10 @@ public class RootServiceManager implements Handler.Callback {
     private Shell.Task startRootProcess(ComponentName name, String action) {
         Context context = ContextUtils.getContext();
 
+        if (Utils.hasStartupAgents(context)) {
+            Log.e(TAG, JVMTI_ERROR);
+        }
+
         if ((mFlags & RECEIVER_REGISTERED) == 0) {
             // Register receiver to receive binder from root process
             IntentFilter filter = new IntentFilter(RECEIVER_BROADCAST);
@@ -163,10 +167,6 @@ public class RootServiceManager implements Handler.Callback {
         }
 
         return (stdin, stdout, stderr) -> {
-            if (Utils.hasStartupAgents(context)) {
-                Log.e(TAG, JVMTI_ERROR);
-            }
-
             Context ctx = ContextUtils.getContext();
             Context de = ContextUtils.getDeContext(ctx);
             File mainJar;
@@ -184,7 +184,26 @@ public class RootServiceManager implements Handler.Callback {
             FileUtils.chmod644(mainJar);
 
             StringBuilder env = new StringBuilder();
-            String params = getParams(env);
+            String params = "";
+
+            if (Utils.vLog()) {
+                env.append(LOGGING_ENV + "=1 ");
+            }
+
+            // Only support debugging on SDK >= 27
+            if (Build.VERSION.SDK_INT >= 27 && Debug.isDebuggerConnected()) {
+                env.append(DEBUG_ENV + "=1 ");
+                // Reference of the params to start jdwp:
+                // https://developer.android.com/ndk/guides/wrap-script#debugging_when_using_wrapsh
+                if (Build.VERSION.SDK_INT == 27) {
+                    params = API_27_DEBUG;
+                } else {
+                    params = API_28_DEBUG;
+                }
+            }
+
+            // Disable image dex2oat as it can be quite slow in some ROMs if triggered
+            params += " -Xnoimage-dex2oat";
 
             // Classpath
             env.append(CLASSPATH_ENV + "=").append(Ops.isSystem() ? mainJar : stagingMainJar).append(" ");
@@ -200,31 +219,6 @@ public class RootServiceManager implements Handler.Callback {
             // the command runs in the background, we don't need to wait and
             // can just return.
         };
-    }
-
-    @SuppressLint("RestrictedApi")
-    @NonNull
-    private static String getParams(StringBuilder env) {
-        String params = "";
-
-        if (Utils.vLog()) {
-            env.append(LOGGING_ENV + "=1 ");
-        }
-
-        // Only support debugging on SDK >= 27
-        if (Build.VERSION.SDK_INT >= 27 && Debug.isDebuggerConnected()) {
-            env.append(DEBUG_ENV + "=1 ");
-            // Reference of the params to start jdwp:
-            // https://developer.android.com/ndk/guides/wrap-script#debugging_when_using_wrapsh
-            if (Build.VERSION.SDK_INT == 27) {
-                params = API_27_DEBUG;
-            } else {
-                params = API_28_DEBUG;
-            }
-        }
-
-        // Disable image dex2oat as it can be quite slow in some ROMs if triggered
-        return params + " -Xnoimage-dex2oat";
     }
 
     @NonNull

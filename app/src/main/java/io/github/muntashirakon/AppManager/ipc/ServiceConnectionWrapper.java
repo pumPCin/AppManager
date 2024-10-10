@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.github.muntashirakon.AppManager.logs.Log;
 import io.github.muntashirakon.AppManager.misc.NoOps;
+import io.github.muntashirakon.AppManager.settings.Ops;
 import io.github.muntashirakon.AppManager.utils.ThreadUtils;
 
 class ServiceConnectionWrapper {
@@ -62,7 +63,7 @@ class ServiceConnectionWrapper {
             if (mServiceBoundWatcher != null) {
                 // Should never be null
                 mServiceBoundWatcher.countDown();
-            } else throw new RuntimeException("Service watcher should never be null!");
+            } else throw new RuntimeException("AMService watcher should never be null!");
         }
     }
 
@@ -92,7 +93,7 @@ class ServiceConnectionWrapper {
     @NoOps(used = true)
     public IBinder bindService() throws RemoteException {
         synchronized (mServiceConnection) {
-            if (!isBinderActive()) {
+            if (!isBinderActive() && Ops.isPrivileged()) {
                 startDaemon();
             }
             return getService();
@@ -110,7 +111,6 @@ class ServiceConnectionWrapper {
     private void startDaemon() {
         synchronized (mServiceConnection) {
             if (isBinderActive()) {
-                Log.d(TAG, "Binder is already active?");
                 return;
             }
             mServiceBoundWatcher = new CountDownLatch(1);

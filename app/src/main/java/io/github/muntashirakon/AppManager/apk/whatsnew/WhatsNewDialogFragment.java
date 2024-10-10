@@ -67,7 +67,8 @@ public class WhatsNewDialogFragment extends DialogFragment {
         WhatsNewDialogViewModel viewModel = new ViewModelProvider(this).get(WhatsNewDialogViewModel.class);
         mNewPkgInfo = Objects.requireNonNull(BundleCompat.getParcelable(requireArguments(), ARG_NEW_PKG_INFO, PackageInfo.class));
         mOldPkgInfo = Objects.requireNonNull(BundleCompat.getParcelable(requireArguments(), ARG_OLD_PKG_INFO, PackageInfo.class));
-        RecyclerView recyclerView = mDialogView.findViewById(android.R.id.list);
+        RecyclerView recyclerView = (RecyclerView) mDialogView;
+        recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         mAdapter = new WhatsNewRecyclerAdapter(requireContext(), mNewPkgInfo.packageName);
         recyclerView.setAdapter(mAdapter);

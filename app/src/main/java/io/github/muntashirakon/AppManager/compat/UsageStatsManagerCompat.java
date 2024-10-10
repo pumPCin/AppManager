@@ -15,7 +15,6 @@ import io.github.muntashirakon.AppManager.self.SelfPermissions;
 import io.github.muntashirakon.AppManager.users.Users;
 import io.github.muntashirakon.AppManager.utils.BroadcastUtils;
 import io.github.muntashirakon.AppManager.utils.ContextUtils;
-import io.github.muntashirakon.AppManager.utils.ExUtils;
 
 public final class UsageStatsManagerCompat {
     private static final String SYS_USAGE_STATS_SERVICE = "usagestats";
@@ -50,17 +49,13 @@ public final class UsageStatsManagerCompat {
     }
 
     @SuppressWarnings("deprecation")
-    public static boolean isAppInactive(String packageName, @UserIdInt int userId) {
+    public static boolean isAppInactive(String packageName, @UserIdInt int userId) throws RemoteException {
         IUsageStatsManager usm = getUsageStatsManager();
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                String callingPackage = SelfPermissions.getCallingPackage(Users.getSelfOrRemoteUid());
-                return usm.isAppInactive(packageName, userId, callingPackage);
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                return usm.isAppInactive(packageName, userId);
-            }
-        } catch (RemoteException e) {
-            return ExUtils.rethrowFromSystemServer(e);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            String callingPackage = SelfPermissions.getCallingPackage(Users.getSelfOrRemoteUid());
+            return usm.isAppInactive(packageName, userId, callingPackage);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return usm.isAppInactive(packageName, userId);
         }
         // Unsupported Android version: return false
         return false;

@@ -4,13 +4,16 @@ package io.github.muntashirakon.AppManager.intercept;
 
 import static io.github.muntashirakon.AppManager.intercept.IntentCompat.parseExtraValue;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
@@ -26,7 +29,6 @@ import com.google.android.material.textfield.TextInputLayout;
 import java.io.Serializable;
 
 import io.github.muntashirakon.AppManager.R;
-import io.github.muntashirakon.AppManager.utils.UIUtils;
 import io.github.muntashirakon.adapters.SelectedArrayAdapter;
 import io.github.muntashirakon.widget.MaterialSpinner;
 
@@ -137,7 +139,11 @@ public class AddIntentExtraFragment extends DialogFragment {
         Bundle args = requireArguments();
         ExtraItem extraItem = (ExtraItem) args.getSerializable(ARG_PREF_ITEM);
         @Mode int mode = args.getInt(ARG_MODE, MODE_CREATE);
-        View view = View.inflate(activity, R.layout.dialog_edit_pref_item, null);
+
+        LayoutInflater inflater = LayoutInflater.from(activity);
+        if (inflater == null) return super.onCreateDialog(savedInstanceState);
+        @SuppressLint("InflateParams")
+        View view = inflater.inflate(R.layout.dialog_edit_pref_item, null);
         MaterialSpinner spinner = view.findViewById(R.id.type_selector_spinner);
         ArrayAdapter<CharSequence> spinnerAdapter = SelectedArrayAdapter.createFromResource(activity,
                 R.array.extras_types, io.github.muntashirakon.ui.R.layout.auto_complete_dropdown_item);
@@ -223,7 +229,7 @@ public class AddIntentExtraFragment extends DialogFragment {
                 .setPositiveButton(mode == MODE_CREATE ? R.string.add : R.string.done, (dialog, which) -> {
                     if (mOnSaveListener == null) return;
                     if (editKeyName.getText() == null) {
-                        UIUtils.displayLongToast(R.string.key_name_cannot_be_null);
+                        Toast.makeText(getActivity(), R.string.key_name_cannot_be_null, Toast.LENGTH_LONG).show();
                         return;
                     }
                     String keyName = editKeyName.getText().toString().trim();
@@ -235,7 +241,7 @@ public class AddIntentExtraFragment extends DialogFragment {
                     }
                     newExtraItem.type = mCurrentType;
                     if (TextUtils.isEmpty(newExtraItem.keyName)) {
-                        UIUtils.displayLongToast(R.string.key_name_cannot_be_null);
+                        Toast.makeText(getActivity(), R.string.key_name_cannot_be_null, Toast.LENGTH_LONG).show();
                         return;
                     }
                     try {
@@ -246,7 +252,7 @@ public class AddIntentExtraFragment extends DialogFragment {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        UIUtils.displayLongToast(R.string.error_evaluating_input);
+                        Toast.makeText(getActivity(), R.string.error_evaluating_input, Toast.LENGTH_LONG).show();
                         return;
                     }
                     mOnSaveListener.onSave(mode, newExtraItem);

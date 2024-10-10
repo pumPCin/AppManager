@@ -35,7 +35,7 @@ import io.github.muntashirakon.AppManager.logcat.struct.SearchCriteria;
 import io.github.muntashirakon.AppManager.logs.Log;
 import io.github.muntashirakon.AppManager.settings.Prefs;
 import io.github.muntashirakon.AppManager.utils.Utils;
-import io.github.muntashirakon.util.AdapterUtils;
+import io.github.muntashirakon.AppManager.utils.appearance.ColorCodes;
 import io.github.muntashirakon.widget.MultiSelectionView;
 
 // Copyright 2012 Nolan Lawson
@@ -72,19 +72,13 @@ public class LogViewerRecyclerAdapter extends MultiSelectionView.Adapter<LogView
 
     @ColorInt
     private static int getBackgroundColorForLogLevel(Context context, int logLevel) {
-        Integer result = BACKGROUND_COLORS.get(logLevel);
-        if (result == null) {
-            throw new IllegalArgumentException("Invalid log level: " + logLevel);
-        }
+        int result = Objects.requireNonNull(BACKGROUND_COLORS.get(logLevel));
         return ContextCompat.getColor(context, result);
     }
 
     @ColorInt
     private static int getForegroundColorForLogLevel(Context context, int logLevel) {
-        Integer result = FOREGROUND_COLORS.get(logLevel);
-        if (result == null) {
-            throw new IllegalArgumentException("Invalid log level: " + logLevel);
-        }
+        int result = Objects.requireNonNull(FOREGROUND_COLORS.get(logLevel));
         return ContextCompat.getColor(context, result);
     }
 
@@ -119,6 +113,8 @@ public class LogViewerRecyclerAdapter extends MultiSelectionView.Adapter<LogView
 
     private int mLogLevelLimit = Prefs.LogViewer.getLogLevel();
     private final Set<LogLine> mSelectedLogLines = new LinkedHashSet<>();
+    @ColorInt
+    private int mHighlightColor;
 
     public LogViewerRecyclerAdapter() {
         mObjects = new ArrayList<>();
@@ -138,7 +134,7 @@ public class LogViewerRecyclerAdapter extends MultiSelectionView.Adapter<LogView
             }
             mObjects.add(object);
             if (notify) {
-                notifyItemInserted(mObjects.size() - 1);
+                notifyItemInserted(mObjects.size());
             }
         }
     }
@@ -151,7 +147,7 @@ public class LogViewerRecyclerAdapter extends MultiSelectionView.Adapter<LogView
             }
             mObjects.add(object);
             if (notify) {
-                notifyItemInserted(mObjects.size() - 1);
+                notifyItemInserted(mObjects.size());
             }
         }
     }
@@ -166,7 +162,7 @@ public class LogViewerRecyclerAdapter extends MultiSelectionView.Adapter<LogView
             synchronized (mLock) {
                 mOriginalValues.add(object);
                 mObjects.addAll(filteredObjects);
-                if (!filteredObjects.isEmpty() && notify) {
+                if (notify) {
                     notifyItemRangeInserted(mObjects.size() - filteredObjects.size(), filteredObjects.size());
                 }
             }
@@ -174,7 +170,7 @@ public class LogViewerRecyclerAdapter extends MultiSelectionView.Adapter<LogView
             synchronized (mLock) {
                 mObjects.add(object);
                 if (notify) {
-                    notifyItemInserted(mObjects.size() - 1);
+                    notifyItemInserted(mObjects.size());
                 }
             }
         }
@@ -193,8 +189,8 @@ public class LogViewerRecyclerAdapter extends MultiSelectionView.Adapter<LogView
                 mOriginalValues.add(index, object);
             } else {
                 mObjects.add(index, object);
-                notifyItemChanged(index);
             }
+            notifyDataSetChanged();
         }
     }
 
@@ -209,12 +205,9 @@ public class LogViewerRecyclerAdapter extends MultiSelectionView.Adapter<LogView
             if (mOriginalValues != null) {
                 mOriginalValues.remove(object);
             } else {
-                int pos = mObjects.indexOf(object);
-                if (pos >= 0) {
-                    mObjects.remove(pos);
-                    notifyItemRemoved(pos);
-                }
+                mObjects.remove(object);
             }
+            notifyDataSetChanged();
         }
     }
 
@@ -224,18 +217,15 @@ public class LogViewerRecyclerAdapter extends MultiSelectionView.Adapter<LogView
             synchronized (mLock) {
                 List<LogLine> subList = mOriginalValues.subList(n, mOriginalValues.size());
                 for (int i = 0; i < n; i++) {
-                    int pos = mObjects.indexOf(mOriginalValues.get(i));
-                    if (pos >= 0) {
-                        mObjects.remove(pos);
-                        notifyItemRemoved(pos);
-                    }
+                    mObjects.remove(mOriginalValues.get(i));
                 }
                 mOriginalValues = new ArrayList<>(subList);
+                notifyDataSetChanged();
             }
         } else {
             synchronized (mLock) {
                 mObjects = new ArrayList<>(mObjects.subList(n, mObjects.size()));
-                notifyItemRangeRemoved(0, n);
+                notifyDataSetChanged();
             }
         }
         stopWatch.log();
@@ -250,9 +240,8 @@ public class LogViewerRecyclerAdapter extends MultiSelectionView.Adapter<LogView
             if (mOriginalValues != null) {
                 mOriginalValues.clear();
             }
-            int size = mObjects.size();
             mObjects.clear();
-            notifyItemRangeRemoved(0, size);
+            notifyDataSetChanged();
         }
     }
 
@@ -260,17 +249,6 @@ public class LogViewerRecyclerAdapter extends MultiSelectionView.Adapter<LogView
     public LogLine getItem(int position) {
         synchronized (mLock) {
             return mObjects.get(position);
-        }
-    }
-
-    @Nullable
-    @GuardedBy("mLock")
-    private LogLine getItemSafe(int position) {
-        synchronized (mLock) {
-            if (mObjects.size() > position) {
-                return mObjects.get(position);
-            }
-            return null;
         }
     }
 
@@ -296,33 +274,28 @@ public class LogViewerRecyclerAdapter extends MultiSelectionView.Adapter<LogView
     }
 
     @Override
+    public int getHighlightColor() {
+        return mHighlightColor;
+    }
+
+    @Override
     protected void select(int position) {
         synchronized (mSelectedLogLines) {
-            LogLine logLine = getItemSafe(position);
-            if (logLine != null) {
-                mSelectedLogLines.add(logLine);
-            }
+            mSelectedLogLines.add(getItem(position));
         }
     }
 
     @Override
     protected void deselect(int position) {
         synchronized (mSelectedLogLines) {
-            LogLine logLine = getItemSafe(position);
-            if (logLine != null) {
-                mSelectedLogLines.remove(logLine);
-            }
+            mSelectedLogLines.remove(getItem(position));
         }
     }
 
     @Override
     protected boolean isSelected(int position) {
         synchronized (mSelectedLogLines) {
-            LogLine logLine = getItemSafe(position);
-            if (logLine != null) {
-                return mSelectedLogLines.contains(logLine);
-            }
-            return false;
+            return mSelectedLogLines.contains(getItem(position));
         }
     }
 
@@ -349,6 +322,7 @@ public class LogViewerRecyclerAdapter extends MultiSelectionView.Adapter<LogView
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        mHighlightColor = ColorCodes.getListItemSelectionColor(parent.getContext());
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_logcat, parent, false);
         return new ViewHolder(v);
     }
@@ -568,9 +542,8 @@ public class LogViewerRecyclerAdapter extends MultiSelectionView.Adapter<LogView
         @Override
         protected void publishResults(CharSequence constraint, FilterResults results) {
             synchronized (mLock) {
-                int previousCount = mObjects != null ? mObjects.size() : 0;
                 mObjects = (List<LogLine>) results.values;
-                AdapterUtils.notifyDataSetChanged(LogViewerRecyclerAdapter.this, previousCount, mObjects.size());
+                notifyDataSetChanged();
             }
         }
     }
@@ -580,10 +553,10 @@ public class LogViewerRecyclerAdapter extends MultiSelectionView.Adapter<LogView
         private String mName;
 
         public StopWatch(String name) {
-            //if (BuildConfig.DEBUG) {
-                //mName = name;
-                //mStartTime = System.currentTimeMillis();
-            //}
+            if (BuildConfig.DEBUG) {
+                mName = name;
+                mStartTime = System.currentTimeMillis();
+            }
         }
 
         public void log() {

@@ -24,9 +24,6 @@ android {
             includeAndroidResources = true
         }
     }
-    buildFeatures {
-        buildConfig true
-    }
 }
 
 dependencies {

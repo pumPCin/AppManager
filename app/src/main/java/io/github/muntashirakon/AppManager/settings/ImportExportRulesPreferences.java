@@ -5,6 +5,7 @@ package io.github.muntashirakon.AppManager.settings;
 import android.os.Bundle;
 import android.os.UserHandleHidden;
 import android.text.SpannableStringBuilder;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -162,7 +163,7 @@ public class ImportExportRulesPreferences extends PreferenceFragment {
 
     private void importExistingRules(final boolean systemApps) {
         if (!SelfPermissions.canModifyAppComponentStates(UserHandleHidden.myUserId(), null, true)) {
-            UIUtils.displayShortToast(R.string.only_works_in_root_or_adb_mode);
+            Toast.makeText(requireContext(), R.string.only_works_in_root_or_adb_mode, Toast.LENGTH_SHORT).show();
             return;
         }
         ProgressIndicatorCompat.setVisibility(mActivity.progressIndicator, true);
@@ -186,7 +187,7 @@ public class ImportExportRulesPreferences extends PreferenceFragment {
     private void displayImportExistingRulesPackageSelectionDialog(@NonNull List<ItemCount> itemCounts) {
         if (itemCounts.isEmpty()) {
             ProgressIndicatorCompat.setVisibility(mActivity.progressIndicator, false);
-            UIUtils.displayShortToast(R.string.no_matching_package_found);
+            Toast.makeText(requireContext(), R.string.no_matching_package_found, Toast.LENGTH_SHORT).show();
             return;
         }
         final List<String> packages = new ArrayList<>();
@@ -196,7 +197,7 @@ public class ImportExportRulesPreferences extends PreferenceFragment {
             itemCount = itemCounts.get(i);
             packages.add(itemCount.packageName);
             packagesWithItemCounts[i] = new SpannableStringBuilder(itemCount.packageLabel).append("\n")
-                    .append(UIUtils.getSmallerText(UIUtils.getSecondaryText(mActivity, getResources()
+                    .append(UIUtils.getSmallerText(UIUtils.getSecondaryText(requireContext(), getResources()
                             .getQuantityString(R.plurals.no_of_components, itemCount.count,
                                     itemCount.count))));
         }

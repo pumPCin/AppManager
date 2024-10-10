@@ -9,6 +9,7 @@ import android.os.PowerManager;
 import android.os.UserHandleHidden;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.collection.ArrayMap;
 import androidx.core.util.Pair;
@@ -39,27 +40,28 @@ import io.github.muntashirakon.AppManager.db.utils.AppDb;
 import io.github.muntashirakon.AppManager.misc.DeviceInfo2;
 import io.github.muntashirakon.AppManager.rules.compontents.ComponentUtils;
 import io.github.muntashirakon.AppManager.rules.compontents.ComponentsBlocker;
-import io.github.muntashirakon.AppManager.servermanager.ServerConfig;
 import io.github.muntashirakon.AppManager.users.UserInfo;
 import io.github.muntashirakon.AppManager.users.Users;
 import io.github.muntashirakon.AppManager.utils.CpuUtils;
 import io.github.muntashirakon.AppManager.utils.DigestUtils;
 import io.github.muntashirakon.AppManager.utils.StorageUtils;
 import io.github.muntashirakon.AppManager.utils.ThreadUtils;
+import io.github.muntashirakon.adb.android.AdbMdns;
 import io.github.muntashirakon.lifecycle.SingleLiveEvent;
 
 public class MainPreferencesViewModel extends AndroidViewModel implements Ops.AdbConnectionInterface {
+    private AdbMdns mAdbMdnsPairing;
+
     private final Object mRulesLock = new Object();
     private final MutableLiveData<List<UserInfo>> mSelectUsers = new SingleLiveEvent<>();
     private final MutableLiveData<Changelog> mChangeLog = new SingleLiveEvent<>();
     private final MutableLiveData<DeviceInfo2> mDeviceInfo = new SingleLiveEvent<>();
-    private final MutableLiveData<String> mCustomCommand0 = new SingleLiveEvent<>();
-    private final MutableLiveData<String> mCustomCommand1 = new SingleLiveEvent<>();
     private final MutableLiveData<Integer> mModeOfOpsStatus = new SingleLiveEvent<>();
     private final MutableLiveData<Boolean> mOperationCompletedLiveData = new SingleLiveEvent<>();
     private final MutableLiveData<ArrayMap<String, Uri>> mStorageVolumesLiveData = new SingleLiveEvent<>();
     private final MutableLiveData<String> mSigningKeySha256HashLiveData = new SingleLiveEvent<>();
     private final MutableLiveData<List<Pair<String, CharSequence>>> mPackageNameLabelPairLiveData = new SingleLiveEvent<>();
+    private final MutableLiveData<Integer> mAdbPairingPort = new SingleLiveEvent<>();
     private final ExecutorService mExecutor = Executors.newFixedThreadPool(1);
 
     public MainPreferencesViewModel(@NonNull Application application) {
@@ -111,28 +113,6 @@ public class MainPreferencesViewModel extends AndroidViewModel implements Ops.Ad
                 appDb.loadInstalledOrBackedUpApplications(getApplication());
             } finally {
                 CpuUtils.releaseWakeLock(wakeLock);
-            }
-        });
-    }
-
-    public MutableLiveData<String> getCustomCommand0() {
-        return mCustomCommand0;
-    }
-
-    public MutableLiveData<String> getCustomCommand1() {
-        return mCustomCommand1;
-    }
-
-    public void loadCustomCommands() {
-        mExecutor.submit(() -> {
-            try {
-                ServerConfig.init(getApplication(), UserHandleHidden.myUserId());
-                mCustomCommand0.postValue(ServerConfig.getServerRunnerCommand(0));
-                mCustomCommand1.postValue(ServerConfig.getServerRunnerCommand(1));
-            } catch (Throwable e) {
-                e.printStackTrace();
-                mCustomCommand0.postValue(null);
-                mCustomCommand1.postValue(null);
             }
         });
     }
@@ -230,9 +210,9 @@ public class MainPreferencesViewModel extends AndroidViewModel implements Ops.Ad
     }
 
     @RequiresApi(Build.VERSION_CODES.R)
-    public void autoConnectWirelessDebugging() {
+    public void autoConnectAdb(int returnCodeOnFailure) {
         mExecutor.submit(() -> {
-            int status = Ops.autoConnectWirelessDebugging(getApplication());
+            int status = Ops.autoConnectAdb(getApplication(), returnCodeOnFailure);
             mModeOfOpsStatus.postValue(status);
         });
     }
@@ -247,9 +227,9 @@ public class MainPreferencesViewModel extends AndroidViewModel implements Ops.Ad
 
     @Override
     @RequiresApi(Build.VERSION_CODES.R)
-    public void pairAdb() {
+    public void pairAdb(@Nullable String pairingCode, int port) {
         mExecutor.submit(() -> {
-            int status = Ops.pairAdb(getApplication());
+            int status = Ops.pairAdb(getApplication(), pairingCode, port);
             mModeOfOpsStatus.postValue(status);
         });
     }
@@ -257,5 +237,28 @@ public class MainPreferencesViewModel extends AndroidViewModel implements Ops.Ad
     @Override
     public void onStatusReceived(int status) {
         mModeOfOpsStatus.postValue(status);
+    }
+
+    @NonNull
+    @Override
+    public LiveData<Integer> startObservingAdbPairingPort() {
+        mExecutor.submit(() -> {
+            if (mAdbMdnsPairing == null) {
+                mAdbMdnsPairing = new AdbMdns(getApplication(), AdbMdns.SERVICE_TYPE_TLS_PAIRING, (hostAddress, port) -> {
+                    if (port != -1) {
+                        mAdbPairingPort.postValue(port);
+                    }
+                });
+            }
+            mAdbMdnsPairing.start();
+        });
+        return mAdbPairingPort;
+    }
+
+    @Override
+    public void stopObservingAdbPairingPort() {
+        if (mAdbMdnsPairing != null) {
+            mAdbMdnsPairing.stop();
+        }
     }
 }

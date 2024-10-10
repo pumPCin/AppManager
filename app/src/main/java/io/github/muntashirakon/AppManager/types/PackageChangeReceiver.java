@@ -2,8 +2,6 @@
 
 package io.github.muntashirakon.AppManager.types;
 
-import static io.github.muntashirakon.AppManager.batchops.BatchOpsService.ACTION_BATCH_OPS_COMPLETED;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -24,12 +22,15 @@ import androidx.core.content.ContextCompat;
 import androidx.core.os.BundleCompat;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 import io.github.muntashirakon.AppManager.BuildConfig;
 import io.github.muntashirakon.AppManager.batchops.BatchOpsManager;
 import io.github.muntashirakon.AppManager.batchops.BatchOpsService;
+
+import static io.github.muntashirakon.AppManager.batchops.BatchOpsService.ACTION_BATCH_OPS_COMPLETED;
 
 public abstract class PackageChangeReceiver extends BroadcastReceiver {
     /**
@@ -64,6 +65,9 @@ public abstract class PackageChangeReceiver extends BroadcastReceiver {
      */
     public static final String ACTION_DB_PACKAGE_REMOVED = BuildConfig.APPLICATION_ID + ".action.DB_PACKAGE_REMOVED";
 
+    private static final String ACTION_PACKAGES_SUSPENDED = "android.intent.action.PACKAGES_SUSPENDED";
+    private static final String ACTION_PACKAGES_UNSUSPENDED = "android.intent.action.PACKAGES_UNSUSPENDED";
+
     public PackageChangeReceiver(@NonNull Context context) {
         IntentFilter filter = new IntentFilter(Intent.ACTION_PACKAGE_ADDED);
         filter.addAction(Intent.ACTION_PACKAGE_REMOVED);
@@ -73,12 +77,12 @@ public abstract class PackageChangeReceiver extends BroadcastReceiver {
         // Other filters
         IntentFilter sdFilter = new IntentFilter();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            sdFilter.addAction(Intent.ACTION_PACKAGES_SUSPENDED);
-            sdFilter.addAction(Intent.ACTION_PACKAGES_UNSUSPENDED);
+            sdFilter.addAction(ACTION_PACKAGES_SUSPENDED);
+            sdFilter.addAction(ACTION_PACKAGES_UNSUSPENDED);
         }
         sdFilter.addAction(Intent.ACTION_EXTERNAL_APPLICATIONS_AVAILABLE);
         sdFilter.addAction(Intent.ACTION_EXTERNAL_APPLICATIONS_UNAVAILABLE);
-        sdFilter.addAction(Intent.ACTION_PACKAGE_RESTARTED);
+        sdFilter.addAction(Intent.ACTION_LOCALE_CHANGED);
         sdFilter.addAction(ACTION_PACKAGE_ALTERED);
         sdFilter.addAction(ACTION_PACKAGE_ADDED);
         sdFilter.addAction(ACTION_PACKAGE_REMOVED);
@@ -117,17 +121,11 @@ public abstract class PackageChangeReceiver extends BroadcastReceiver {
             Intent intent = Objects.requireNonNull(BundleCompat.getParcelable(msg.getData(), "intent", Intent.class));
             switch (Objects.requireNonNull(intent.getAction())) {
                 case Intent.ACTION_PACKAGE_REMOVED:
-                    if (intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)) {
-                        // The package is being updated, not removed
-                        return;
-                    }
+                    if (intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)) return;
                 case Intent.ACTION_PACKAGE_ADDED:
-                case Intent.ACTION_PACKAGE_CHANGED:
-                case Intent.ACTION_PACKAGE_RESTARTED: {
+                case Intent.ACTION_PACKAGE_CHANGED: {
                     int uid = intent.getIntExtra(Intent.EXTRA_UID, -1);
-                    if (uid != -1) {
-                        onPackageChanged(intent, uid, null);
-                    }
+                    if (uid != -1) onPackageChanged(intent, uid, null);
                     return;
                 }
                 case ACTION_PACKAGE_ADDED:
@@ -136,14 +134,17 @@ public abstract class PackageChangeReceiver extends BroadcastReceiver {
                 case ACTION_DB_PACKAGE_ADDED:
                 case ACTION_DB_PACKAGE_ALTERED:
                 case ACTION_DB_PACKAGE_REMOVED:
-                case Intent.ACTION_PACKAGES_SUSPENDED:
-                case Intent.ACTION_PACKAGES_UNSUSPENDED:
+                case ACTION_PACKAGES_SUSPENDED:
+                case ACTION_PACKAGES_UNSUSPENDED:
                 case Intent.ACTION_EXTERNAL_APPLICATIONS_AVAILABLE:
                 case Intent.ACTION_EXTERNAL_APPLICATIONS_UNAVAILABLE: {
                     String[] packages = intent.getStringArrayExtra(Intent.EXTRA_CHANGED_PACKAGE_LIST);
                     onPackageChanged(intent, null, packages);
                     return;
                 }
+                case Intent.ACTION_LOCALE_CHANGED:
+                    onPackageChanged(intent, null, null);
+                    return;
                 case ACTION_BATCH_OPS_COMPLETED: {
                     // Trigger for all ops except disable, force-stop and uninstall
                     @BatchOpsManager.OpType int op;
@@ -151,15 +152,14 @@ public abstract class PackageChangeReceiver extends BroadcastReceiver {
                     if (op != BatchOpsManager.OP_NONE && op != BatchOpsManager.OP_FREEZE &&
                             op != BatchOpsManager.OP_UNFREEZE && op != BatchOpsManager.OP_UNINSTALL) {
                         String[] packages = intent.getStringArrayExtra(BatchOpsService.EXTRA_OP_PKG);
-                        ArrayList<String> failedPackages = intent.getStringArrayListExtra(BatchOpsService.EXTRA_FAILED_PKG);
+                        String[] failedPackages = intent.getStringArrayExtra(BatchOpsService.EXTRA_FAILED_PKG);
                         if (packages != null && failedPackages != null) {
                             List<String> packageList = new ArrayList<>();
+                            List<String> failedPackageList = Arrays.asList(failedPackages);
                             for (String packageName : packages) {
-                                if (!failedPackages.contains(packageName)) {
-                                    packageList.add(packageName);
-                                }
+                                if (!failedPackageList.contains(packageName)) packageList.add(packageName);
                             }
-                            if (!packageList.isEmpty()) {
+                            if (packageList.size() > 0) {
                                 onPackageChanged(intent, null, packageList.toArray(new String[0]));
                             }
                         }

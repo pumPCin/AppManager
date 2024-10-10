@@ -65,13 +65,13 @@ public class LiveLogViewerFragment extends AbsLogViewerFragment implements LogVi
     }
 
     @Override
-    public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
-        menuInflater.inflate(R.menu.fragment_live_log_viewer_actions, menu);
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        inflater.inflate(R.menu.fragment_live_log_viewer_actions, menu);
     }
 
     @Override
-    public void onPrepareMenu(@NonNull Menu menu) {
-        super.onPrepareMenu(menu);
+    public void onPrepareOptionsMenu(@NonNull Menu menu) {
+        super.onPrepareOptionsMenu(menu);
 
         boolean recordingInProgress = ServiceHelper.checkIfServiceIsRunning(requireContext().getApplicationContext(),
                 LogcatRecordingService.class);
@@ -79,13 +79,13 @@ public class LiveLogViewerFragment extends AbsLogViewerFragment implements LogVi
         recordMenuItem.setEnabled(!recordingInProgress);
         recordMenuItem.setVisible(!recordingInProgress);
 
-        //MenuItem crazyLoggerMenuItem = menu.findItem(R.id.action_crazy_logger_service);
-        //crazyLoggerMenuItem.setEnabled(BuildConfig.DEBUG);
-        //crazyLoggerMenuItem.setVisible(BuildConfig.DEBUG);
+        MenuItem crazyLoggerMenuItem = menu.findItem(R.id.action_crazy_logger_service);
+        crazyLoggerMenuItem.setEnabled(BuildConfig.DEBUG);
+        crazyLoggerMenuItem.setVisible(BuildConfig.DEBUG);
     }
 
     @Override
-    public boolean onMenuItemSelected(@NonNull MenuItem item) {
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_play_pause) {
             if (mViewModel.isLogcatPaused()) {
@@ -106,9 +106,9 @@ public class LiveLogViewerFragment extends AbsLogViewerFragment implements LogVi
                     mActivity.showRecordLogDialog();
                 }
             });
-        //} else if (id == R.id.action_crazy_logger_service) {
-            //ServiceHelper.startOrStopCrazyLogger(mActivity);
-        } else return super.onMenuItemSelected(item);
+        } else if (id == R.id.action_crazy_logger_service) {
+            ServiceHelper.startOrStopCrazyLogger(mActivity);
+        } else return super.onOptionsItemSelected(item);
         return true;
     }
 
@@ -116,9 +116,10 @@ public class LiveLogViewerFragment extends AbsLogViewerFragment implements LogVi
     public void onNewLogsAvailable(@NonNull List<LogLine> logLines) {
         mActivity.hideProgressBar();
         for (LogLine logLine : logLines) {
-            mLogListAdapter.addWithFilter(logLine, mQueryString, true);
+            mLogListAdapter.addWithFilter(logLine, mQueryString, false);
             mActivity.addToAutocompleteSuggestions(logLine);
         }
+        mLogListAdapter.notifyDataSetChanged();
 
         // How many logs to keep in memory, to avoid OutOfMemoryError
         int maxNumLogLines = Prefs.LogViewer.getDisplayLimit();

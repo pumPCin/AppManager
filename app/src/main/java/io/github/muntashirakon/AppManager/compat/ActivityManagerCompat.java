@@ -17,7 +17,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.os.SystemClock;
 import android.os.UserHandleHidden;
 import android.provider.Settings;
 import android.text.TextUtils;
@@ -67,19 +66,15 @@ public final class ActivityManagerCompat {
         // Backup assistant value
         String assistantComponent = Settings.Secure.getString(resolver, "assistant");
         if (canInjectEvents) {
-            ThreadUtils.postOnBackgroundThread(() -> {
-                try {
-                    // Set assistant value to the target activity component
-                    Settings.Secure.putString(resolver, "assistant", activity.flattenToShortString());
-                    // Run it as an assistant by injecting KEYCODE_ASSIST (219)
-                    InputManagerCompat.sendKeyEvent(KeyEvent.KEYCODE_ASSIST, false);
-                    // Wait until system opens the new assistant (i.e., activity), this is an empirical value
-                    SystemClock.sleep(500);
-                } finally {
-                    // Restore assistant value
-                    Settings.Secure.putString(resolver, "assistant", assistantComponent);
-                }
-            });
+            try {
+                // Set assistant value to the target activity component
+                Settings.Secure.putString(resolver, "assistant", activity.flattenToShortString());
+                // Run it as an assistant by injecting KEYCODE_ASSIST (219)
+                InputManagerCompat.sendKeyEvent(KeyEvent.KEYCODE_ASSIST, false);
+            } finally {
+                // Restore assistant value
+                Settings.Secure.putString(resolver, "assistant", assistantComponent);
+            }
         } else if (callback != null) {
             // Cannot launch event by default, use callback
             ThreadUtils.postOnBackgroundThread(() -> {
@@ -97,22 +92,20 @@ public final class ActivityManagerCompat {
     }
 
     @SuppressWarnings("deprecation")
-    public static int startActivity(Intent intent, @UserIdInt int userHandle) throws SecurityException {
+    public static int startActivity(Intent intent, @UserIdInt int userHandle) throws RemoteException {
         IActivityManager am = getActivityManager();
         String callingPackage = SelfPermissions.getCallingPackage(Users.getSelfOrRemoteUid());
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                return am.startActivityAsUserWithFeature(null, callingPackage,
-                        null, intent, intent.getType(), null, null,
-                        0, 0, null, null, userHandle);
-            } else {
-                return am.startActivityAsUser(null, callingPackage, intent, intent.getType(),
-                        null, null, 0, 0, null,
-                        null, userHandle);
-            }
-        } catch (RemoteException e) {
-            return ExUtils.rethrowFromSystemServer(e);
+        int result;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            result = am.startActivityAsUserWithFeature(null, callingPackage,
+                    null, intent, intent.getType(), null, null,
+                    0, 0, null, null, userHandle);
+        } else {
+            result = am.startActivityAsUser(null, callingPackage, intent, intent.getType(),
+                    null, null, 0, 0, null,
+                    null, userHandle);
         }
+        return result;
     }
 
     @SuppressWarnings("deprecation")

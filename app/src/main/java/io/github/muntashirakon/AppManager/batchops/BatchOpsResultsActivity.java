@@ -87,9 +87,7 @@ public class BatchOpsResultsActivity extends BaseActivity {
         ArrayList<CharSequence> packageLabels = PackageUtils.packagesToAppLabels(getPackageManager(), mFailedPackages, mUserIds);
         RecyclerAdapter adapter = new RecyclerAdapter(packageLabels);
         mRecyclerView.setAdapter(adapter);
-        if (packageLabels != null) {
-            adapter.notifyItemRangeInserted(0, packageLabels.size());
-        }
+        adapter.notifyDataSetChanged();
         mLogViewer.setText(getFormattedLogs(BatchOpsLogger.getAllLogs()));
         intent.removeExtra(BatchOpsService.EXTRA_FAILED_PKG);
         intent.removeExtra(BatchOpsService.EXTRA_OP_USERS);

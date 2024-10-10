@@ -88,12 +88,11 @@ public class RestoreSingleFragment extends Fragment {
                     if (metadata.backupFile != null) {
                         try {
                             metadata.backupFile.freeze();
-                            ++adapter.mFrozenBackupSelectionCount;
                         } catch (IOException ignore) {
                         }
                     }
                 }
-                adapter.notifyItemRangeChanged(0, adapter.getItemCount());
+                adapter.notifyDataSetChanged();
                 return true;
             });
             unfreezeMenuItem.setOnMenuItemClickListener(item -> {
@@ -102,12 +101,11 @@ public class RestoreSingleFragment extends Fragment {
                     if (metadata.backupFile != null) {
                         try {
                             metadata.backupFile.unfreeze();
-                            --adapter.mFrozenBackupSelectionCount;
                         } catch (IOException ignore) {
                         }
                     }
                 }
-                adapter.notifyItemRangeChanged(0, adapter.getItemCount());
+                adapter.notifyDataSetChanged();
                 return true;
             });
             popupMenu.show();
@@ -200,7 +198,7 @@ public class RestoreSingleFragment extends Fragment {
                     mSelectionListener.onSelectionChanged(backup, mSelectedPositions.size(), true);
                 }
             }
-            notifyItemRangeInserted(0, mBackups.size());
+            notifyDataSetChanged();
         }
 
         public int selectionCount() {

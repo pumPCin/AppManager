@@ -19,7 +19,6 @@ import java.util.List;
 import io.github.muntashirakon.AppManager.R;
 import io.github.muntashirakon.AppManager.db.AppsDb;
 import io.github.muntashirakon.AppManager.db.entity.LogFilter;
-import io.github.muntashirakon.util.AdapterUtils;
 import io.github.muntashirakon.AppManager.utils.ThreadUtils;
 
 // Copyright 2012 Nolan Lawson
@@ -38,11 +37,9 @@ public class LogFilterAdapter extends RecyclerView.Adapter<LogFilterAdapter.View
 
     @SuppressLint("NotifyDataSetChanged")
     public void add(@NonNull LogFilter filter) {
-        int previousSize = mItems.size();
         mItems.add(filter);
         Collections.sort(mItems, LogFilter.COMPARATOR);
-        int currentSize = mItems.size();
-        AdapterUtils.notifyDataSetChanged(this, previousSize, currentSize);
+        notifyDataSetChanged();
     }
 
     @NonNull

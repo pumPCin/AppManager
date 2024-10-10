@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.os.Messenger;
+import android.os.RemoteException;
 import android.util.Log;
 
 import androidx.annotation.MainThread;
@@ -21,6 +22,7 @@ import com.topjohnwu.superuser.Shell;
 import com.topjohnwu.superuser.internal.UiThreadHandler;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.concurrent.Executor;
 
 import io.github.muntashirakon.AppManager.BuildConfig;
@@ -102,6 +104,9 @@ public abstract class RootService extends ContextWrapper {
             @NonNull Intent intent,
             @NonNull Executor executor,
             @NonNull ServiceConnection conn) {
+        if (!Ops.isPrivileged()) {
+            return;
+        }
         Shell.Task task = bindOrTask(intent, executor, conn);
         if (task != null) {
             Shell.EXECUTOR.execute(asRunnable(task));
@@ -165,6 +170,8 @@ public abstract class RootService extends ContextWrapper {
      */
     @MainThread
     public static void stop(@NonNull Intent intent) {
+        if (!Ops.isPrivileged())
+            return;
         Shell.Task task = stopOrTask(intent);
         if (task != null) {
             Shell.EXECUTOR.execute(asRunnable(task));
@@ -194,18 +201,17 @@ public abstract class RootService extends ContextWrapper {
                 task.run(os, null, null);
                 // The whole command has now been fetched.
                 String cmd = os.toString();
-                if (Ops.isDirectRoot()) {
-                    if (!Runner.runCommand(cmd).isSuccessful()) {
-                        Log.e(TAG, "Couldn't start service using root.", new Throwable());
-                    }
-                } else if (LocalServer.alive(ContextUtils.getContext())) {
+                if (Ops.isAdb()) {
+                    // ADB must be checked at first
                     if (LocalServer.getInstance().runCommand(cmd).getStatusCode() != 0) {
-                        Log.e(TAG, "Couldn't start service using ADB.", new Throwable());
+                        Log.e(TAG, "Couldn't start service using ADB.");
                     }
-                } else {
-                    Log.e(TAG, "Unable to start service using an unsupported mode.", new Throwable());
+                } else if (Ops.isRoot()) {
+                    if (!Runner.runCommand(cmd).isSuccessful()) {
+                        Log.e(TAG, "Couldn't start service using root.");
+                    }
                 }
-            } catch (Throwable e) {
+            } catch (IOException | RemoteException e) {
                 Log.e(TAG, e.getMessage(), e);
             }
         };

@@ -9,6 +9,7 @@ import android.os.ParcelFileDescriptor;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -29,7 +30,6 @@ import io.github.muntashirakon.AppManager.fm.FmProvider;
 import io.github.muntashirakon.AppManager.intercept.IntentCompat;
 import io.github.muntashirakon.AppManager.settings.FeatureController;
 import io.github.muntashirakon.AppManager.utils.FileUtils;
-import io.github.muntashirakon.AppManager.utils.UIUtils;
 import io.github.muntashirakon.io.IoUtils;
 
 // Copyright 2015 Google, Inc.
@@ -68,7 +68,7 @@ public class ScannerActivity extends BaseActivity {
 
         mApkUri = IntentCompat.getDataUri(intent);
         if (mApkUri == null) {
-            UIUtils.displayShortToast(R.string.error);
+            Toast.makeText(this, getString(R.string.error), Toast.LENGTH_LONG).show();
             finish();
             return;
         }
@@ -154,12 +154,6 @@ public class ScannerActivity extends BaseActivity {
     public void loadNewFragment(Fragment fragment) {
         getSupportFragmentManager()
                 .beginTransaction()
-                .setCustomAnimations(
-                        R.animator.enter_from_left,
-                        R.animator.enter_from_right,
-                        R.animator.exit_from_right,
-                        R.animator.exit_from_left
-                )
                 .replace(R.id.main_layout, fragment)
                 .addToBackStack(null)
                 .commit();

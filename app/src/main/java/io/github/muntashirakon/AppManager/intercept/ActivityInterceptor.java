@@ -27,6 +27,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -68,7 +69,6 @@ import io.github.muntashirakon.AppManager.self.SelfPermissions;
 import io.github.muntashirakon.AppManager.self.imagecache.ImageLoader;
 import io.github.muntashirakon.AppManager.settings.Ops;
 import io.github.muntashirakon.AppManager.shortcut.CreateShortcutDialogFragment;
-import io.github.muntashirakon.util.AdapterUtils;
 import io.github.muntashirakon.AppManager.utils.PackageUtils;
 import io.github.muntashirakon.AppManager.utils.UIUtils;
 import io.github.muntashirakon.AppManager.utils.Utils;
@@ -238,7 +238,8 @@ public class ActivityInterceptor extends BaseActivity {
                     showResetIntentButton(true);
                     refreshUI();
                 } catch (Exception e) {
-                    UIUtils.displayShortToast(e.getMessage());
+                    Toast.makeText(ActivityInterceptor.this, e.getMessage(),
+                            Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
                 }
             }
@@ -311,7 +312,9 @@ public class ActivityInterceptor extends BaseActivity {
 
                 refreshUI();
                 Uri uri = data == null ? null : data.getData();
-                UIUtils.displayLongToast("%s: (%s)", getString(R.string.activity_result), uri);
+                Toast.makeText(ActivityInterceptor.this,
+                        String.format("%s: (%s)", getString(R.string.activity_result), uri),
+                        Toast.LENGTH_LONG).show();
             });
 
     @Override
@@ -321,7 +324,7 @@ public class ActivityInterceptor extends BaseActivity {
         findViewById(R.id.progress_linear).setVisibility(View.GONE);
         // Get Intent
         Intent intent = new Intent(getIntent());
-        mUseRoot = Ops.isWorkingUidRoot() && intent.getBooleanExtra(EXTRA_ROOT, false);
+        mUseRoot = Ops.isRoot() && intent.getBooleanExtra(EXTRA_ROOT, false);
         mUserHandle = intent.getIntExtra(EXTRA_USER_HANDLE, UserHandleHidden.myUserId());
         intent.removeExtra(EXTRA_ROOT);
         intent.removeExtra(EXTRA_USER_HANDLE);
@@ -523,7 +526,7 @@ public class ActivityInterceptor extends BaseActivity {
     private void checkAndShowMatchingActivities() {
         if (mMutableIntent == null) return;
         List<ResolveInfo> resolveInfo = getMatchingActivities();
-        if (resolveInfo.isEmpty()) {
+        if (resolveInfo.size() < 1) {
             mResendIntentButton.setEnabled(false);
             mActivitiesHeader.setVisibility(View.GONE);
         } else {
@@ -568,7 +571,7 @@ public class ActivityInterceptor extends BaseActivity {
         // Setup root
         MaterialCheckBox useRootCheckBox = findViewById(R.id.use_root);
         useRootCheckBox.setChecked(mUseRoot);
-        useRootCheckBox.setVisibility(Ops.isWorkingUidRoot() ? View.VISIBLE : View.GONE);
+        useRootCheckBox.setVisibility(Ops.isRoot() ? View.VISIBLE : View.GONE);
         useRootCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (mUseRoot != isChecked) {
                 mUseRoot = isChecked;
@@ -716,23 +719,23 @@ public class ActivityInterceptor extends BaseActivity {
         });
         mClassNameView.addTextChangedListener(new IntentUpdateTextWatcher(mClassNameView) {
             @Override
-            protected void onUpdateIntent(String modifiedComponent) {
+            protected void onUpdateIntent(String modifiedContent) {
                 if (mMutableIntent == null) return;
-                if (TextUtils.isEmpty(modifiedComponent)) {
-                    mRequestedComponent = null;
-                    mMutableIntent.setComponent(null);
-                    return;
-                }
                 String packageName = mMutableIntent.getPackage();
-                if (packageName == null) {
+                if (packageName == null && !TextUtils.isEmpty(modifiedContent)) {
                     UIUtils.displayShortToast(R.string.set_package_name_first);
                     mAreTextWatchersActive = false;
                     mClassNameView.setText(null);
                     mAreTextWatchersActive = true;
                     return;
                 }
-                mRequestedComponent = new ComponentName(packageName, (modifiedComponent.startsWith(".") ?
-                        packageName : "") + modifiedComponent);
+                if (TextUtils.isEmpty(modifiedContent)) {
+                    mRequestedComponent = null;
+                    mMutableIntent.setComponent(null);
+                    return;
+                }
+                mRequestedComponent = new ComponentName(packageName, (modifiedContent.startsWith(".") ?
+                        packageName : "") + modifiedContent);
                 mMutableIntent.setComponent(mRequestedComponent);
             }
         });
@@ -811,7 +814,7 @@ public class ActivityInterceptor extends BaseActivity {
                 StringTokenizer tokenizer = new StringTokenizer(line, "\t");
                 switch (tokenizer.nextToken()) {
                     case "ROOT":
-                        mUseRoot = Ops.isWorkingUidRoot() && Boolean.parseBoolean(tokenizer.nextToken());
+                        mUseRoot = Ops.isRoot() && Boolean.parseBoolean(tokenizer.nextToken());
                         ++parseCount;
                         break;
                     case "USER":
@@ -927,13 +930,8 @@ public class ActivityInterceptor extends BaseActivity {
                     // TODO: 4/2/22 Support sending activity result back to the original app
                     ActivityManagerCompat.startActivity(intent, mUserHandle);
                 } else {
-                    try {
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        mIntentLauncher.launch(intent);
-                    } catch (SecurityException e) {
-                        // TODO: 4/6/24 Support sending activity result back to the original app
-                        ActivityManagerCompat.startActivity(intent, mUserHandle);
-                    }
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    mIntentLauncher.launch(intent);
                 }
             }
         } catch (Throwable th) {
@@ -1089,7 +1087,9 @@ public class ActivityInterceptor extends BaseActivity {
         }
 
         public void setDefaultList(@Nullable Collection<String> categories) {
-            AdapterUtils.notifyDataSetChanged(this, mCategories, categories);
+            mCategories.clear();
+            if (categories != null) mCategories.addAll(categories);
+            notifyDataSetChanged();
         }
 
         @NonNull
@@ -1139,7 +1139,9 @@ public class ActivityInterceptor extends BaseActivity {
         }
 
         public void setDefaultList(@Nullable Collection<String> flags) {
-            AdapterUtils.notifyDataSetChanged(this, mFlags, flags);
+            mFlags.clear();
+            if (flags != null) mFlags.addAll(flags);
+            notifyDataSetChanged();
         }
 
         @NonNull
@@ -1190,7 +1192,9 @@ public class ActivityInterceptor extends BaseActivity {
         }
 
         public void setDefaultList(@Nullable List<Pair<String, Object>> extras) {
-            AdapterUtils.notifyDataSetChanged(this, mExtras, extras);
+            mExtras.clear();
+            if (extras != null) mExtras.addAll(extras);
+            notifyDataSetChanged();
         }
 
         @NonNull
@@ -1212,7 +1216,7 @@ public class ActivityInterceptor extends BaseActivity {
                     mActivity.mMutableIntent.removeExtra(extraItem.first);
                     mActivity.showTextViewIntentData(null);
                     mExtras.remove(position);
-                    notifyItemRemoved(position);
+                    notifyDataSetChanged();
                 }
             });
         }
@@ -1251,7 +1255,9 @@ public class ActivityInterceptor extends BaseActivity {
         }
 
         public void setDefaultList(@Nullable List<ResolveInfo> matchingActivities) {
-            AdapterUtils.notifyDataSetChanged(this, mMatchingActivities, matchingActivities);
+            mMatchingActivities.clear();
+            if (matchingActivities != null) mMatchingActivities.addAll(matchingActivities);
+            notifyDataSetChanged();
         }
 
         @NonNull

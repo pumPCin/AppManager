@@ -450,6 +450,8 @@ public class MultiSelectionView extends MaterialCardView implements OnApplyWindo
             setHasStableIds(true);
         }
 
+        public abstract int getHighlightColor();
+
         @AnyThread
         public abstract long getItemId(int position);
 
@@ -568,7 +570,7 @@ public class MultiSelectionView extends MaterialCardView implements OnApplyWindo
 
         @AnyThread
         @Nullable
-        private OnLayoutChangeListener getLayoutChangeListener() {
+        public OnLayoutChangeListener getLayoutChangeListener() {
             return mLayoutChangeListener;
         }
 
@@ -610,16 +612,12 @@ public class MultiSelectionView extends MaterialCardView implements OnApplyWindo
             // Set focus right to select all
             holder.itemView.setNextFocusRightId(R.id.action_select_all);
             // Set selection background
-            boolean isSelected = isSelected(position);
-            if (holder.itemView instanceof MaterialCardView) {
-                MaterialCardView cardView = (MaterialCardView) holder.itemView;
-                if (cardView.isCheckable()) {
-                    cardView.setChecked(isSelected);
-                } else if (isSelected) {
-                    throw new UnsupportedOperationException("Card is not checkable");
+            if (isSelected(position)) {
+                if (holder.itemView instanceof MaterialCardView) {
+                    ((MaterialCardView) holder.itemView).setCardBackgroundColor(getHighlightColor());
+                } else {
+                    holder.itemView.setBackgroundResource(R.drawable.item_highlight);
                 }
-            } else if (isSelected) {
-                holder.itemView.setBackgroundResource(R.drawable.item_highlight);
             }
         }
     }

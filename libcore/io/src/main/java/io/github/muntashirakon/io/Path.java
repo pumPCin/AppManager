@@ -4,7 +4,6 @@ package io.github.muntashirakon.io;
 
 import android.content.Context;
 import android.net.Uri;
-import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.ParcelFileDescriptor;
 import android.system.ErrnoException;
@@ -527,7 +526,7 @@ public abstract class Path implements Comparable<Path> {
     }
 
     @NonNull
-    public abstract ParcelFileDescriptor openFileDescriptor(@NonNull String mode, @NonNull Handler callbackHandler)
+    public abstract ParcelFileDescriptor openFileDescriptor(@NonNull String mode, @NonNull HandlerThread callbackThread)
             throws FileNotFoundException;
 
     public OutputStream openOutputStream() throws IOException {

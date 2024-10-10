@@ -8,7 +8,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.PowerManager;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -39,7 +42,6 @@ import io.github.muntashirakon.AppManager.types.ForegroundService;
 import io.github.muntashirakon.AppManager.utils.CpuUtils;
 import io.github.muntashirakon.AppManager.utils.NotificationUtils;
 import io.github.muntashirakon.AppManager.utils.ThreadUtils;
-import io.github.muntashirakon.AppManager.utils.UIUtils;
 
 /**
  * Reads logs.
@@ -61,6 +63,7 @@ public class LogcatRecordingService extends ForegroundService {
     private final Object mLock = new Object();
     private LogcatReader mReader;
     private boolean mKilled;
+    private Handler mHandler;
     private QueuedProgressHandler mProgressHandler;
     private PowerManager.WakeLock mWakeLock;
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -82,6 +85,7 @@ public class LogcatRecordingService extends ForegroundService {
         IntentFilter intentFilter = new IntentFilter(ACTION_STOP_RECORDING);
         intentFilter.addDataScheme(URI_SCHEME);
         ContextCompat.registerReceiver(this, mReceiver, intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED);
+        mHandler = new Handler(Looper.getMainLooper());
         mWakeLock = CpuUtils.getPartialWakeLock("logcat_recorder");
         mWakeLock.acquire();
     }
@@ -96,7 +100,7 @@ public class LogcatRecordingService extends ForegroundService {
                 // it's ready to record
             }
             if (!mKilled) {
-                ThreadUtils.postOnMainThread(() -> UIUtils.displayShortToast(R.string.log_recording_started));
+                makeToast(R.string.log_recording_started, Toast.LENGTH_SHORT);
             }
         } catch (IOException e) {
             Log.e(TAG, e);
@@ -215,6 +219,10 @@ public class LogcatRecordingService extends ForegroundService {
         return PendingIntentCompat.getActivity(this, 0, targetIntent, PendingIntent.FLAG_ONE_SHOT, false);
     }
 
+
+    private void makeToast(final int stringResId, final int toastLength) {
+        mHandler.post(() -> Toast.makeText(LogcatRecordingService.this, stringResId, toastLength).show());
+    }
 
     private void killProcess() {
         if (!mKilled) {

@@ -97,8 +97,8 @@ public class AboutPreferences extends PreferenceFragment {
         super.onViewCreated(view, savedInstanceState);
         // Observe Changelog
         mModel.getChangeLog().observe(getViewLifecycleOwner(), changelog -> {
-            View v = View.inflate(requireContext(), R.layout.dialog_whats_new, null);
-            RecyclerView recyclerView = v.findViewById(android.R.id.list);
+            RecyclerView recyclerView = (RecyclerView) View.inflate(requireContext(), R.layout.dialog_whats_new, null);
+            recyclerView.setHasFixedSize(true);
             recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
             ChangelogRecyclerAdapter adapter = new ChangelogRecyclerAdapter();
             recyclerView.setAdapter(adapter);

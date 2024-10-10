@@ -80,7 +80,7 @@ public abstract class Runner {
 
     @NonNull
     private static Runner getInstance() {
-        if (Ops.isDirectRoot()) {
+        if (Ops.isRoot()) {
             return getRootInstance();
         } else if (LocalServices.alive()) {
             return getPrivilegedInstance();

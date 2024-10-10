@@ -25,9 +25,8 @@ import androidx.lifecycle.MutableLiveData;
 
 import org.json.JSONException;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.Collator;
 import java.util.ArrayList;
@@ -318,7 +317,7 @@ public class MainViewModel extends AndroidViewModel implements ListOptions.ListO
 
     public void saveExportedAppList(@ListExporter.ExportType int exportType, @NonNull Path path) {
         executor.submit(() -> {
-            try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(path.openOutputStream(), StandardCharsets.UTF_8))) {
+            try (OutputStream os = path.openOutputStream()) {
                 List<PackageInfo> packageInfoList = new ArrayList<>();
                 for (String packageName : getSelectedPackages().keySet()) {
                     int[] userIds = Objects.requireNonNull(getSelectedPackages().get(packageName)).userIds;
@@ -328,7 +327,7 @@ public class MainViewModel extends AndroidViewModel implements ListOptions.ListO
                         break;
                     }
                 }
-                ListExporter.export(getApplication(), writer, exportType, packageInfoList);
+                os.write(ListExporter.export(getApplication(), exportType, packageInfoList).getBytes(StandardCharsets.UTF_8));
                 mOperationStatus.postValue(true);
             } catch (IOException | RemoteException | PackageManager.NameNotFoundException e) {
                 e.printStackTrace();
@@ -747,10 +746,12 @@ public class MainViewModel extends AndroidViewModel implements ListOptions.ListO
             item.blockedCount = app.rulesCount;
             item.trackerCount = app.trackerCount;
             item.lastActionTime = app.lastActionTime;
-            if (item.backup == null) {
-                item.backup = BackupUtils.getLatestBackupMetadataFromDbNoLockValidate(packageName);
+            try {
+                if (item.backup == null) {
+                    item.backup = BackupUtils.getLatestBackupMetadataFromDbNoLockValidate(packageName);
+                }
+            } catch (Exception ignore) {
             }
-            item.generateOtherInfo();
         }
         if (item.packageName == null) {
             return null;

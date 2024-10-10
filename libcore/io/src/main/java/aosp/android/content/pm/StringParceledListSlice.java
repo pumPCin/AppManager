@@ -5,8 +5,6 @@ package aosp.android.content.pm;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import androidx.annotation.Nullable;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -45,7 +43,7 @@ public class StringParceledListSlice extends BaseParceledListSlice<String> {
     }
 
     @Override
-    protected Parcelable.Creator<?> readParcelableCreator(Parcel from, @Nullable ClassLoader loader) {
+    protected Parcelable.Creator<?> readParcelableCreator(Parcel from, ClassLoader loader) {
         return Parcel.STRING_CREATOR;
     }
 

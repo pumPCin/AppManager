@@ -14,12 +14,9 @@ import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.CallSuper;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.menu.MenuBuilder;
-import androidx.biometric.BiometricPrompt;
-import androidx.core.content.ContextCompat;
 import androidx.core.splashscreen.SplashScreen;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -29,11 +26,10 @@ import java.util.Locale;
 
 import io.github.muntashirakon.AppManager.BuildConfig;
 import io.github.muntashirakon.AppManager.R;
-import io.github.muntashirakon.AppManager.compat.BiometricAuthenticatorsCompat;
 import io.github.muntashirakon.AppManager.crypto.ks.KeyStoreActivity;
 import io.github.muntashirakon.AppManager.crypto.ks.KeyStoreManager;
 import io.github.muntashirakon.AppManager.logs.Log;
-//import io.github.muntashirakon.AppManager.self.life.BuildExpiryChecker;
+import io.github.muntashirakon.AppManager.self.life.BuildExpiryChecker;
 import io.github.muntashirakon.AppManager.settings.Ops;
 import io.github.muntashirakon.AppManager.settings.Prefs;
 import io.github.muntashirakon.AppManager.settings.SecurityAndOpsViewModel;
@@ -46,12 +42,21 @@ public class SplashActivity extends AppCompatActivity {
     @Nullable
     private TextView mStateNameView;
     private SecurityAndOpsViewModel mViewModel;
-    private BiometricPrompt mBiometricPrompt;
 
     private final ActivityResultLauncher<Intent> mKeyStoreActivity = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), result -> {
                 // Need authentication and/or verify mode of operation
                 ensureSecurityAndModeOfOp();
+            });
+    private final ActivityResultLauncher<Intent> mAuthActivity = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    // Success
+                    handleMigrationAndModeOfOp();
+                } else {
+                    // Authentication failed
+                    finishAndRemoveTask();
+                }
             });
 
     @Override
@@ -71,39 +76,20 @@ public class SplashActivity extends AppCompatActivity {
             finish();
             return;
         }
-        //if (Boolean.TRUE.equals(BuildExpiryChecker.buildExpired())) {
+        if (Boolean.TRUE.equals(BuildExpiryChecker.buildExpired())) {
             // Build has expired
-            //BuildExpiryChecker.getBuildExpiredDialog(this).show();
-            //return;
-        //}
+            BuildExpiryChecker.getBuildExpiredDialog(this).show();
+            return;
+        }
         // Run authentication
         mViewModel = new ViewModelProvider(this).get(SecurityAndOpsViewModel.class);
-        mBiometricPrompt = new BiometricPrompt(this, ContextCompat.getMainExecutor(this),
-                new BiometricPrompt.AuthenticationCallback() {
-                    @Override
-                    public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
-                        super.onAuthenticationError(errorCode, errString);
-                        finishAndRemoveTask();
-                    }
-
-                    @Override
-                    public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
-                        super.onAuthenticationSucceeded(result);
-                        handleMigrationAndModeOfOp();
-                    }
-
-                    @Override
-                    public void onAuthenticationFailed() {
-                        super.onAuthenticationFailed();
-                    }
-                });
         Log.d(TAG, "Waiting to be authenticated.");
         mViewModel.authenticationStatus().observe(this, status -> {
             switch (status) {
                 case Ops.STATUS_AUTO_CONNECT_WIRELESS_DEBUGGING:
                     Log.d(TAG, "Try auto-connecting to wireless debugging.");
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                        mViewModel.autoConnectWirelessDebugging();
+                        mViewModel.autoConnectAdb(Ops.STATUS_WIRELESS_DEBUGGING_CHOOSER_REQUIRED);
                         return;
                     } // fall-through
                 case Ops.STATUS_WIRELESS_DEBUGGING_CHOOSER_REQUIRED:
@@ -172,11 +158,8 @@ public class SplashActivity extends AppCompatActivity {
         KeyguardManager keyguardManager = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
         if (keyguardManager.isKeyguardSecure()) {
             // Screen lock enabled
-            BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
-                    .setTitle(getString(R.string.unlock_app_manager))
-                    .setAllowedAuthenticators(new BiometricAuthenticatorsCompat.Builder().allowEverything(true).build())
-                    .build();
-            mBiometricPrompt.authenticate(promptInfo);
+            Intent intent = keyguardManager.createConfirmDeviceCredentialIntent(getString(R.string.unlock_app_manager), null);
+            mAuthActivity.launch(intent);
         } else {
             // Screen lock disabled
             UIUtils.displayLongToast(R.string.screen_lock_not_enabled);

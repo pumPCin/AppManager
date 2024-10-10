@@ -65,7 +65,6 @@ public class DigestUtils {
         List<Path> allFiles = Paths.getAll(path);
         List<String> hashes = new ArrayList<>(allFiles.size());
         for (Path file : allFiles) {
-            if (file.isDirectory()) continue;
             try (InputStream fileInputStream = file.openInputStream()) {
                 hashes.add(getHexDigest(algo, fileInputStream));
             } catch (IOException e) {

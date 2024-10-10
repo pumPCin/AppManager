@@ -12,7 +12,6 @@ import android.system.Os;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import java.io.File;
 
@@ -23,7 +22,6 @@ import io.github.muntashirakon.AppManager.IRemoteShell;
 import io.github.muntashirakon.AppManager.ipc.ps.ProcessEntry;
 import io.github.muntashirakon.AppManager.ipc.ps.Ps;
 import io.github.muntashirakon.AppManager.server.common.IRootServiceManager;
-import io.github.muntashirakon.compat.os.ParcelCompat2;
 
 public class AMService extends RootService {
     static class IAMServiceImpl extends IAMService.Stub {
@@ -69,10 +67,10 @@ public class AMService extends RootService {
         }
 
         @Override
-        public boolean onTransact(int code, @NonNull Parcel data, @Nullable Parcel reply, int flags) throws RemoteException {
-            if (code == ProxyBinder.PROXY_BINDER_TRANSACTION) {
+        public boolean onTransact(int code, @NonNull Parcel data, Parcel reply, int flags) throws RemoteException {
+            if (code == ProxyBinder.PROXY_BINDER_TRANSACT_CODE) {
                 data.enforceInterface(IRootServiceManager.class.getName());
-                transactRemote(data, reply);
+                transactRemote(data, reply, flags);
                 return true;
             }
             return super.onTransact(code, data, reply, flags);
@@ -83,21 +81,20 @@ public class AMService extends RootService {
          *
          * @author Rikka
          */
-        private void transactRemote(@NonNull Parcel data, @Nullable Parcel reply) throws RemoteException {
+        private void transactRemote(Parcel data, Parcel reply, int flags) throws RemoteException {
             IBinder targetBinder = data.readStrongBinder();
             int targetCode = data.readInt();
-            int targetFlags = data.readInt();
 
-            Parcel newData = ParcelCompat2.obtain(targetBinder);
+            Parcel newData = Parcel.obtain();
             try {
                 newData.appendFrom(data, data.dataPosition(), data.dataAvail());
-                long id = Binder.clearCallingIdentity();
-                targetBinder.transact(targetCode, newData, reply, targetFlags);
-                Binder.restoreCallingIdentity(id);
-            } catch (RemoteException e) {
-                throw e;
             } catch (Throwable th) {
                 throw (RemoteException) new RemoteException(th.getMessage()).initCause(th);
+            }
+            try {
+                long id = Binder.clearCallingIdentity();
+                targetBinder.transact(targetCode, newData, reply, flags);
+                Binder.restoreCallingIdentity(id);
             } finally {
                 newData.recycle();
             }

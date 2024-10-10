@@ -2,12 +2,10 @@
 
 package io.github.muntashirakon.AppManager.magisk;
 
-import static io.github.muntashirakon.AppManager.magisk.MagiskUtils.ISOLATED_MAGIC;
-
 import android.content.pm.PackageInfo;
 
+import androidx.annotation.AnyThread;
 import androidx.annotation.NonNull;
-import androidx.annotation.WorkerThread;
 
 import java.util.Collection;
 import java.util.List;
@@ -15,13 +13,15 @@ import java.util.List;
 import io.github.muntashirakon.AppManager.runner.Runner;
 import io.github.muntashirakon.AppManager.settings.Ops;
 
-@WorkerThread
+import static io.github.muntashirakon.AppManager.magisk.MagiskUtils.ISOLATED_MAGIC;
+
+@AnyThread
 public class MagiskHide {
     /**
      * Whether MagiskHide is available.
      */
     public static boolean available() {
-        return Ops.isWorkingUidRoot() && Runner.runCommand(new String[]{"command", "-v", "magiskhide"}).isSuccessful();
+        return Ops.isRoot() && Runner.runCommand(new String[]{"command", "-v", "magiskhide"}).isSuccessful();
     }
 
     /**

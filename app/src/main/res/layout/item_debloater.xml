@@ -1,12 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    style="@style/Widget.AppTheme.CardView.ListItem.Outlined"
+    style="@style/Widget.AppTheme.CardView.Elevated"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:clickable="true"
     android:focusable="true"
-    android:checkable="true"
     android:layout_marginHorizontal="?attr/listItemMarginHorizontal"
     android:layout_marginVertical="?attr/listItemMarginVertical">
 
@@ -54,7 +52,7 @@
                 android:id="@+id/label"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:maxLines="2"
+                android:singleLine="true"
                 android:ellipsize="end"
                 android:textAppearance="?attr/textAppearanceListItem"
                 tools:text="@string/app_name" />
@@ -63,7 +61,7 @@
                 android:id="@+id/package_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:maxLines="2"
+                android:singleLine="true"
                 android:ellipsize="end"
                 android:textAppearance="?attr/textAppearanceListItemSecondary"
                 android:textStyle="italic"
@@ -81,5 +79,11 @@
         </androidx.appcompat.widget.LinearLayoutCompat>
 
     </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <com.google.android.material.divider.MaterialDivider
+        android:id="@+id/divider"
+        android:layout_width="?attr/listItemIndicatorWidth"
+        android:layout_height="match_parent"
+        android:layout_gravity="start" />
 
 </com.google.android.material.card.MaterialCardView>

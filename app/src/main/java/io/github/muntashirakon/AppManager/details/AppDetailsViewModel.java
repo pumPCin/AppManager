@@ -42,10 +42,12 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.android.apksig.ApkVerifier;
+import com.android.apksig.apk.ApkFormatException;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -146,9 +148,14 @@ public class AppDetailsViewModel extends AndroidViewModel {
 
     public AppDetailsViewModel(@NonNull Application application) {
         super(application);
-        mPackageManager = application.getPackageManager();
-        mReceiver = new PackageIntentReceiver(this);
-        mWaitForBlocker = true;
+        try {
+            mPackageManager = application.getPackageManager();
+            mReceiver = new PackageIntentReceiver(this);
+            mWaitForBlocker = true;
+        } catch (Throwable th) {
+            Log.e(TAG, th);
+            throw new RuntimeException("Could not instantiate AppDetailsViewModel", th);
+        }
     }
 
     @GuardedBy("blockerLocker")
@@ -1165,6 +1172,7 @@ public class AppDetailsViewModel extends AndroidViewModel {
                     SelfPermissions.checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS);
             for (ActivityInfo activityInfo : packageInfo.activities) {
                 AppDetailsActivityItem componentItem = new AppDetailsActivityItem(activityInfo);
+                componentItem.name = activityInfo.name;
                 componentItem.label = getComponentLabel(activityInfo, appLabel);
                 synchronized (mBlockerLocker) {
                     if (!mExternalApk) {
@@ -1208,6 +1216,7 @@ public class AppDetailsViewModel extends AndroidViewModel {
             CharSequence appLabel = packageInfo.applicationInfo.loadLabel(mPackageManager);
             for (ServiceInfo serviceInfo : packageInfo.services) {
                 AppDetailsServiceItem serviceItem = new AppDetailsServiceItem(serviceInfo);
+                serviceItem.name = serviceInfo.name;
                 serviceItem.label = getComponentLabel(serviceInfo, appLabel);
                 synchronized (mBlockerLocker) {
                     if (!mExternalApk) {
@@ -1252,6 +1261,7 @@ public class AppDetailsViewModel extends AndroidViewModel {
             CharSequence appLabel = packageInfo.applicationInfo.loadLabel(mPackageManager);
             for (ActivityInfo activityInfo : packageInfo.receivers) {
                 AppDetailsComponentItem componentItem = new AppDetailsComponentItem(activityInfo);
+                componentItem.name = activityInfo.name;
                 componentItem.label = getComponentLabel(activityInfo, appLabel);
                 synchronized (mBlockerLocker) {
                     if (!mExternalApk) {
@@ -1285,6 +1295,7 @@ public class AppDetailsViewModel extends AndroidViewModel {
             CharSequence appLabel = packageInfo.applicationInfo.loadLabel(mPackageManager);
             for (ProviderInfo providerInfo : packageInfo.providers) {
                 AppDetailsComponentItem componentItem = new AppDetailsComponentItem(providerInfo);
+                componentItem.name = providerInfo.name;
                 componentItem.label = getComponentLabel(providerInfo, appLabel);
                 synchronized (mBlockerLocker) {
                     if (!mExternalApk) {
@@ -1421,10 +1432,8 @@ public class AppDetailsViewModel extends AndroidViewModel {
                 // Include defaults i.e. app ops without any associated permissions if requested
                 if (Prefs.AppDetailsPage.displayDefaultAppOps()) {
                     for (int op : AppOpsManagerCompat.getOpsWithoutPermissions()) {
-                        if (op == AppOpsManagerCompat.OP_NONE
-                                || op >= AppOpsManagerCompat._NUM_OP
-                                || opToOpEntryMap.get(op) != null) {
-                            // Invalid/unsupported app operation
+                        if (op >= AppOpsManagerCompat._NUM_OP || opToOpEntryMap.get(op) != null) {
+                            // Unsupported app operation
                             continue;
                         }
                         otherOps.add(op);
@@ -1449,6 +1458,7 @@ public class AppDetailsViewModel extends AndroidViewModel {
                     } else {
                         appDetailsItem = new AppDetailsAppOpItem(entry);
                     }
+                    appDetailsItem.name = entry.getName();
                     mAppOpItems.add(appDetailsItem);
                 }
                 // Add other ops
@@ -1471,6 +1481,7 @@ public class AppDetailsViewModel extends AndroidViewModel {
                     } else {
                         appDetailsItem = new AppDetailsAppOpItem(op);
                     }
+                    appDetailsItem.name = AppOpsManagerCompat.opToName(op);
                     mAppOpItems.add(appDetailsItem);
                 }
             } catch (Throwable e) {
@@ -1599,6 +1610,7 @@ public class AppDetailsViewModel extends AndroidViewModel {
             if (packageInfo.permissions != null) {
                 for (PermissionInfo permissionInfo : packageInfo.permissions) {
                     AppDetailsDefinedPermissionItem appDetailsItem = new AppDetailsDefinedPermissionItem(permissionInfo, false);
+                    appDetailsItem.name = permissionInfo.name;
                     mPermissionItems.add(appDetailsItem);
                     visitedPerms.add(permissionInfo.name);
                 }
@@ -1615,6 +1627,7 @@ public class AppDetailsViewModel extends AndroidViewModel {
                                 permissionInfo.name = activityInfo.permission;
                             }
                             AppDetailsDefinedPermissionItem appDetailsItem = new AppDetailsDefinedPermissionItem(permissionInfo, true);
+                            appDetailsItem.name = permissionInfo.name;
                             mPermissionItems.add(appDetailsItem);
                             visitedPerms.add(permissionInfo.name);
                         } catch (RemoteException e) {
@@ -1635,6 +1648,7 @@ public class AppDetailsViewModel extends AndroidViewModel {
                                 permissionInfo.name = serviceInfo.permission;
                             }
                             AppDetailsDefinedPermissionItem appDetailsItem = new AppDetailsDefinedPermissionItem(permissionInfo, true);
+                            appDetailsItem.name = permissionInfo.name;
                             mPermissionItems.add(appDetailsItem);
                             visitedPerms.add(permissionInfo.name);
                         } catch (RemoteException e) {
@@ -1655,6 +1669,7 @@ public class AppDetailsViewModel extends AndroidViewModel {
                                 permissionInfo.name = providerInfo.readPermission;
                             }
                             AppDetailsDefinedPermissionItem appDetailsItem = new AppDetailsDefinedPermissionItem(permissionInfo, true);
+                            appDetailsItem.name = permissionInfo.name;
                             mPermissionItems.add(appDetailsItem);
                             visitedPerms.add(permissionInfo.name);
                         } catch (RemoteException e) {
@@ -1671,6 +1686,7 @@ public class AppDetailsViewModel extends AndroidViewModel {
                                 permissionInfo.name = providerInfo.writePermission;
                             }
                             AppDetailsDefinedPermissionItem appDetailsItem = new AppDetailsDefinedPermissionItem(permissionInfo, true);
+                            appDetailsItem.name = permissionInfo.name;
                             mPermissionItems.add(appDetailsItem);
                             visitedPerms.add(permissionInfo.name);
                         } catch (RemoteException e) {
@@ -1691,6 +1707,7 @@ public class AppDetailsViewModel extends AndroidViewModel {
                                 permissionInfo.name = activityInfo.permission;
                             }
                             AppDetailsDefinedPermissionItem appDetailsItem = new AppDetailsDefinedPermissionItem(permissionInfo, true);
+                            appDetailsItem.name = permissionInfo.name;
                             mPermissionItems.add(appDetailsItem);
                             visitedPerms.add(permissionInfo.name);
                         } catch (RemoteException e) {

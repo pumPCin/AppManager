@@ -89,7 +89,7 @@
     <string name="license">License</string>
     <string name="license_message" translatable="false"><a href="https://www.gnu.org/licenses/gpl-3.0.html">GNU General
         Public License v3.0</a></string>
-    <string name="copyright_message" translatable="false">© 2020–2024 <a href="https://github.com/MuntashirAkon">Muntashir Al-Islam</a></string>
+    <string name="copyright_message" translatable="false">© 2020–2023 <a href="https://github.com/MuntashirAkon">Muntashir Al-Islam</a></string>
     <string name="third_party">Third-party Libraries and Icons</string>
     <string name="third_party_message" translatable="false">-
         <a href="https://github.com/zhanghai/AndroidFastScroll">AndroidFastScroll</a> (Apache 2.0)
@@ -430,6 +430,7 @@
     <string name="features">Features</string>
     <string name="whats_new">What\'s New</string>
     <string name="blocking_rules">Blocking rules</string>
+    <string name="cache">Cache</string>
     <string name="external_data">External data</string>
     <string name="internal_data">Internal data</string>
     <string name="data">Data</string>
@@ -1082,7 +1083,9 @@
     <string name="keystore_password_info">The following is the App Manager KeyStore password. Please store it in a secure place if you\'re going to back up/restore App Manager KeyStore. <b>This message will not be displayed again.</b></string>
     <string name="keystore_pass_cannot_be_empty">KeyStore password cannot be empty.</string>
     <string name="invalid_password">Invalid password, try again.</string>
+    <string name="adb_wifi_paring_code">Wi-Fi pairing code</string>
     <string name="adb_pair">Pair</string>
+    <string name="port_number_pairing_code_empty">Empty port number or pairing code.</string>
     <string name="paired_successfully">Paired.</string>
     <string name="identifier">Identifier</string>
     <string name="set_package_name_first">Set package name first!</string>
@@ -1121,7 +1124,7 @@
     <string name="intent_firewall_and_disable">IFW + disable</string>
     <string name="intent_firewall">IFW</string>
     <string name="pref_default_blocking_method">Default blocking method</string>
-    <string name="pref_default_blocking_method_description">Method to use by default in places where there is no option to select a blocking method.\n<b>Note:</b> “IFW” does not work with providers, “disable” is used instead.</string>
+    <string name="pref_default_blocking_method_description">Method to use by default in places where there is no option to select a blocking method.</string>
     <string name="pref_intent_firewall_and_disable_description">Block components using Intent Firewall as well as disable them. Recommended method for root users.</string>
     <string name="pref_intent_firewall_description">Block components using Intent Firewall only. Not recommended as some system apps can bypass firewalls.</string>
     <string name="pref_disable_description">Disable components only. Not recommended for root users since the apps can bypass this. In ADB modes, the test-only apps can be disabled with this method.</string>
@@ -1131,7 +1134,6 @@
     <string name="search_type_suffix">Suffix</string>
     <string name="search_type_regular_expressions">Regex</string>
     <string name="toggle_internet">Use the Internet</string>
-    <string name="pref_toggle_internet_msg">Activate the Internet features in App Manager</string>
     <string name="vt_checking">VirusTotal: Checking…</string>
     <string name="vt_uploading">VirusTotal: Uploading…</string>
     <string name="vt_queued">VirusTotal: Queued</string>
@@ -1460,36 +1462,4 @@
     <string name="invalid_regex">Invalid regular expression!</string>
     <string name="value_cannot_be_empty">Value cannot be empty!</string>
     <string name="date">Date</string>
-    <string name="pref_use_vt">Use VirusTotal</string>
-    <string name="virus_total">VirusTotal</string>
-    <string name="pref_use_vt_no_internet">VirusTotal requires the Internet to operate which isn\'t enabled. Please enable <a href="app-manager://settings/privacy_prefs/toggle_internet">“Use the Internet”</a> first.</string>
-    <string name="pref_use_log_viewer">Use Log Viewer</string>
-    <string name="pref_installer">Use the installer</string>
-    <string name="pref_cat_general">General</string>
-    <string name="status_remote_server_active">Remote server is active</string>
-    <string name="status_remote_server_inactive">Remote server is inactive</string>
-    <string name="status_remote_services_active">Remote services are active</string>
-    <string name="status_remote_services_inactive">Remote services are inactive</string>
-    <string name="status_connecting">Connecting…</string>
-    <string name="status_connecting_via_mode">Connecting via %s</string>
-    <string name="status_connected_via_mode">Connected via %s</string>
-    <string name="status_not_connected_via_mode">Could not connect via %s</string>
-    <string name="adb_pairing_instruction">Please navigate to the developer options to enable wireless debugging and generate a pairing code.</string>
-    <string name="adb_pairing_searching_for_port">Searching…</string>
-    <string name="adb_pairing_stop_searching">Stop</string>
-    <string name="adb_pairing_input_pairing_code">Pairing code</string>
-    <string name="adb_pairing_pairing_code">Pairing code</string>
-    <string name="adb_pairing_found_pairing_service_with_port">Found a service with port %d</string>
-    <string name="adb_pairing_pairing_in_progress">Pairing…</string>
-    <string name="adb_pairing_retry_pairing">Retry</string>
-    <string name="mode_of_op_custom_command_title">Custom Command</string>
-    <string name="mode_of_op_custom_command">If you are unable to use any of the modes, you can run the following command in any supported shell to run App Manager in privileged mode:</string>
-    <string name="mode_of_op_alternative_custom_command">If you get a “permission denied” error with the above command, run the following command instead:</string>
-    <string name="sensors">Sensors</string>
-    <string name="tag_sensors_disabled">Sensors disabled</string>
-    <string name="pref_use_system_font">Use system font</string>
-    <string name="pref_use_system_font_msg">Use the system-default font instead of the material font. <font fgcolor="#ff0000">This is an experimental feature.</font></string>
-    <string name="actual_installer">Actual Installer</string>
-    <string name="apk_source">APK Source</string>
-    <string name="backup_cache">Cache</string>
 </resources>

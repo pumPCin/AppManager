@@ -123,7 +123,6 @@ class BackupOp implements Closeable {
             mApplicationInfo = mPackageInfo.applicationInfo;
             // Override existing metadata
             mMetadata = mMetadataManager.setupMetadata(mPackageInfo, userId, backupFlags);
-            mMetadata.backupName = backupFile.backupName;
         } catch (Exception e) {
             mBackupFile.cleanup();
             throw new BackupException("Failed to setup metadata.", e);
@@ -300,7 +299,7 @@ class BackupOp implements Closeable {
             try {
                 dataFiles = TarUtils.create(mMetadata.tarType, Paths.get(mMetadata.dataDirs[i]), mTempBackupPath,
                                 sourceBackupFilePrefix, null, null,
-                                BackupUtils.getExcludeDirs(!mBackupFlags.backupCache()), false)
+                                BackupUtils.getExcludeDirs(!mBackupFlags.backupCache(), null), false)
                         .toArray(new Path[0]);
             } catch (Throwable th) {
                 throw new BackupException("Failed to backup data directory at " + mMetadata.dataDirs[i], th);
@@ -340,7 +339,7 @@ class BackupOp implements Closeable {
                 throw new BackupException("Could not cache " + keyStoreFileName, e);
             }
         }
-        if (cachedKeyStoreFileNames.isEmpty()) {
+        if (cachedKeyStoreFileNames.size() == 0) {
             throw new BackupException("There were some KeyStore items but they couldn't be cached before taking a backup.");
         }
         String keyStorePrefix = KEYSTORE_PREFIX + getExt(mMetadata.tarType);

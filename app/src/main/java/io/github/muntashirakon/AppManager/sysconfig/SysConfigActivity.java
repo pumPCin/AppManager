@@ -36,7 +36,6 @@ import io.github.muntashirakon.AppManager.BaseActivity;
 import io.github.muntashirakon.AppManager.R;
 import io.github.muntashirakon.AppManager.details.AppDetailsActivity;
 import io.github.muntashirakon.AppManager.self.imagecache.ImageLoader;
-import io.github.muntashirakon.util.AdapterUtils;
 import io.github.muntashirakon.AppManager.utils.LangUtils;
 import io.github.muntashirakon.AppManager.utils.appearance.ColorCodes;
 import io.github.muntashirakon.adapters.SelectedArrayAdapter;
@@ -75,6 +74,7 @@ public class SysConfigActivity extends BaseActivity {
         });
 
         mAdapter = new SysConfigRecyclerAdapter(this);
+        recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(mAdapter);
         // Observe data
@@ -118,8 +118,10 @@ public class SysConfigActivity extends BaseActivity {
             return new ViewHolder(view);
         }
 
-        void setList(Collection<SysConfigInfo> list) {
-            AdapterUtils.notifyDataSetChanged(this, mList, list);
+        public void setList(Collection<SysConfigInfo> list) {
+            mList.clear();
+            mList.addAll(list);
+            notifyDataSetChanged();
         }
 
         @Override

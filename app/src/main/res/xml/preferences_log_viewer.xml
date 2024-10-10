@@ -2,14 +2,7 @@
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <io.github.muntashirakon.preference.TopSwitchPreference
-        app:key="use_log_viewer"
-        app:title="@string/pref_use_log_viewer"
-        app:persistent="false"
-        app:iconSpaceReserved="false" />
-
     <PreferenceCategory
-        app:key="cat_appearance"
         app:title="@string/pref_cat_appearance"
         app:iconSpaceReserved="false">
 
@@ -28,7 +21,6 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-        app:key="cat_conf"
         app:title="@string/pref_cat_configuration"
         app:iconSpaceReserved="false" >
 
@@ -47,7 +39,6 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-        app:key="cat_advanced"
         app:title="@string/pref_cat_advanced"
         app:iconSpaceReserved="false" >
 

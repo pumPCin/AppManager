@@ -5,16 +5,16 @@ package io.github.muntashirakon.AppManager.dex;
 import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 
-import com.android.tools.smali.baksmali.Adaptors.ClassDefinition;
-import com.android.tools.smali.baksmali.BaksmaliOptions;
-import com.android.tools.smali.baksmali.formatter.BaksmaliFormatter;
-import com.android.tools.smali.baksmali.formatter.BaksmaliWriter;
-import com.android.tools.smali.dexlib2.Opcodes;
-import com.android.tools.smali.dexlib2.analysis.InlineMethodResolver;
-import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile;
-import com.android.tools.smali.dexlib2.dexbacked.DexBackedOdexFile;
-import com.android.tools.smali.dexlib2.iface.ClassDef;
-import com.android.tools.smali.dexlib2.iface.MultiDexContainer;
+import org.jf.baksmali.Adaptors.ClassDefinition;
+import org.jf.baksmali.BaksmaliOptions;
+import org.jf.baksmali.formatter.BaksmaliFormatter;
+import org.jf.baksmali.formatter.BaksmaliWriter;
+import org.jf.dexlib2.Opcodes;
+import org.jf.dexlib2.analysis.InlineMethodResolver;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
+import org.jf.dexlib2.iface.ClassDef;
+import org.jf.dexlib2.iface.MultiDexContainer;
 
 import java.io.BufferedInputStream;
 import java.io.Closeable;
@@ -46,7 +46,7 @@ public class DexClasses implements Closeable {
         mOptions.parameterRegisters = true;
         mOptions.localsDirective = true;
         mOptions.sequentialLabels = true;
-        mOptions.debugInfo = false; //BuildConfig.DEBUG;
+        mOptions.debugInfo = BuildConfig.DEBUG;
         mOptions.codeOffsets = false;
         mOptions.accessorComments = false;
         mOptions.registerInfo = 0;
@@ -93,7 +93,7 @@ public class DexClasses implements Closeable {
         mOptions.parameterRegisters = true;
         mOptions.localsDirective = true;
         mOptions.sequentialLabels = true;
-        mOptions.debugInfo = false; //BuildConfig.DEBUG;
+        mOptions.debugInfo = BuildConfig.DEBUG;
         mOptions.codeOffsets = false;
         mOptions.accessorComments = false;
         mOptions.registerInfo = 0;

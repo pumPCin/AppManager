@@ -31,7 +31,6 @@ import io.github.muntashirakon.AppManager.server.common.CallerResult;
 import io.github.muntashirakon.AppManager.server.common.DataTransmission;
 import io.github.muntashirakon.AppManager.server.common.ParcelableUtil;
 import io.github.muntashirakon.AppManager.settings.Ops;
-import io.github.muntashirakon.adb.AdbPairingRequiredException;
 import io.github.muntashirakon.adb.AdbStream;
 import io.github.muntashirakon.io.IoUtils;
 
@@ -42,7 +41,7 @@ class LocalServerManager {
     @SuppressLint("StaticFieldLeak")
     private static LocalServerManager sLocalServerManager;
 
-    @AnyThread
+    @WorkerThread
     @NoOps
     @NonNull
     static LocalServerManager getInstance(@NonNull Context context) {
@@ -60,7 +59,7 @@ class LocalServerManager {
     @Nullable
     private ClientSession mSession;
 
-    @AnyThread
+    @WorkerThread
     private LocalServerManager(@NonNull Context context) {
         mContext = context;
     }
@@ -75,24 +74,18 @@ class LocalServerManager {
     @WorkerThread
     @NonNull
     @NoOps(used = true)
-    private ClientSession getSession() throws IOException, AdbPairingRequiredException {
+    private ClientSession getSession() throws IOException {
         synchronized (mLock) {
             if (mSession == null || !mSession.isRunning()) {
                 try {
                     mSession = createSession();
-                } catch (Exception e) {
-                    if (!Ops.isDirectRoot() && !Ops.isAdb()) {
-                        // Do not bother attempting to create a new session
-                        throw new IOException("Could not create session", e);
-                    }
+                } catch (Exception ignore) {
                 }
                 if (mSession == null) {
                     try {
                         startServer();
-                    } catch (AdbPairingRequiredException e) {
-                        throw e;
                     } catch (Exception e) {
-                        throw new IOException("Could not start server", e);
+                        throw new IOException("Could not create session", e);
                     }
                     mSession = createSession();
                 }
@@ -127,23 +120,18 @@ class LocalServerManager {
 
     @WorkerThread
     @NoOps(used = true)
-    void start() throws IOException, AdbPairingRequiredException {
+    void start() throws IOException {
         getSession();
     }
 
     @WorkerThread
     @NonNull
     private DataTransmission getSessionDataTransmission() throws IOException {
-        try {
-            return getSession().getDataTransmission();
-        } catch (AdbPairingRequiredException e) {
-            throw new IOException(e);
-        }
+        return getSession().getDataTransmission();
     }
 
     @WorkerThread
-    @NonNull
-    private byte[] execPre(@NonNull byte[] params) throws IOException {
+    private byte[] execPre(byte[] params) throws IOException {
         try {
             return getSessionDataTransmission().sendAndReceiveMessage(params);
         } catch (IOException e) {
@@ -170,6 +158,15 @@ class LocalServerManager {
             // Since the server is closed abruptly, this should always produce error
             Log.w(TAG, "closeBgServer: Error", e);
         }
+    }
+
+    @WorkerThread
+    @NonNull
+    private String getExecCommand() throws IOException {
+        AssetsUtils.writeScript(mContext);
+        Log.e(TAG, "classpath --> %s", ServerConfig.getClassPath());
+        Log.e(TAG, "exec path --> %s", ServerConfig.getExecPath());
+        return "sh " + ServerConfig.getExecPath() + " " + ServerConfig.getLocalServerPort() + " " + ServerConfig.getLocalToken();
     }
 
     @Nullable
@@ -219,8 +216,7 @@ class LocalServerManager {
 
         try (OutputStream os = Objects.requireNonNull(mAdbStream).openOutputStream()) {
             os.write("id\n".getBytes());
-            // ADB may require a fallback method
-            String command = ServerConfig.getServerRunnerAdbCommand();
+            String command = getExecCommand();
             Log.d(TAG, "useAdbStartServer: %s", command);
             os.write((command + "\n").getBytes());
         }
@@ -236,8 +232,7 @@ class LocalServerManager {
         if (!Ops.hasRoot()) {
             throw new Exception("Root access denied");
         }
-        String command = ServerConfig.getServerRunnerCommand(0);
-        // + "\n" + "supolicy --live 'allow qti_init_shell zygote_exec file execute'";
+        String command = getExecCommand(); // + "\n" + "supolicy --live 'allow qti_init_shell zygote_exec file execute'";
         Log.d(TAG, "useRootStartServer: %s", command);
         Runner.Result result = Runner.runCommand(command);
 
@@ -257,7 +252,7 @@ class LocalServerManager {
     private void startServer() throws Exception {
         if (Ops.isAdb()) {
             useAdbStartServer();
-        } else if (Ops.isDirectRoot()) {
+        } else if (Ops.isRoot()) {
             useRootStartServer();
         } else throw new Exception("Neither root nor ADB mode is enabled.");
     }
@@ -276,9 +271,10 @@ class LocalServerManager {
             // Non-null check has already been done
             return Objects.requireNonNull(mSession);
         }
-        String host = ServerConfig.getLocalServerHost(mContext);
-        int port = ServerConfig.getLocalServerPort();
-        Socket socket = new Socket(host, port);
+        if (!Ops.isPrivileged()) {
+            throw new IOException("Root/ADB not enabled.");
+        }
+        Socket socket = new Socket(ServerConfig.getLocalServerHost(mContext), ServerConfig.getLocalServerPort());
         socket.setSoTimeout(1000 * 30);
         // NOTE: (CWE-319) No need for SSL since it only runs on a random port in localhost with specific authorization.
         // TODO: 5/8/23 We could use an SSL server with a randomly generated certificate per session without requiring

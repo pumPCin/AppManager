@@ -24,20 +24,12 @@ import java.util.Set;
 import io.github.muntashirakon.AppManager.R;
 import io.github.muntashirakon.AppManager.backup.BackupFlags;
 import io.github.muntashirakon.AppManager.batchops.BatchOpsManager;
-import io.github.muntashirakon.AppManager.utils.DateUtils;
 import io.github.muntashirakon.dialog.TextInputDialogBuilder;
 import io.github.muntashirakon.widget.MaterialAlertView;
 
 public class BackupFragment extends Fragment {
-    public static final String ARG_ALLOW_CUSTOM_USERS = "allow_custom";
-
-    @NonNull
-    public static BackupFragment getInstance(boolean allowCustomUsers) {
-        BackupFragment fragment = new BackupFragment();
-        Bundle args = new Bundle();
-        args.putBoolean(ARG_ALLOW_CUSTOM_USERS, allowCustomUsers);
-        fragment.setArguments(args);
-        return fragment;
+    public static BackupFragment getInstance() {
+        return new BackupFragment();
     }
 
     private BackupRestoreDialogViewModel mViewModel;
@@ -53,7 +45,6 @@ public class BackupFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         mViewModel = new ViewModelProvider(requireParentFragment()).get(BackupRestoreDialogViewModel.class);
         mContext = requireContext();
-        boolean allowCustomUsers = requireArguments().getBoolean(ARG_ALLOW_CUSTOM_USERS);
 
         MaterialAlertView messageView = view.findViewById(R.id.message);
         RecyclerView recyclerView = view.findViewById(android.R.id.list);
@@ -61,14 +52,11 @@ public class BackupFragment extends Fragment {
         int supportedFlags = BackupFlags.getSupportedBackupFlags();
         // Remove unsupported flags
         supportedFlags &= ~BackupFlags.BACKUP_NO_SIGNATURE_CHECK;
-        if (!allowCustomUsers) {
-            supportedFlags &= ~BackupFlags.BACKUP_CUSTOM_USERS;
-        }
         FlagsAdapter adapter = new FlagsAdapter(mContext, BackupFlags.fromPref().getFlags(), supportedFlags);
         recyclerView.setAdapter(adapter);
 
         Set<CharSequence> uninstalledApps = mViewModel.getUninstalledApps();
-        if (!uninstalledApps.isEmpty()) {
+        if (uninstalledApps.size() > 0) {
             SpannableStringBuilder sb = new SpannableStringBuilder(getString(R.string.backup_apps_cannot_be_backed_up));
             for (CharSequence appLabel : uninstalledApps) {
                 sb.append("\n● ").append(appLabel);
@@ -94,14 +82,14 @@ public class BackupFragment extends Fragment {
             new TextInputDialogBuilder(mContext, R.string.input_backup_name)
                     .setTitle(R.string.backup)
                     .setHelperText(R.string.input_backup_name_description)
-                    .setPositiveButton(R.string.ok, (dialog, which, input, isChecked) -> {
-                        String backupName;
-                        if (TextUtils.isEmpty(input)) {
-                            backupName = DateUtils.formatMediumDateTime(mContext, System.currentTimeMillis());
+                    .setPositiveButton(R.string.ok, (dialog, which, backupName, isChecked) -> {
+                        if (!TextUtils.isEmpty(backupName)) {
+                            //noinspection ConstantConditions
+                            operationInfo.backupNames = new String[]{backupName.toString()};
                         } else {
-                            backupName = input.toString();
+                            // No backup specified, remove the associated flag
+                            operationInfo.flags &= ~BackupFlags.BACKUP_MULTIPLE;
                         }
-                        operationInfo.backupNames = new String[]{backupName};
                         mViewModel.prepareForOperation(operationInfo);
                     })
                     .show();
