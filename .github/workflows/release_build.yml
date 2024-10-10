@@ -3,16 +3,8 @@ name: Release Build
 on:
   workflow_dispatch:
   push:
-    paths-ignore:
-      - 'fastlane/**'
-      - 'scripts/**'
-      - '*.md'
   pull_request:
-    paths-ignore:
-      - 'fastlane/**'
-      - 'scripts/**'
-      - '*.md'
-
+ 
 jobs:
   build:
     runs-on: ubuntu-latest
