@@ -27,7 +27,9 @@ jobs:
         run: echo "APP_NAME=AppManager_${{ env.APP_VERSION }}-${{ 2660 }}" >> $GITHUB_ENV
       - name: Inject run number
         run: sed -i -e 's|versionName "\([0-9\.]\+\)"|versionName "\1-${{ github.run_number }}"|' ./app/build.gradle
-      - name: Grant execute permission
+      - name: Grant execute permission check_am_server.sh
+        run: chmod +x /home/runner/work/AppManager/AppManager/scripts/check_am_server.sh
+      - name: Grant execute permission make_docs.sh
         run: chmod +x /home/runner/work/AppManager/AppManager/scripts/make_docs.sh
       - name: Build with Gradle
         run: ./gradlew packageReleaseUniversalApk
