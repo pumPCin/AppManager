@@ -553,10 +553,10 @@ public class LogViewerRecyclerAdapter extends MultiSelectionView.Adapter<LogView
         private String mName;
 
         public StopWatch(String name) {
-            if (BuildConfig.DEBUG) {
-                mName = name;
-                mStartTime = System.currentTimeMillis();
-            }
+            //if (BuildConfig.DEBUG) {
+                //mName = name;
+                //mStartTime = System.currentTimeMillis();
+            //}
         }
 
         public void log() {

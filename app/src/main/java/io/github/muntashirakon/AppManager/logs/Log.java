@@ -62,19 +62,19 @@ public class Log extends Logger {
     }
 
     public static void d(@Nullable String tag, @NonNull String format, Object... args) {
-        if (BuildConfig.DEBUG) {
-            String msg = String.format(Locale.ROOT, format, args);
-            println(DEBUG, tag, msg, null);
-            android.util.Log.d(tag, msg);
-        }
+        //if (BuildConfig.DEBUG) {
+            //String msg = String.format(Locale.ROOT, format, args);
+            //println(DEBUG, tag, msg, null);
+            //android.util.Log.d(tag, msg);
+        //}
     }
 
     public static void d(@Nullable String tag, @Nullable String format, @Nullable Throwable tr, Object... args) {
-        if (BuildConfig.DEBUG) {
-            String msg = format != null ? String.format(Locale.ROOT, format, args) : null;
-            println(DEBUG, tag, msg, tr);
-            android.util.Log.d(tag, msg, tr);
-        }
+        //if (BuildConfig.DEBUG) {
+            //String msg = format != null ? String.format(Locale.ROOT, format, args) : null;
+            //println(DEBUG, tag, msg, tr);
+            //android.util.Log.d(tag, msg, tr);
+        //}
     }
 
     public static void i(@Nullable String tag, @NonNull String format, Object... args) {

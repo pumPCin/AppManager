@@ -203,7 +203,7 @@ public final class DexUtils {
         args.setInputFile(dexFile);
         args.setSkipResources(true);
         args.setShowInconsistentCode(true);
-        args.setDebugInfo(BuildConfig.DEBUG);
+        args.setDebugInfo(false); //BuildConfig.DEBUG);
         try (JadxDecompiler decompiler = new JadxDecompiler(args)) {
             decompiler.load();
             JavaClass javaClass = decompiler.getClasses().iterator().next();

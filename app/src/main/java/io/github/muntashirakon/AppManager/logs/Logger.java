@@ -46,9 +46,9 @@ public class Logger implements Closeable {
             if (tr != null) {
                 tr.printStackTrace(mWriter);
             }
-            if (BuildConfig.DEBUG) {
-                mWriter.flush();
-            }
+            //if (BuildConfig.DEBUG) {
+                //mWriter.flush();
+            //}
         }
     }
 
