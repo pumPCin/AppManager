@@ -1536,4 +1536,8 @@
     <string name="tag_sensors_disabled">Сенсоры отключены</string>
     <string name="pref_use_system_font">Системный шрифт</string>
     <string name="pref_use_system_font_msg">Использовать установленный системный шрифт по умолчанию. <font fgcolor="#ff0000">Это экспериментальная функция.</font></string>
+    <string name="actual_installer">Установщик</string>
+    <string name="apk_source">Исходный APK</string>
+    <string name="backup_cache">Кеш</string>
+    <string name="activity_name">Имя активити</string>
 </resources>
