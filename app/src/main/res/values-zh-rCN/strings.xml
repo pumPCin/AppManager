@@ -87,30 +87,30 @@
     <string name="license">许可协议</string>
     <string name="third_party">第三方库和图标</string>
     <string name="credits">鸣谢</string>
-    <string name="credits_message">致谢下列项目作者：
-\n- The Android Open Source Project
-\n- <a href="https://github.com/zhaobozhen/libraries">Absinthe\'s libraries</a>
-\n- <a href="https://github.com/butzist/ActivityLauncher">Activity Launcher</a>
-\n- <a href="https://bitbucket.org/oF2pks/fdroid-applications-info">Apps_packages Info</a>
-\n- <a href="https://github.com/zhaobao/AppsMonitor">AppsMonitor</a>
-\n- <a href="https://github.com/8enet/AppOpsX">AppOpsX</a>
-\n- <a href="https://github.com/gabrielemariotti/changeloglib">ChangeLog Library</a>
-\n- <a href="https://bitbucket.org/oF2pks/fdroid-classyshark3xodus">ClassySharkAndroid</a>
-\n- <a href="https://github.com/billthefarmer/editor">Editor</a>
-\n- <a href="https://github.com/Raival-e/File-Explorer">File Explorer</a>
-\n- <a href="https://github.com/nex3z/FlowLayout">FlowLayout</a>
-\n- <a href="https://github.com/k3b/intent-intercept">Intent Intercept</a>
-\n- <a href="https://github.com/YarikSOffice/lingver">Lingver</a>
-\n- <a href="https://github.com/topjohnwu/Magisk">Magisk</a>
-\n- <a href="https://github.com/zhanghai/MaterialFiles">Material Files</a>
-\n- <a href="https://github.com/pluscubed/matlog">MatLog</a>
-\n- <a href="https://github.com/matrix-org/matrix-android-sdk">Matrix Android SDK</a>
-\n- <a href="https://github.com/jensstein/oandbackup">OAndBackup</a>
-\n- <a href="https://github.com/open-keychain/open-keychain">Open Keychain</a>
-\n- <a href="https://github.com/Aefyr/SAI">SAI</a>
-\n- <a href="https://github.com/RikkaApps/Shizuku">Shizuku</a>
-\n- <a href="https://github.com/eclipse/tm4e">tm4e</a>
-\n- <a href="https://github.com/tuyafeng/Watt">Watt</a> </string>
+    <string name="credits_message">感谢下列项目作者：
+\n- The Android Open Source Project 
+\n- <a href="https://github.com/zhaobozhen/libraries">Absinthe\'s libraries</a> 
+\n- <a href="https://github.com/butzist/ActivityLauncher">Activity Launcher</a> 
+\n- <a href="https://bitbucket.org/oF2pks/fdroid-applications-info">Apps_packages Info</a> 
+\n- <a href="https://github.com/zhaobao/AppsMonitor">AppsMonitor</a> 
+\n- <a href="https://github.com/8enet/AppOpsX">AppOpsX</a> 
+\n- <a href="https://github.com/gabrielemariotti/changeloglib">ChangeLog Library</a> 
+\n- <a href="https://bitbucket.org/oF2pks/fdroid-classyshark3xodus">ClassySharkAndroid</a> 
+\n- <a href="https://github.com/billthefarmer/editor">Editor</a> 
+\n- <a href="https://github.com/Raival-e/File-Explorer">File Explorer</a> 
+\n- <a href="https://github.com/nex3z/FlowLayout">FlowLayout</a> 
+\n- <a href="https://github.com/k3b/intent-intercept">Intent Intercept</a> 
+\n- <a href="https://github.com/YarikSOffice/lingver">Lingver</a> 
+\n- <a href="https://github.com/topjohnwu/Magisk">Magisk</a> 
+\n- <a href="https://github.com/zhanghai/MaterialFiles">Material Files</a> 
+\n- <a href="https://github.com/pluscubed/matlog">MatLog</a> 
+\n- <a href="https://github.com/matrix-org/matrix-android-sdk">Matrix Android SDK</a> 
+\n- <a href="https://github.com/jensstein/oandbackup">OAndBackup</a> 
+\n- <a href="https://github.com/open-keychain/open-keychain">Open Keychain</a> 
+\n- <a href="https://github.com/Aefyr/SAI">SAI</a> 
+\n- <a href="https://github.com/RikkaApps/Shizuku">Shizuku</a> 
+\n- <a href="https://github.com/eclipse/tm4e">tm4e</a> 
+\n- <a href="https://github.com/tuyafeng/Watt">Watt</a></string>
     <string name="word_wrap">自动换行</string>
     <string name="class_viewer">类查看器</string>
     <string name="toggle_class_listing">切换类列表</string>
@@ -349,7 +349,6 @@
     <string name="features">特性</string>
     <string name="whats_new">更新内容</string>
     <string name="blocking_rules">屏蔽规则</string>
-    <string name="cache">不包括缓存</string>
     <string name="external_data">外部数据</string>
     <string name="data">数据 </string>
     <string name="backup">备份</string>
@@ -693,8 +692,8 @@
     <string name="patch_level">安全补丁级别</string>
     <string name="backup_skip_signature_checks_description">还原校验和验证失败或具有与先前备份不同的 APK 签名的备份。</string>
     <string name="backup_multiple_description">使用一个单独<i>命名的</i>备份，而不是基本备份。</string>
-    <string name="backup_rules_description">备份 App Manager 内配置的规则。<font fgcolor="#ff0000">取决于权限，并非所有规则都可以在还原期间被重新应用。</font> </string>
-    <string name="backup_extras_description">备份应用权限、节电和数据使用选项、MagiskHide 状态、SSAID 等。<font fgcolor="#ff0000">取决于权限，并非所有提取的应用都可以被还原。</font>。 </string>
+    <string name="backup_rules_description">备份 App Manager 内配置的规则。<font fgcolor="#ff0000">取决于权限，并非所有规则都可以在还原期间被重新应用。</font></string>
+    <string name="backup_extras_description">备份应用权限、节电和数据使用选项、MagiskHide 状态、SSAID 等。<font fgcolor="#ff0000">取决于权限，并非所有提取的应用都可以被还原。</font></string>
     <string name="backup_extras">附加</string>
     <string name="backup_cache_description">备份<b>缓存</b>、<b>no_cache</b> 和 <b>no_backup</b> 文件夹。</string>
     <string name="backup_obb_media_description">备份 OBB 和媒体文件夹。</string>
@@ -950,7 +949,7 @@
     <string name="netpolicy_reject_background_data">拒绝后台数据</string>
     <string name="port_number_invalid">无效的端口号。</string>
     <string name="port_number_empty">端口号为空。</string>
-    <string name="adb_connect_port_number_description">端口号位于 <b>IP地址&amp;端口</b>部分，这部分在<b>设备名称</b>部分的下方。</string>
+    <string name="adb_connect_port_number_description">端口位于 <b>IP 地址&amp;端口</b>部分下方，该部分就在 <b>设备名称</b>部分下面。</string>
     <string name="port_number">端口</string>
     <string name="adb_connect">连接</string>
     <string name="wireless_debugging">无线调试</string>
@@ -1023,7 +1022,8 @@
     <string name="pref_default_blocking_method">默认拦截方式</string>
     <string name="intent_firewall_and_disable">IFW + PM Disable</string>
     <string name="intent_firewall">IFW</string>
-    <string name="pref_default_blocking_method_description">在没有拦截选项可选的情况下默认使用的方法。</string>
+    <string name="pref_default_blocking_method_description">在没有拦截选项可选的情况下默认使用的方法。
+\n<b>注意：</b> “IFW” 无法应用于 provider，使用的是“禁用”。</string>
     <string name="pref_intent_firewall_and_disable_description">使用 Intent Firewall 阻断组件并通过 PM 禁用它们。推荐 root 用户使用该方法。</string>
     <string name="pref_intent_firewall_description">仅使用 Intent Firewall 阻断组件。不推荐，因为有些系统程序可以绕过 IFW。</string>
     <string name="pref_disable_description">禁用组件。不推荐 root 用户使用，因为程序可以绕过这个。在 ADB 模式下，可以使用此方法禁用仅测试应用程序。</string>
@@ -1361,4 +1361,48 @@
     <string name="apply_recursively">应用于包含的文件</string>
     <string name="title_description">描述</string>
     <string name="debloat_removal_replace_short_description">使用备选代替</string>
+    <string name="pref_toggle_internet_msg">在App Manager中激活互联网功能</string>
+    <string name="launch_activity_dialog_title">启动活动：需要采取操作</string>
+    <string name="launch_activity_dialog_message">App Manager正在尝试通过<b>搜索助手</b>（通常为Google Assistant）启动活动，但由于权限不足而无法执行该操作。要打开活动，请手动打开<b>搜索助手</b>（通常通过长按Home键来完成）。在你启动活动完成后，点击<b>关闭</b>按钮以恢复为原始助手。</string>
+    <string name="pref_use_vt">使用VirusTotal</string>
+    <string name="virus_total">VirusTotal</string>
+    <string name="netpolicy_reject_metered_background_data">在按流量计费的网络上阻止后台数据</string>
+    <string name="netpolicy_reject_metered_data">在按流量计费的网络上阻止数据</string>
+    <string name="netpolicy_allow_metered_background_data">在省流器开启时仍在按流量计费的网络上允许后台数据</string>
+    <string name="select_filter">选择筛选器</string>
+    <string name="size_in_bytes">大小（字节）</string>
+    <string name="invalid_regex">无效的正则表达式！</string>
+    <string name="value_cannot_be_empty">值不能为空！</string>
+    <string name="date">日期</string>
+    <string name="pref_use_vt_no_internet">VirusTotal需要连接至互联网以运行，但互联网并未被启用。请先<a href="app-manager://settings/privacy_prefs/toggle_internet">“启用互联网”</a>。</string>
+    <string name="pref_use_log_viewer">使用日志查看器</string>
+    <string name="pref_installer">使用安装器</string>
+    <string name="pref_cat_general">通用</string>
+    <string name="status_remote_server_active">远程服务器启用中</string>
+    <string name="status_remote_server_inactive">远程服务器未启用</string>
+    <string name="status_remote_services_active">远程服务启用中</string>
+    <string name="status_remote_services_inactive">远程服务未启用</string>
+    <string name="status_connecting">连接中…</string>
+    <string name="status_connecting_via_mode">正在通过%s连接</string>
+    <string name="status_connected_via_mode">已通过%s连接</string>
+    <string name="status_not_connected_via_mode">无法通过%s连接</string>
+    <string name="adb_pairing_instruction">请转向开发人员选项以启用无线调试并生成配对码。</string>
+    <string name="adb_pairing_searching_for_port">搜索中…</string>
+    <string name="adb_pairing_stop_searching">停止</string>
+    <string name="adb_pairing_input_pairing_code">配对码</string>
+    <string name="adb_pairing_pairing_code">配对码</string>
+    <string name="adb_pairing_found_pairing_service_with_port">在端口%d中寻找服务</string>
+    <string name="adb_pairing_pairing_in_progress">配对中…</string>
+    <string name="adb_pairing_retry_pairing">重试</string>
+    <string name="mode_of_op_custom_command_title">自定义命令</string>
+    <string name="mode_of_op_custom_command">如果您无法使用任何模式，您可以在任何受支持的 shell 中运行以下命令，以在特权模式下运行App Manager：</string>
+    <string name="finder_title">访达</string>
+    <string name="mode_of_op_alternative_custom_command">如果运行以上命令遇到“permission denied”错误，请运行下列命令：</string>
+    <string name="actual_installer">实际安装包</string>
+    <string name="apk_source">APK 源</string>
+    <string name="backup_cache">缓存</string>
+    <string name="pref_use_system_font">使用系统字体</string>
+    <string name="sensors">传感器</string>
+    <string name="tag_sensors_disabled">停用了传感器</string>
+    <string name="pref_use_system_font_msg">使用系统默认字体而非 material 字体。<font fgcolor="#ff0000">这是实验性功能。</font></string>
 </resources>
