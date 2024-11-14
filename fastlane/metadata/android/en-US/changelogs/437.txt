@@ -1,17 +1,15 @@
-_Funding campaign dates have been updated as this is going to be the last campaign in many years._
-_If you're running ADB, you may need to restart your device first._
-
-- Added full support for Android 14
-- Allowed launching non-exported activities in no-root/ADB mode
-- Enabled installing system apps with a different signature
-- Added a batch option to copy the selected logs
-- Refresh running apps every 10 seconds
-- Fixed scanning using VirusTotal
-- [Experimental] Initial support for custom command for mode of ops
-- Improved auto-connecting and pairing to ADB
-- Improved preferences and dialogs
-- Added more network policies from Motorola devices.
-- Enabled creating activity shortcuts for other users
-- Fixed blocking components in Android 14
-- Fixed blocking providers when only IFW is set
-- Fixed retrieving and updating permission flags in Android 12 onwards
+Private messages should be emailed to am4android@riseup.net. Emails sent to any other email addresses shall be discarded.
+- Added full support for Android 14-r29 and later
+- [App Info] New tag: Sensors disabled
+- [App Info] Added option to enable/disable sensors
+- [App Info] Display detailed installer info
+- Display blocking method in the components tabs
+- Fixed applying IFW method in the components tabs
+- Improved the usage time calculation method
+- Improved handling custom users in backups
+- Fixed creating custom backups
+- [Batch Ops] Added option to export app list as CSV and JSON
+- Added support for pure black theme
+- Added a fallback server runner command from DE storage
+- [UI Tracker] Display current activity name when possible
+- Updated documentation to reflect latest changes, so on.
