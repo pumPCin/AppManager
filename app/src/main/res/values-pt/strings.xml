@@ -981,7 +981,7 @@
     <string name="input_app_ops_description">Insira nomes e/ou constantes de operações de aplicações com espaços, por exemplo <tt>WAKE_LOCK 63 72 CAMERA</tt> etc.</string>
     <string name="input_app_ops">Inserir operações na app</string>
     <string name="deny_app_ops_description">Defina um modo para as operações da aplicação identificadas pelos valores das constantes, ou seja, <tt>63</tt> ou <tt>RUN_IN_BACKGROUND</tt></string>
-    <string name="source_code_links"><a href="https://github.com/MuntashirAkon/AppManager">GitHub</a> • <a href="https://gitlab.com/muntashir/AppManager">GitLab</a> • <a href="https://0xacab.org/muntashir/AppManager">Riseup</a> • <a href="https://codeberg.org/muntashir/AppManager">Codeberg</a></string>
+    <string name="source_code_links"><a href="https://github.com/pumPCin/AppManager">GitHub</a> • <a href="https://gitlab.com/muntashir/AppManager">GitLab</a> • <a href="https://0xacab.org/muntashir/AppManager">Riseup</a> • <a href="https://codeberg.org/muntashir/AppManager">Codeberg</a></string>
     <plurals name="no_of_components">
         <item quantity="one">%1$d componente</item>
         <item quantity="many">%1$d componentes</item>

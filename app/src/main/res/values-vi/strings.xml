@@ -592,7 +592,7 @@
     <string name="pref_apk_signing_msg">Đặt đề án chữ ký, mã ký tùy chỉnh, v.v.</string>
     <string name="apk_signing">Ký APK</string>
     <string name="app_signing_signature_schemes">Đề án chữ ký</string>
-    <string name="source_code_links"><a href="https://github.com/MuntashirAkon/AppManager">GitHub</a> • <a href="https://gitlab.com/muntashir/AppManager">GitLab</a> • <a href="https://0xacab.org/muntashir/AppManager">Riseup</a> • <a href="https://codeberg.org/muntashir/AppManager">Codeberg</a></string>
+    <string name="source_code_links"><a href="https://github.com/pumPCin/AppManager">GitHub</a> • <a href="https://gitlab.com/muntashir/AppManager">GitLab</a> • <a href="https://0xacab.org/muntashir/AppManager">Riseup</a> • <a href="https://codeberg.org/muntashir/AppManager">Codeberg</a></string>
     <string name="key_name_cannot_be_null">Tên mã không thể trống</string>
     <string name="key_name">Tên mã</string>
     <string name="boolean_value">Giá trị sự thật</string>

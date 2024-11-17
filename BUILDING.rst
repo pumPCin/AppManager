@@ -61,7 +61,7 @@ Clone and Build App Manager
 
 1. Clone the repo along with submodules::
 
-     git clone --recurse-submodules https://github.com/MuntashirAkon/AppManager.git
+     git clone --recurse-submodules https://github.com/pumPCin/AppManager.git
 
    You can use the `--depth 1` argument if you don't want to clone past
    commits.

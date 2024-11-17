@@ -860,7 +860,7 @@
     <string name="generate_key">Oluştur</string>
     <string name="input_key">Anahtarı girin (onaltılık olarak)</string>
     <string name="input_keystore_alias_pass_msg">%1$s parolasını girmek için buraya dokunun</string>
-    <string name="source_code_links"><a href="https://github.com/MuntashirAkon/AppManager">GitHub</a> • <a href="https://gitlab.com/muntashir/AppManager">GitLab</a> • <a href="https://0xacab.org/muntashir/AppManager">Riseup</a> • <a href="https://codeberg.org/muntashir/AppManager">Codeberg</a></string>
+    <string name="source_code_links"><a href="https://github.com/pumPCin/AppManager">GitHub</a> • <a href="https://gitlab.com/muntashir/AppManager">GitLab</a> • <a href="https://0xacab.org/muntashir/AppManager">Riseup</a> • <a href="https://codeberg.org/muntashir/AppManager">Codeberg</a></string>
     <string name="pref_installer_msg">Uygulama kurucusunun davranışlarını yapılandırın.</string>
     <string name="trackers_unblocked_successfully">İzleyicilerin engeli artık kaldırıldı</string>
     <string name="trackers_blocked_successfully">İzleyiciler artık engellendi</string>

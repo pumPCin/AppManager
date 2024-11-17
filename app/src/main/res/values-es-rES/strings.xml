@@ -923,7 +923,7 @@
     <string name="restart_log_viewer_to_see_changes">Reinicie la ventana del visor de registros para ver los cambios.</string>
     <string name="pref_log_viewer_msg">Configure la manera en que se muestran los registros.</string>
     <string name="log_viewer">Visor de registros</string>
-    <string name="source_code_links"><a href="https://github.com/MuntashirAkon/AppManager">GitHub</a> - <a href="https://gitlab.com/muntashir/AppManager">GitLab</a> - <a href="https://0xacab.org/muntashir/AppManager">Riseup</a> - <a href="https://codeberg.org/muntashir/AppManager">Codeberg</a></string>
+    <string name="source_code_links"><a href="https://github.com/pumPCin/AppManager">GitHub</a> - <a href="https://gitlab.com/muntashir/AppManager">GitLab</a> - <a href="https://0xacab.org/muntashir/AppManager">Riseup</a> - <a href="https://codeberg.org/muntashir/AppManager">Codeberg</a></string>
     <string name="new_alias_password">Contraseña de alias nuevo</string>
     <string name="bouncy_castle_keystore">Almacén de claves Bouncy Castle (BKS)</string>
     <string name="invalid_rsa_key_size">El tamaño de la clave no es válido para el cifrado RSA. Este puede ser de 1024, 2048 o 4096 bits.</string>

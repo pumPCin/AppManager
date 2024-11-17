@@ -450,7 +450,7 @@
     <string name="block_unblock_trackers_description">Blocare sau deblocare componente publicitare și de urmărire în toate aplicațiile instalate</string>
     <string name="state_session_leader">Liderul sesiunii</string>
     <string name="rsa_exponent">Exponent</string>
-    <string name="source_code_links"><a href="https://github.com/MuntashirAkon/AppManager">GitHub</a> • <a href="https://gitlab.com/muntashir/AppManager">GitLab</a> • <a href="https://0xacab.org/muntashir/AppManager">Riseup</a> • <a href="https://codeberg.org/muntashir/AppManager">Codeberg</a></string>
+    <string name="source_code_links"><a href="https://github.com/pumPCin/AppManager">GitHub</a> • <a href="https://gitlab.com/muntashir/AppManager">GitLab</a> • <a href="https://0xacab.org/muntashir/AppManager">Riseup</a> • <a href="https://codeberg.org/muntashir/AppManager">Codeberg</a></string>
     <string name="blocking_rules">Reguli de blocare</string>
     <string name="orientation_unspecified">Nespecificat</string>
     <string name="apply_to_system_apps_question">Se aplică și la aplicațiile de sistem\? Selectează \"Nu\" dacă nu ești sigur.</string>

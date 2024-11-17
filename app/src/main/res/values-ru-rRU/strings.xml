@@ -395,7 +395,7 @@
     <string name="install">Установить</string>
     <string name="update">Обновить</string>
     <string name="source_code">Исходный код</string>
-    <string name="source_code_links"><a href="https://github.com/MuntashirAkon/AppManager">GitHub</a> •
+    <string name="source_code_links"><a href="https://github.com/pumPCin/AppManager">GitHub</a> •
         <a href="https://gitlab.com/muntashir/AppManager">GitLab</a> •
         <a href="https://0xacab.org/muntashir/AppManager">Riseup</a> •
         <a href="https://codeberg.org/muntashir/AppManager">Codeberg</a></string>
@@ -534,7 +534,7 @@
     <string name="run_in_termux">Запустить в Termux</string>
     <string name="website">Веб-сайт</string>
     <string name="website_message" translatable="false">https://muntashirakon.github.io/AppManager</string>
-    <string name="discussions_site" translatable="false">https://github.com/MuntashirAkon/AppManager/discussions</string>
+    <string name="discussions_site" translatable="false">https://github.com/pumPCin/AppManager/discussions</string>
     <string name="pref_remove_all_rules">Удаление всех правил</string>
     <string name="pref_remove_all_rules_msg">Разрешения будут предоставлены, операциям приложения и компонентам вернутся значения по умолчанию.</string>
     <string name="are_you_sure">Вы уверены?</string>

@@ -1003,7 +1003,7 @@
         <item quantity="other">%d файлів буде видалено</item>
     </plurals>
     <string name="launch_mode_single_top">Один зверху</string>
-    <string name="source_code_links"><a href="https://github.com/MuntashirAkon/AppManager">GitHub</a> •
+    <string name="source_code_links"><a href="https://github.com/pumPCin/AppManager">GitHub</a> •
         <a href="https://gitlab.com/muntashir/AppManager">GitLab</a> •
         <a href="https://0xacab.org/muntashir/AppManager">Riseup</a> •
         <a href="https://codeberg.org/muntashir/AppManager">Codeberg</a></string>
