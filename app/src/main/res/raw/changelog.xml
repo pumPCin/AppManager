@@ -546,7 +546,7 @@
         </note>
         <improve>App list is now taken from android-debloat-list</improve>
         <note subtext="true">
-            [a href="https://github.com/MuntashirAkon/android-debloat-list"]android-debloat-list[/a] is a new project
+            [a href="https://github.com/pumPCin/android-debloat-list"]android-debloat-list[/a] is a new project
             aimed at improving debloating experience by listing the details in a more structured way and list potential
             alternatives of the bloatware with usability and reproducibility in mind.
         </note>
