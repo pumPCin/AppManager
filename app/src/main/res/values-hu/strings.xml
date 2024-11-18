@@ -246,7 +246,7 @@
     <string name="block_trackers">Trekkerek blokkolása</string>
     <string name="sort_by_permission_names">Engedély neve</string>
     <string name="sort_by_component_name">Komponens neve</string>
-    <string name="source_code_links"><a href="https://github.com/MuntashirAkon/AppManager">GitHub</a> • <a href="https://gitlab.com/muntashir/AppManager">GitLab</a> • 
+    <string name="source_code_links"><a href="https://github.com/pumPCin/AppManager">GitHub</a> • <a href="https://gitlab.com/muntashir/AppManager">GitLab</a> • 
 \n<a href="https://0xacab.org/muntashir/AppManager">Riseup</a> • <a href="https://codeberg.org/muntashir/AppManager">Codeberg</a></string>
     <string name="block_unblock_trackers_description">A hirdetések és trekkerek blokkolása és engedélyezése minden telepített appban</string>
     <string name="community_links"><a href="https://t.me/AppManagerChannel">Telegram csatorna</a> • <a href="https://twitter.com/AppManagerNews">Twitter</a></string>
