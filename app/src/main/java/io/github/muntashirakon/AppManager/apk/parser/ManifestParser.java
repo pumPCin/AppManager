@@ -36,10 +36,10 @@ public class ManifestParser {
     private static final String TAG_SERVICE = "service";
     private static final String TAG_RECEIVER = "receiver";
     private static final String TAG_PROVIDER = "provider";
-    private static final String ATTR_NAME = "android:name";
+    private static final String ATTR_NAME = "name"; // android:name
     // manifest -> application -> (component) -> intent-filter
     private static final String TAG_INTENT_FILTER = "intent-filter";
-    private static final String ATTR_PRIORITY = "android:priority";
+    private static final String ATTR_PRIORITY = "priority"; // android:priority
     // manifest -> application -> (component) -> intent-filter -> action|category|data
     private static final String TAG_ACTION = "action";
     private static final String TAG_CATEGORY = "category";
@@ -57,8 +57,8 @@ public class ManifestParser {
     }
 
     public List<ManifestComponent> parseComponents() throws IOException {
-        ResXmlDocument xmlBlock = new ResXmlDocument();
         try (BlockReader reader = new BlockReader(mManifestBytes.array())) {
+            ResXmlDocument xmlBlock = new ResXmlDocument();
             xmlBlock.readBytes(reader);
             xmlBlock.setPackageBlock(AndroidBinXmlDecoder.getFrameworkPackageBlock());
             ResXmlElement resManifestElement = xmlBlock.getDocumentElement();
