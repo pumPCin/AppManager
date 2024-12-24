@@ -30,18 +30,24 @@ public class KeyStoreActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
         //if (Boolean.TRUE.equals(BuildExpiryChecker.buildExpired())) {
-            // Build has expired
-            //BuildExpiryChecker.getBuildExpiredDialog(this).show();
+            //Build has expired
+            //BuildExpiryChecker.getBuildExpiredDialog(this, (dialog, which) -> processIntentAndFinish(getIntent())).show();
             //return;
         //}
-        if (getIntent() != null) {
-            onNewIntent(getIntent());
-        } else finish();
+        processIntentAndFinish(getIntent());
     }
 
     @Override
-    protected void onNewIntent(Intent intent) {
+    protected void onNewIntent(@NonNull Intent intent) {
         super.onNewIntent(intent);
+        processIntentAndFinish(intent);
+    }
+
+    private void processIntentAndFinish(@Nullable Intent intent) {
+        if (intent == null) {
+            finish();
+            return;
+        }
         String alias = intent.getStringExtra(EXTRA_ALIAS);
         if (alias != null) {
             displayInputKeyStoreAliasPassword(alias);
