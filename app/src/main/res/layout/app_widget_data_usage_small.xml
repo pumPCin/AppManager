@@ -23,7 +23,7 @@
         android:padding="@dimen/app_widget_background_padding">
 
         <TextView
-            android:id="@+id/screen_time_label"
+            android:id="@+id/data_usage_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="0"
@@ -31,11 +31,11 @@
             android:maxLines="1"
             android:paddingStart="0dp"
             android:paddingEnd="16dp"
-            android:text="@string/screen_time"
+            android:text="@string/data_usage_msg"
             android:textColor="?android:attr/textColorSecondary" />
 
         <TextView
-            android:id="@+id/screen_time"
+            android:id="@+id/data_usage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
@@ -46,11 +46,12 @@
             android:ellipsize="end"
             android:gravity="center_vertical"
             android:maxLines="1"
+            android:text="↑ 28 MB ↓ 1.2 GB"
             android:textColor="?android:attr/textColorPrimary"
             android:textSize="27sp"
             android:textStyle="bold"
-            tools:targetApi="o"
-            tools:text="2h 30m" />
+            tools:ignore="HardcodedText"
+            tools:targetApi="o" />
 
     </LinearLayout>
 
