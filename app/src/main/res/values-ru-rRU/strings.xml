@@ -1541,4 +1541,14 @@
     <string name="backup_cache">Кеш</string>
     <string name="activity_name">Имя активити</string>
     <string name="available_memory">Доступно: %s</string>
+    <string name="action_manual">Документация</string>
+    <string name="vulkan_version">Версия Vulkan</string>
+    <string name="battery_technology">Технология</string>
+    <string name="battery_health">Здоровье</string>
+    <string name="verified_boot">Verified boot</string>
+    <string name="android_verified_bootloader_version">Версия AVB</string>
+    <string name="op_history">История</string>
+    <string name="no_history">Нет записей</string>
+    <string name="title_confirm_execution">Подтвердите выполнение</string>
+    <string name="clear_history">Очистить историю</string>
 </resources>
