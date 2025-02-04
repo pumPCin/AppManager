@@ -1551,4 +1551,9 @@
     <string name="no_history">Нет записей</string>
     <string name="title_confirm_execution">Подтвердите выполнение</string>
     <string name="clear_history">Очистить историю</string>
+    <string name="favorites">Избранное</string>
+    <string name="add_to_favorites">Добавить в избранное</string>
+    <string name="item_remove">Удалить</string>
+    <string name="item_edit">Изменить</string>
+    <string name="remove_filename">Удалить %s</string>
 </resources>
