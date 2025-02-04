@@ -2,6 +2,7 @@
 
 package io.github.muntashirakon.AppManager.fm;
 
+import android.app.Activity;
 import android.app.Application;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -15,16 +16,21 @@ import android.os.Environment;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.provider.DocumentsContract;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.appcompat.widget.AppCompatTextView;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.collection.ArrayMap;
 import androidx.core.os.BundleCompat;
 import androidx.core.os.ParcelCompat;
@@ -40,9 +46,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,36 +55,56 @@ import java.util.Objects;
 
 import io.github.muntashirakon.AppManager.BaseActivity;
 import io.github.muntashirakon.AppManager.R;
-import io.github.muntashirakon.AppManager.history.IJsonSerializer;
-import io.github.muntashirakon.AppManager.history.JsonDeserializer;
+import io.github.muntashirakon.AppManager.db.entity.FmFavorite;
+import io.github.muntashirakon.AppManager.fm.dialogs.FilePropertiesDialogFragment;
+import io.github.muntashirakon.AppManager.fm.dialogs.RenameDialogFragment;
 import io.github.muntashirakon.AppManager.settings.Prefs;
 import io.github.muntashirakon.AppManager.utils.ExUtils;
-import io.github.muntashirakon.AppManager.utils.JSONUtils;
 import io.github.muntashirakon.AppManager.utils.StorageUtils;
 import io.github.muntashirakon.AppManager.utils.ThreadUtils;
+import io.github.muntashirakon.AppManager.utils.Utils;
 import io.github.muntashirakon.io.Paths;
 import io.github.muntashirakon.util.AdapterUtils;
 
 public class FmActivity extends BaseActivity {
-    public static class Options implements Parcelable, IJsonSerializer {
+    public static class Options implements Parcelable {
+        public static final int OPTION_VFS = 1 << 0;
+        public static final int OPTION_RO = 1 << 1; // read-only
+        public static final int OPTION_MOUNT_DEX = 1 << 2;
+
         @NonNull
         public final Uri uri;
-        public final boolean isVfs;
-        public final boolean readOnly;
-        public final boolean mountDexFiles;
+        public final int options;
 
         @Nullable
         private Uri mInitUriForVfs;
 
+        public Options(@NonNull Uri uri) {
+            this(uri, false, false, false);
+        }
+
+        protected Options(@NonNull Uri uri, int options) {
+            this.uri = uri;
+            this.options = options;
+        }
+
         public Options(@NonNull Uri uri, boolean isVfs, boolean readOnly, boolean mountDexFiles) {
             this.uri = uri;
-            this.isVfs = isVfs;
-            this.readOnly = readOnly;
-            this.mountDexFiles = mountDexFiles;
+            int options = 0;
+            if (isVfs) {
+                options |= OPTION_VFS;
+            }
+            if (readOnly) {
+                options |= OPTION_RO;
+            }
+            if (mountDexFiles) {
+                options |= OPTION_MOUNT_DEX;
+            }
+            this.options = options;
         }
 
         public void setInitUriForVfs(@Nullable Uri initUriForVfs) {
-            if (!isVfs && initUriForVfs != null) {
+            if (!isVfs() && initUriForVfs != null) {
                 throw new IllegalArgumentException("initUri can only be set when the file system is virtual.");
             }
             this.mInitUriForVfs = initUriForVfs;
@@ -91,32 +115,19 @@ public class FmActivity extends BaseActivity {
             return mInitUriForVfs;
         }
 
-        protected Options(@NonNull JSONObject jsonObject) throws JSONException {
-            uri = Uri.parse(jsonObject.getString("uri"));
-            isVfs = jsonObject.getBoolean("is_vfs");
-            readOnly = jsonObject.getBoolean("read_only");
-            mountDexFiles = jsonObject.getBoolean("mount_dex");
-            String initUri = JSONUtils.optString(jsonObject, "init_uri", null);
-            if (initUri != null) {
-                mInitUriForVfs = Uri.parse(initUri);
-            }
+        public boolean isVfs() {
+            return (options & OPTION_VFS) != 0;
+        }
+
+        public boolean isMountDex() {
+            return (options & OPTION_MOUNT_DEX) != 0;
         }
 
         protected Options(Parcel in) {
             uri = Objects.requireNonNull(ParcelCompat.readParcelable(in, Uri.class.getClassLoader(), Uri.class));
-            isVfs = ParcelCompat.readBoolean(in);
-            readOnly = ParcelCompat.readBoolean(in);
-            mountDexFiles = ParcelCompat.readBoolean(in);
+            options = in.readInt();
             mInitUriForVfs = ParcelCompat.readParcelable(in, Uri.class.getClassLoader(), Uri.class);
         }
-
-        public static final JsonDeserializer.Creator<Options> DESERIALIZER = new JsonDeserializer.Creator<Options>() {
-            @NonNull
-            @Override
-            public Options deserialize(@NonNull JSONObject jsonObject) throws JSONException {
-                return new Options(jsonObject);
-            }
-        };
 
         public static final Creator<Options> CREATOR = new Creator<Options>() {
             @NonNull
@@ -137,24 +148,10 @@ public class FmActivity extends BaseActivity {
             return 0;
         }
 
-        @NonNull
-        @Override
-        public JSONObject serializeToJson() throws JSONException {
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("uri", uri.toString());
-            jsonObject.put("is_vfs", isVfs);
-            jsonObject.put("read_only", readOnly);
-            jsonObject.put("mount_dex", mountDexFiles);
-            jsonObject.put("init_uri", mInitUriForVfs != null ? mInitUriForVfs.toString() : null);
-            return jsonObject;
-        }
-
         @Override
         public void writeToParcel(@NonNull Parcel dest, int flags) {
             dest.writeParcelable(uri, flags);
-            ParcelCompat.writeBoolean(dest, isVfs);
-            ParcelCompat.writeBoolean(dest, readOnly);
-            ParcelCompat.writeBoolean(dest, mountDexFiles);
+            dest.writeInt(options);
             dest.writeParcelable(mInitUriForVfs, flags);
         }
     }
@@ -166,13 +163,31 @@ public class FmActivity extends BaseActivity {
     private DrawerLayout mDrawerLayout;
     private RecyclerView mDrawerRecyclerView;
     private DrawerRecyclerViewAdapter mDrawerAdapter;
+    private FmDrawerViewModel mViewModel;
+    private final ActivityResultLauncher<Intent> mAddDocumentProvider = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                try {
+                    if (result.getResultCode() != Activity.RESULT_OK) return;
+                    Intent data = result.getData();
+                    if (data == null) return;
+                    Uri treeUri = data.getData();
+                    if (treeUri == null) return;
+                    int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    getContentResolver().takePersistableUriPermission(treeUri, takeFlags);
+                } finally {
+                    // Display backup volumes again
+                    mViewModel.loadDrawerItems();
+                }
+            });
 
     @Override
     protected void onAuthenticated(@Nullable Bundle savedInstanceState) {
         setContentView(R.layout.activity_fm);
         setSupportActionBar(findViewById(R.id.toolbar));
         findViewById(R.id.progress_linear).setVisibility(View.GONE);
-        FmDrawerViewModel viewModel = new ViewModelProvider(this).get(FmDrawerViewModel.class);
+        mViewModel = new ViewModelProvider(this).get(FmDrawerViewModel.class);
         mDrawerLayout = findViewById(R.id.drawer_layout);
         mDrawerRecyclerView = findViewById(R.id.recycler_view);
         mDrawerRecyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -182,9 +197,13 @@ public class FmActivity extends BaseActivity {
         if (actionBar != null) {
             actionBar.setHomeAsUpIndicator(R.drawable.ic_menu);
         }
-        viewModel.getDrawerItemsLiveData().observe(this, drawerItems ->
+        mViewModel.getDrawerItemsLiveData().observe(this, drawerItems ->
                 mDrawerAdapter.setAdapterItems(drawerItems));
-        viewModel.loadDrawerItems();
+        FmFavoritesManager.getFavoriteAddedLiveData().observe(this, fmFavorite -> {
+            // Reload drawer
+            mViewModel.loadDrawerItems();
+        });
+        mViewModel.loadDrawerItems();
         Uri uri = getIntent().getData();
         if (uri != null && uri.getScheme() == null) {
             // file:// URI can have no schema. So, fix it by adding file://
@@ -201,12 +220,12 @@ public class FmActivity extends BaseActivity {
             Integer position = null;
             if (options == null) {
                 if (uri != null) {
-                    options = new Options(uri, false, false, false);
+                    options = new Options(uri);
                 } else if (Prefs.FileManager.isRememberLastOpenedPath()) {
                     Pair<FmActivity.Options, Pair<Uri, Integer>> optionsUriPostionPair = Prefs.FileManager.getLastOpenedPath();
                     if (optionsUriPostionPair != null) {
                         options = optionsUriPostionPair.first;
-                        if (options.isVfs) {
+                        if (options.isVfs()) {
                             uri = optionsUriPostionPair.second.first;
                         }
                         position = optionsUriPostionPair.second.second;
@@ -214,16 +233,16 @@ public class FmActivity extends BaseActivity {
                 }
                 if (options == null) {
                     // Use home
-                    options = new Options(Prefs.FileManager.getHome(), false, false, false);
+                    options = new Options(Prefs.FileManager.getHome());
                 }
             }
             Uri uncheckedUri = options.uri;
             Uri checkedUri = ExUtils.exceptionAsNull(() -> Paths.getStrict(uncheckedUri).exists() ? uncheckedUri : null);
             if (checkedUri == null) {
                 // Use default directory
-                options = new Options(Uri.fromFile(Environment.getExternalStorageDirectory()), false, false, false);
+                options = new Options(Uri.fromFile(Environment.getExternalStorageDirectory()));
             }
-            if (options.isVfs) {
+            if (options.isVfs()) {
                 options.setInitUriForVfs(uri);
             }
             loadFragment(options, position);
@@ -277,6 +296,27 @@ public class FmActivity extends BaseActivity {
             super(application);
         }
 
+        public void removeFavorite(long id) {
+            ThreadUtils.postOnBackgroundThread(() -> FmFavoritesManager.removeFromFavorite(id));
+        }
+
+        public void renameFavorite(long id, @NonNull String newName) {
+            ThreadUtils.postOnBackgroundThread(() -> FmFavoritesManager.renameFavorite(id, newName));
+        }
+
+        public void releaseUri(@NonNull Uri uri) {
+            try {
+                getApplication()
+                        .getContentResolver()
+                        .releasePersistableUriPermission(uri,
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                        | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                loadDrawerItems();
+            } catch (SecurityException e) {
+                e.printStackTrace();
+            }
+        }
+
         public LiveData<List<FmDrawerItem>> getDrawerItemsLiveData() {
             return mDrawerItemsLiveData;
         }
@@ -285,22 +325,54 @@ public class FmActivity extends BaseActivity {
             ThreadUtils.postOnBackgroundThread(() -> {
                 List<FmDrawerItem> drawerItems = new ArrayList<>();
                 Context context = getApplication();
+                // Favorites
+                drawerItems.add(new FmDrawerItem(-1, context.getString(R.string.favorites), null, FmDrawerItem.ITEM_TYPE_LABEL));
+                List<FmFavorite> fmFavorites = FmFavoritesManager.getAllFavorites();
+                for (FmFavorite fmFavorite : fmFavorites) {
+                    Options options = new Options(Uri.parse(fmFavorite.uri), fmFavorite.options);
+                    options.mInitUriForVfs = fmFavorite.initUri != null ? Uri.parse(fmFavorite.initUri) : null;
+                    FmDrawerItem drawerItem = new FmDrawerItem(fmFavorite.id, fmFavorite.name, options, FmDrawerItem.ITEM_TYPE_FAVORITE);
+                    drawerItem.iconRes = getIconResFromName(fmFavorite.name);
+                    drawerItems.add(drawerItem);
+                }
+                // Locations
+                drawerItems.add(new FmDrawerItem(-2, context.getString(R.string.storage), null, FmDrawerItem.ITEM_TYPE_LABEL));
                 ArrayMap<String, Uri> storageLocations = StorageUtils.getAllStorageLocations(getApplication());
-                drawerItems.add(new FmDrawerItem(-1, context.getString(R.string.storage), null, FmDrawerItem.ITEM_TYPE_LABEL));
                 for (int i = 0; i < storageLocations.size(); ++i) {
                     Uri uri = storageLocations.valueAt(i);
-                    Options options = new Options(uri, false, false, false);
+                    Options options = new Options(uri);
                     PackageManager pm = getApplication().getPackageManager();
                     ResolveInfo resolveInfo = DocumentFileUtils.getUriSource(getApplication(), uri);
                     String name = resolveInfo != null ? resolveInfo.loadLabel(pm).toString() : storageLocations.keyAt(i);
                     Drawable icon = resolveInfo != null ? resolveInfo.loadIcon(pm) : null;
-                    FmDrawerItem drawerItem = new FmDrawerItem(-1, name, options, FmDrawerItem.ITEM_TYPE_LOCATION);
+                    FmDrawerItem drawerItem = new FmDrawerItem(-4, name, options, FmDrawerItem.ITEM_TYPE_LOCATION);
                     drawerItem.iconRes = R.drawable.ic_content_save;
                     drawerItem.icon = icon;
                     drawerItems.add(drawerItem);
                 }
                 mDrawerItemsLiveData.postValue(drawerItems);
             });
+        }
+
+        private static int getIconResFromName(@NonNull String filename) {
+            switch (filename) {
+                case "Documents":
+                    return R.drawable.ic_file_document;
+                case "Download":
+                case "Downloads":
+                    return R.drawable.ic_get_app;
+                case "Pictures":
+                case "DCIM":
+                    return R.drawable.ic_image;
+                case "Movies":
+                case "Music":
+                case "Podcasts":
+                case "Recordings":
+                case "Ringtones":
+                    return R.drawable.ic_audio_file;
+                default:
+                    return R.drawable.ic_folder;
+            }
         }
     }
 
@@ -341,12 +413,26 @@ public class FmActivity extends BaseActivity {
         }
 
         public void getLabelView(@NonNull ViewHolder holder, FmDrawerItem item) {
-            if (holder.actionView != null) {
-                holder.actionView.setVisibility(View.GONE);
+            if (holder.actionView == null) {
+                return;
             }
+            if (item.id == -1) {
+                // Favorites
+                holder.actionView.setVisibility(View.GONE);
+            } else if (item.id == -2) {
+                // Locations
+                holder.actionView.setVisibility(View.VISIBLE);
+                holder.actionView.setIconResource(R.drawable.ic_add);
+                holder.actionView.setOnClickListener(v -> {
+                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+                            .putExtra("android.provider.extra.SHOW_ADVANCED", true);
+                    mFmActivity.mAddDocumentProvider.launch(intent);
+                });
+            } else holder.actionView.setVisibility(View.GONE);
         }
 
-        public void getView(@NonNull ViewHolder holder, FmDrawerItem item) {
+        public void getView(@NonNull ViewHolder holder, @NonNull FmDrawerItem item) {
+            Objects.requireNonNull(item.options);
             if (holder.iconView != null) {
                 if (item.icon != null) {
                     holder.iconView.setImageDrawable(item.icon);
@@ -354,13 +440,67 @@ public class FmActivity extends BaseActivity {
             }
             holder.itemView.setOnClickListener(v -> {
                 Options options = item.options;
-                if (options != null) {
-                    mFmActivity.mDrawerLayout.close();
-                    mFmActivity.loadFragment(options, null);
-                }
+                mFmActivity.mDrawerLayout.close();
+                mFmActivity.loadFragment(options, null);
             });
             holder.itemView.setOnLongClickListener(v -> {
-                // TODO: 2/2/25 Display options to edit/remove items
+                Context context = v.getContext();
+                PopupMenu popupMenu = new PopupMenu(context, v);
+                Menu menu = popupMenu.getMenu();
+                // Copy path
+                menu.add(R.string.copy_this_path).setOnMenuItemClickListener(menuItem -> {
+                    Uri uri = item.options.getInitUriForVfs() != null
+                            ? item.options.getInitUriForVfs() : item.options.uri;
+                    String path = FmUtils.getDisplayablePath(uri);
+                    Utils.copyToClipboard(context, "Path", path);
+                    return true;
+                });
+                // Remove item
+                Uri uri = item.options.uri;
+                boolean removable = item.type != FmDrawerItem.ITEM_TYPE_LOCATION
+                        || ContentResolver.SCHEME_CONTENT.equals(uri.getScheme());
+                if (removable) {
+                    menu.add(R.string.item_remove).setOnMenuItemClickListener(menuItem -> {
+                        new MaterialAlertDialogBuilder(mFmActivity)
+                                .setTitle(context.getString(R.string.remove_filename, item.name))
+                                .setMessage(R.string.are_you_sure)
+                                .setNegativeButton(R.string.no, null)
+                                .setPositiveButton(R.string.yes, (dialog, which) -> {
+                                    if (item.type == FmDrawerItem.ITEM_TYPE_LOCATION) {
+                                        mFmActivity.mViewModel.releaseUri(uri);
+                                    } else if (item.type == FmDrawerItem.ITEM_TYPE_FAVORITE) {
+                                        mFmActivity.mViewModel.removeFavorite(item.id);
+                                    }
+                                })
+                                .show();
+                        return true;
+                    });
+                }
+                // Edit item
+                if (item.type == FmDrawerItem.ITEM_TYPE_FAVORITE) {
+                    menu.add(R.string.item_edit).setOnMenuItemClickListener(menuItem -> {
+                        RenameDialogFragment dialog = RenameDialogFragment.getInstance(item.name, (prefix, extension) -> {
+                            String displayName;
+                            if (!TextUtils.isEmpty(extension)) {
+                                displayName = prefix + "." + extension;
+                            } else {
+                                displayName = prefix;
+                            }
+                            mFmActivity.mViewModel.renameFavorite(item.id, displayName);
+                        });
+                        dialog.show(mFmActivity.getSupportFragmentManager(), RenameDialogFragment.TAG);
+                        return true;
+                    });
+                }
+                // Properties
+                if (!item.options.isVfs()) {
+                    menu.add(R.string.file_properties).setOnMenuItemClickListener(menuItem -> {
+                        FilePropertiesDialogFragment dialogFragment = FilePropertiesDialogFragment.getInstance(item.options.uri);
+                        dialogFragment.show(mFmActivity.getSupportFragmentManager(), FilePropertiesDialogFragment.TAG);
+                        return true;
+                    });
+                }
+                popupMenu.show();
                 return true;
             });
         }
