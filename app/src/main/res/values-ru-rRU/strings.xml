@@ -1556,4 +1556,8 @@
     <string name="item_remove">Удалить</string>
     <string name="item_edit">Изменить</string>
     <string name="remove_filename">Удалить %s</string>
+    <string name="advanced_suspend_app">Приостановить+</string>
+    <string name="advanced_suspend_app_description">Принудительное завершение и приостанавка приложения, чтобы не работало в фоновом режиме. Этот метод следует предпочесть обычному <b>Приостановить</b> методу.</string>
+    <string name="freeze_prefer_per_app_option">Для каждого приложения</string>
+    <string name="remember_option_for_this_app">Только для этого приложения</string>
 </resources>
