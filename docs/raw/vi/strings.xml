@@ -21,7 +21,7 @@
 \ncông năng của App Manager. Ngoài ra có thể có các tài nguyên không chính thức khác như bài viết blog, video, nhóm
 \nchat, v.v. Các tài nguyên đó có thể giúp ích được nhiều người, nhưng chúng có khả năng là cũ hơn phiên bản
 \nhiện tại của App Manager. Nếu App Manager có hoạt động sai lệch so với tài liệu này, thì bạn nên báo cáo ở 
-\n\\href{https://github.com/MuntashirAkon/AppManager/issues}{nơi theo dõi vấn đề của App Manager}.</string>
+\n\\href{https://github.com/pumPCin/AppManager/issues}{nơi theo dõi vấn đề của App Manager}.</string>
     <string name="intro$main$$terminologies-title">Thuật ngữ</string>
     <string name="intro$main$$supported-versions-title">Phiên bản được hỗ trợ</string>
     <string name="intro$main$$official-sources-title">Nguồn chính thức</string>
