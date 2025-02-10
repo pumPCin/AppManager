@@ -386,7 +386,8 @@
     <string name="community">Community</string>
     <string name="community_links"><a href="https://matrix.to/#/#appmanager:matrix.org">Matrix</a> •
         <a href="https://t.me/AppManagerChannel">Telegram</a> •
-        <a href="https://twitter.com/AppManagerNews">Twitter</a></string>
+        <a href="https://x.com/AppManagerNews">Twitter/X</a> •
+        <a href="https://floss.social/@appmanager">Mastodon</a></string>
     <string name="pref_import_existing">Import existing rules</string>
     <string name="pref_import_existing_msg">Add components disabled by others apps to App Manager.
         Be careful when using this tool as there can be many false positives. Choose only the apps you\'re certain about.</string>

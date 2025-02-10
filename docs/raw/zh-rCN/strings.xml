@@ -18,14 +18,14 @@
 \n可能还有其他非官方或第三方资源，如博客文章、视频、聊天、群组等。
 \n虽然这些资源可能对很多人有用，但它们的内容可能跟不上最新的 App Manager 版本。
 \n如果在 App Manager 中发现任何偏离本文档的情况，应在
-\n\\href{https://github.com/MuntashirAkon/AppManager/issues}{App Manager 问题追踪}进行报告。</string>
+\n\\href{https://github.com/pumPCin/AppManager/issues}{App Manager 问题追踪}进行报告。</string>
     <string name="intro$main$bin-sources">App Manager 通过以下渠道发布。
 \n非官方来源可能分发 App Manager 的修改版本，后果自负。
 \n\\begin{enumerate}
 \n \\item F-Droid \\footnote{For distributing normal releases only}\\\\
 \n \\textit{Link:} \\url{https://f-droid.org/packages/io.github.muntashirakon.AppManager}
 \n \\item GitHub repository.\\\\
-\n \\textit{Normal releases:} \\url{https://github.com/MuntashirAkon/AppManager/releases}\\\\
+\n \\textit{Normal releases:} \\url{https://github.com/pumPCin/AppManager/releases}\\\\
 \n \\textit{Debug releases:} \\url{https://github.com/pumPCin/AppManager/actions}
 \n \\item Telegram.\\\\
 \n \\textit{Normal releases:} \\url{https://t.me/AppManagerChannel}\\\\

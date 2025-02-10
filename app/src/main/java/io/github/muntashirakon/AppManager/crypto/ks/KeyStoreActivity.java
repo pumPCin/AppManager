@@ -30,7 +30,7 @@ public class KeyStoreActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
         //if (Boolean.TRUE.equals(BuildExpiryChecker.buildExpired())) {
-            //Build has expired
+            // Build has expired
             //BuildExpiryChecker.getBuildExpiredDialog(this, (dialog, which) -> processIntentAndFinish(getIntent())).show();
             //return;
         //}
