@@ -823,7 +823,7 @@
     <string name="generate_key">Hasilkan</string>
     <string name="input_key">Kunci input (dalam heksadesimal)</string>
     <string name="input_keystore_alias_pass_msg">Ketuk disini untuk menyediakan kata sandi untuk %1$s</string>
-    <string name="source_code_links"><a href="https://github.com/pumPCin/AppManager">GitHub</a> • <a href="https://gitlab.com/muntashir/AppManager">GitLab</a> • <a href="https://0xacab.org/muntashir/AppManager">Riseup</a> • <a href="https://codeberg.org/muntashir/AppManager">Codeberg</a></string>
+    <string name="source_code_links"><a href="https://github.com/MuntashirAkon/AppManager">GitHub</a> • <a href="https://gitlab.com/muntashir/AppManager">GitLab</a> • <a href="https://0xacab.org/muntashir/AppManager">Riseup</a> • <a href="https://codeberg.org/muntashir/AppManager">Codeberg</a></string>
     <string name="trackers_unblocked_successfully">Pelacak sekarang dibatalkan diblokir</string>
     <string name="trackers_blocked_successfully">Pelacak sekarang diblokir</string>
     <string name="failed_to_unblock_trackers">Tidak dapat batal memblokir pelacak</string>

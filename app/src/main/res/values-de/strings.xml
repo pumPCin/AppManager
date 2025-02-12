@@ -906,7 +906,7 @@
     <string name="generate_key">Erzeugen</string>
     <string name="input_key">Eingabeschlüssel (in hexadezimaler Form)</string>
     <string name="input_keystore_alias_pass_msg">Tippen Sie hier, um das Passwort für %1$s anzugeben</string>
-    <string name="source_code_links"><a href="https://github.com/pumPCin/AppManager">GitHub</a> • <a href="https://gitlab.com/muntashir/AppManager">GitLab</a> •<a href="https://0xacab.org/muntashir/AppManager">Riseup</a> • <a href="https://codeberg.org/muntashir/AppManager">Codeberg</a></string>
+    <string name="source_code_links"><a href="https://github.com/MuntashirAkon/AppManager">GitHub</a> • <a href="https://gitlab.com/muntashir/AppManager">GitLab</a> •<a href="https://0xacab.org/muntashir/AppManager">Riseup</a> • <a href="https://codeberg.org/muntashir/AppManager">Codeberg</a></string>
     <string name="app_signing_signatures">Signaturen</string>
     <string name="orientation_right_to_left">Von Rechts nach Links</string>
     <string name="orientation_left_to_right">Von links nach rechts</string>

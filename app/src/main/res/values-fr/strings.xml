@@ -687,7 +687,7 @@
     <string name="app_ops">Opérations de l\'appli</string>
     <string name="internal_data">Données internes</string>
     <string name="requested_large_heap">Grand tas</string>
-    <string name="source_code_links"><a href="https://github.com/pumPCin/AppManager">GitHub</a> • <a href="https://gitlab.com/muntashir/AppManager">GitLab</a> • <a href="https://0xacab.org/muntashir/AppManager">Riseup</a> • <a href="https://codeberg.org/muntashir/AppManager">Codeberg</a></string>
+    <string name="source_code_links"><a href="https://github.com/MuntashirAkon/AppManager">GitHub</a> • <a href="https://gitlab.com/muntashir/AppManager">GitLab</a> • <a href="https://0xacab.org/muntashir/AppManager">Riseup</a> • <a href="https://codeberg.org/muntashir/AppManager">Codeberg</a></string>
     <string name="omit_sensitive_info_summary">Omettez les informations sensibles comme les URL, les numéros de téléphone ou les adresses courriel.</string>
     <string name="app_signing_signatures">Signatures</string>
     <plurals name="alert_failed_to_set_app_ops">
