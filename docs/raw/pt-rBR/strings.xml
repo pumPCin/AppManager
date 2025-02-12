@@ -28,7 +28,7 @@
 \ndo Gerenciador de Aplicativos. Também pode haver outros recursos não oficiais ou de terceiros, como artigos de blog, vídeos, bate-papo
 \ngrupos, etc. Embora esses recursos possam ser úteis para muitas pessoas, eles podem não estar atualizados com o atual
 \nversão do Gerenciador de Aplicativos. Se quaisquer desvios forem detectados no App Manager a partir deste documento, eles devem ser relatados no
-\n\\href{https://github.com/pumPCin/AppManager/issues}{Rastreador de problemas do App Manager}.</string>
+\n\\href{https://github.com/MuntashirAkon/AppManager/issues}{Rastreador de problemas do App Manager}.</string>
     <string name="intro$main$terminologies">\\begin{itemize}
 \n \\item \\textbf{AM} --- nome curto para Gerenciador de aplicativos.
 \n \\item \\textbf{Block/Unblock} --- Usado para bloquear ou desbloquear componentes. Como os componentes são bloqueados depende
@@ -50,8 +50,8 @@
 \n \\item Official F-Droid repository.\\footnote{For distributing normal releases only}\\\\
 \n \\textit{Link:} \\url{https://f-droid.org/packages/io.github.muntashirakon.AppManager}
 \n \\item GitHub repository.\\\\
-\n \\textit{Normal releases:} \\url{https://github.com/pumPCin/AppManager/releases}\\\\
-\n \\textit{Debug releases:} \\url{https://github.com/pumPCin/AppManager/actions}
+\n \\textit{Normal releases:} \\url{https://github.com/MuntashirAkon/AppManager/releases}\\\\
+\n \\textit{Debug releases:} \\url{https://github.com/MuntashirAkon/AppManager/actions}
 \n \\item Telegram.\\\\
 \n \\textit{Normal releases:} \\url{https://t.me/AppManagerChannel}\\\\
 \n \\textit{Debug releases:} \\url{https://t.me/AppManagerDebug}

@@ -857,7 +857,7 @@
     <string name="uninstalled_apps">Aplicativos desinstalados</string>
     <string name="internal_data">Dados internos</string>
     <string name="pkcs12_keystore">PKCS #12 KeyStore (P12)</string>
-    <string name="source_code_links"><a href="https://github.com/pumPCin/AppManager">GitHub</a> • <a href="https://gitlab.com/muntashir/AppManager">GitLab</a> • <a href="https://0xacab.org/muntashir/AppManager">Riseup</a> • <a href="https://codeberg.org/muntashir/AppManager">Codeberg</a></string>
+    <string name="source_code_links"><a href="https://github.com/MuntashirAkon/AppManager">GitHub</a> • <a href="https://gitlab.com/muntashir/AppManager">GitLab</a> • <a href="https://0xacab.org/muntashir/AppManager">Riseup</a> • <a href="https://codeberg.org/muntashir/AppManager">Codeberg</a></string>
     <string name="bouncy_castle_keystore">Bouncy Castle KeyStore (BKS)</string>
     <string name="input_key">Insira uma chave (em hexadecimal)</string>
     <string name="expiry_date_cannot_be_empty">A data de validade não pode estar vazia.</string>

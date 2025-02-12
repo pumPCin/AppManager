@@ -19,8 +19,8 @@
 \n \\item F-Droid \\footnote{For distributing normal releases only}\\\\
 \n \\textit{Link:} \\url{https://f-droid.org/packages/io.github.muntashirakon.AppManager}
 \n \\item GitHub repository.\\\\
-\n \\textit{Normal releases:} \\url{https://github.com/pumPCin/AppManager/releases}\\\\
-\n \\textit{Debug releases:} \\url{https://github.com/pumPCin/AppManager/actions}
+\n \\textit{Normal releases:} \\url{https://github.com/MuntashirAkon/AppManager/releases}\\\\
+\n \\textit{Debug releases:} \\url{https://github.com/MuntashirAkon/AppManager/actions}
 \n \\item Telegram.\\\\
 \n \\textit{Normal releases:} \\url{https://t.me/AppManagerChannel}\\\\
 \n \\textit{Debug releases:} \\url{https://t.me/AppManagerDebug}
@@ -149,7 +149,7 @@
 \n本文也可以被認為是 App Manager 的 ``官方\'\' 指南，並指明 App Manager 的預期行為。翻譯可能有誤 (原文為英文)。因此，每個有能力的用戶應該閱讀該文件的英文版本，以獲得最佳的體驗。
 \n此外還可能有其他非官方的或第三方的資源，如博客文章、視頻、聊天群組等。雖然這些資源可能對許多人有用，但它們可能不是針對最新版本。
 \n如果在App Manager中發現任何偏離本文檔的情況，應在
-\n\\href{https://github.com/pumPCin/AppManager/issues}{App Manager 問題追蹤}內反映。</string>
+\n\\href{https://github.com/MuntashirAkon/AppManager/issues}{App Manager 問題追蹤}內反映。</string>
     <string name="intro$main$submit-patches">除GitHub之外的倉庫目前被視為鏡像，在這些網站提交的 PR/MR 將不被接受.
 \n\\footnote{GitHub 的 PR 將使用 git patch 進行手動合並, 因此, GitHub 可能會錯誤地將它們標記為closed而不是merged.}
 \n相反，patches (\\texttt{.patch} 文件) 可以通過電子郵件附件提交。\\textit{請務必對Commits簽名(Signing-off)}
