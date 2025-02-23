@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- SPDX-License-Identifier: GPL-3.0-or-later --><resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2" xmlns:tools="http://schemas.android.com/tools">
+<?xml version="1.0" encoding="utf-8"?><!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<resources xmlns:tools="http://schemas.android.com/tools" xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="_lang_tag" translatable="false">ru-RU</string>
     <string name="uninstall">Удалить</string>
     <string name="permissions">Используемые разрешения</string>
@@ -110,8 +110,7 @@
         \n- <a href="https://github.com/Rosemoe/sora-editor">sora-editor</a> (LGPL-2.1)
         \n- <a href="https://github.com/MuntashirAkon/spake2-java">SPAKE2 for Java</a> (GPLv3.0)
         \n- <a href="https://github.com/MuntashirAkon/sun-security-android">sun.security for Android</a> (GPL-2.0 \"Classpath Exception\")
-        \n- <a href="https://github.com/MuntashirAkon/unapkm-android">UnAPKM Android</a> (Apache 2.0)
-    </string>
+        \n- <a href="https://github.com/MuntashirAkon/unapkm-android">UnAPKM Android</a> (Apache 2.0)</string>
     <string name="credits">Авторы</string>
     <string name="credits_message">Благодарность авторам:
         \n- The Android Open Source Project
@@ -136,8 +135,7 @@
         \n- <a href="https://github.com/Aefyr/SAI">SAI</a>
         \n- <a href="https://github.com/RikkaApps/Shizuku">Shizuku</a>
         \n- <a href="https://github.com/eclipse/tm4e">tm4e</a>
-        \n- <a href="https://github.com/tuyafeng/Watt">Watt</a>
-    </string>
+        \n- <a href="https://github.com/tuyafeng/Watt">Watt</a></string>
     <string name="word_wrap">Перенос слов</string>
     <string name="class_viewer">Просмотр классов</string>
     <string name="toggle_class_listing">Переключить список классов</string>
@@ -152,7 +150,6 @@
     <plurals name="other_trackers_and_classes">
         <item quantity="one"><xliff:g id="tracker_no" example="8">%1$d</xliff:g> трекер с <xliff:g id="class_no" example="50">%2$d</xliff:g> классами</item>
         <item quantity="few"><xliff:g id="tracker_no" example="8">%1$d</xliff:g> трекера с <xliff:g id="class_no" example="50">%2$d</xliff:g> классами</item>
-        <item quantity="many"><xliff:g id="tracker_no" example="8">%1$d</xliff:g> трекеров с <xliff:g id="class_no" example="50">%2$d</xliff:g> классами</item>
         <item quantity="other"><xliff:g id="tracker_no" example="8">%1$d</xliff:g> трекеров с <xliff:g id="class_no" example="50">%2$d</xliff:g> классами</item>
     </plurals>
     <string name="found_trackers">Найденные трекеры:</string>
@@ -162,7 +159,6 @@
     <plurals name="main_list_date_days">
         <item quantity="one"><xliff:g id="last_update_date" example="20/10/2020">%1$s</xliff:g>  <xliff:g id="day_no" example="5">%2$d</xliff:g> день</item>
         <item quantity="few"><xliff:g id="last_update_date" example="20/10/2020">%1$s</xliff:g>  <xliff:g id="day_no" example="5">%2$d</xliff:g> дня</item>
-        <item quantity="many"><xliff:g id="last_update_date" example="20/10/2020">%1$s</xliff:g>  <xliff:g id="day_no" example="5">%2$d</xliff:g> дней</item>
         <item quantity="other"><xliff:g id="last_update_date" example="20/10/2020">%1$s</xliff:g>  <xliff:g id="day_no" example="5">%2$d</xliff:g> дней</item>
     </plurals>
     <string name="no_shared_libs">Нет общих библиотек</string>
@@ -268,9 +264,7 @@
     <string name="external_data_dir">Внешний каталог данных</string>
     <string name="external_multiple_data_dir">Внешний каталог данных <xliff:g id="dir_no" example="1">%1$d</xliff:g></string>
     <plurals name="no_of_times_opened">
-        <item quantity="one">%1$d раз</item>
         <item quantity="few">%1$d раза</item>
-        <item quantity="many">%1$d раз</item>
         <item quantity="other">%1$d раз</item>
     </plurals>
     <string name="sort_by_last_used">Последнее использование</string>
@@ -307,7 +301,6 @@
     <plurals name="alert_failed_to_uninstall">
         <item quantity="one">Не удалось удалить %1$d приложение</item>
         <item quantity="few">Не удалось удалить %1$d приложения</item>
-        <item quantity="many">Не удалось удалить %1$d приложений</item>
         <item quantity="other">Не удалось удалить %1$d приложений</item>
     </plurals>
     <plurals name="alert_failed_to_disable_background">
@@ -318,7 +311,6 @@
     <plurals name="alert_failed_to_force_stop">
         <item quantity="one">Не удалось принудительно остановить %1$d приложение</item>
         <item quantity="few">Не удалось принудительно остановить %1$d приложения</item>
-        <item quantity="many">Не удалось принудительно остановить %1$d приложений</item>
         <item quantity="other">Не удалось принудительно остановить %1$d приложений</item>
     </plurals>
     <string name="toggle_kill_for_system_apps">Вкл/выкл закрытие системных приложений</string>
@@ -383,13 +375,11 @@
     <plurals name="no_of_trackers">
         <item quantity="one">%1$d трекер</item>
         <item quantity="few">%1$d трекера</item>
-        <item quantity="many">%1$d трекеров</item>
         <item quantity="other">%1$d трекеров</item>
     </plurals>
     <plurals name="no_of_components">
         <item quantity="one">%1$d компонент</item>
         <item quantity="few">%1$d компонента</item>
-        <item quantity="many">%1$d компонентов</item>
         <item quantity="other">%1$d компонентов</item>
     </plurals>
     <string name="install">Установить</string>
@@ -402,7 +392,8 @@
     <string name="community">Сообщество</string>
     <string name="community_links"><a href="https://matrix.to/#/#appmanager:matrix.org">Matrix</a> •
         <a href="https://t.me/AppManagerChannel">Telegram</a> •
-        <a href="https://twitter.com/AppManagerNews">Twitter</a></string>
+        <a href="https://x.com/AppManagerNews">Twitter/X</a> •
+        <a href="https://floss.social/@appmanager">Mastodon</a></string>
     <string name="pref_import_existing">Импорт существующих правил</string>
     <string name="pref_import_existing_msg">Добавить компоненты, отключенные другими приложениями, в App Manager.
         Будьте осторожны при использовании этого инструмента, так как может быть много ложных срабатываний. Выбирайте только те приложения, в которых вы уверены.</string>
@@ -430,7 +421,6 @@
     <plurals name="no_of_splits">
         <item quantity="one">%1$d часть</item>
         <item quantity="few">%1$d части</item>
-        <item quantity="many">%1$d частей</item>
         <item quantity="other">%1$d частей</item>
     </plurals>
     <string name="termux">Termux</string>
@@ -469,7 +459,6 @@
     <plurals name="alert_failed_to_delete_backup">
         <item quantity="one">Не удалось удалить %1$d резервную копию</item>
         <item quantity="few">Не удалось удалить %1$d резервные копии</item>
-        <item quantity="many">Не удалось удалить %1$d резервных копий</item>
         <item quantity="other">Не удалось удалить %1$d резервных копий</item>
     </plurals>
     <plurals name="alert_failed_to_unblock_trackers">
@@ -495,19 +484,16 @@
     <plurals name="classes">
         <item quantity="one">%1$d класс</item>
         <item quantity="few">%1$d класса</item>
-        <item quantity="many">%1$d классов</item>
         <item quantity="other">%1$d классов</item>
     </plurals>
     <plurals name="libraries">
         <item quantity="one">%1$d библиотека</item>
         <item quantity="few">%1$d библиотеки</item>
-        <item quantity="many">%1$d библиотек</item>
         <item quantity="other">%1$d библиотек</item>
     </plurals>
     <plurals name="missing_signatures">
         <item quantity="one">%1$d подпись отсутствует</item>
         <item quantity="few">%1$d подписи отсутствует</item>
-        <item quantity="many">%1$d подписей отсутствует</item>
         <item quantity="other">%1$d подписей отсутствует</item>
     </plurals>
     <plurals name="app_signing_signature_schemes_pl">
@@ -819,12 +805,8 @@
     <string name="backup_obb_media_description">Резервное копирование OBB и папок с медиафайлами.</string>
     <string name="backup_cache_description">Резервное копирование папок <b>cache</b>, <b>no_cache</b> и <b>no_backup</b>.</string>
     <string name="backup_extras">Дополнительно</string>
-    <string name="backup_extras_description">Резервное копирование разрешений приложений, параметров экономии заряда батареи и использования данных, состояние MagiskHide, SSAID и т.д.
-        <font fgcolor="#ff0000">В зависимости от разрешений не все extras можно восстановить.</font>
-    </string>
-    <string name="backup_rules_description">Резервное копирование правил, настроенных в App Manager.
-        <font fgcolor="#ff0000">В зависимости от разрешений не все правила можно повторно применить во время восстановления.</font>
-    </string>
+    <string name="backup_extras_description">Резервное копирование разрешений приложений, параметров экономии заряда батареи и использования данных, состояние MagiskHide, SSAID и т.д.  <font fgcolor="#ff0000">В зависимости от разрешений не все extras можно восстановить.</font></string>
+    <string name="backup_rules_description">Резервное копирование правил, настроенных в App Manager. <font fgcolor="#ff0000">В зависимости от разрешений не все правила можно повторно применить во время восстановления.</font></string>
     <string name="backup_multiple_description">Создание отдельной резервной копии, с <i>именем</i> , которое отличается от основного наименования бекапа.</string>
     <string name="backup_skip_signature_checks_description">Восстановление резервных копий, которые либо не прошли проверку контрольных сумм, либо имеют подписи, отличные от предыдущих резервных копий APK.</string>
     <string name="patch_level">Обновление системы безопасности Андроид</string>
@@ -972,7 +954,6 @@
     <plurals name="file_deletion_confirmation">
         <item quantity="one">%d файл будет удален</item>
         <item quantity="few">%d файла будет удалено</item>
-        <item quantity="many">%d файлов будет удалено</item>
         <item quantity="other">%d файлов будет удалено</item>
     </plurals>
     <string name="copy_to_clipboard">Скопировать в буфер обмена</string>
@@ -1026,7 +1007,6 @@
     <plurals name="toast_log_truncated">
         <item quantity="one">Лог слишком большой, показано последнюю %d строку.</item>
         <item quantity="few">Лог слишком большой, показано последние %d строки.</item>
-        <item quantity="many">Лог слишком большой, показано последние %d строк.</item>
         <item quantity="other">Лог слишком большой, показано последние %d строк.</item>
     </plurals>
     <string name="unable_to_save_log">Невозможно сохранить лог. Вы ввели действительное имя файла\?</string>
@@ -1069,7 +1049,6 @@
     <plurals name="alert_failed_to_import_backups">
         <item quantity="one">Не удалось импортировать %1$d резервную копию</item>
         <item quantity="few">Не удалось импортировать %1$d резервных копии</item>
-        <item quantity="many">Не удалось импортировать %1$d резервных копий</item>
         <item quantity="other">Не удалось импортировать %1$d резервных копий</item>
     </plurals>
     <string name="suspended">Приостановлено</string>
@@ -1136,8 +1115,6 @@
     <string name="pref_thread_count_hint">Значение должно быть от 0 до %1$d, где 0 означает <i>максимальное количество операций в данный момент времени</i>.</string>
     <plurals name="pref_thread_count_msg">
         <item quantity="one">Параллельное выполнение не более %1$d операции</item>
-        <item quantity="few">Параллельное выполнение не более %1$d операций</item>
-        <item quantity="many">Параллельное выполнение не более %1$d операций</item>
         <item quantity="other">Параллельное выполнение не более %1$d операций</item>
     </plurals>
     <string name="pid">Идентификатор процесса</string>
@@ -1282,13 +1259,11 @@
     <plurals name="alert_failed_to_freeze">
         <item quantity="one">Не удалось заморозить %1$d приложение</item>
         <item quantity="few">Не удалось заморозить %1$d приложения</item>
-        <item quantity="many">Не удалось заморозить %1$d приложений</item>
         <item quantity="other">Не удалось заморозить %1$d приложений</item>
     </plurals>
     <plurals name="alert_failed_to_unfreeze">
         <item quantity="one">Не удалось разморозить %1$d приложение</item>
         <item quantity="few">Не удалось разморозить %1$d приложения</item>
-        <item quantity="many">Не удалось разморозить %1$d приложений</item>
         <item quantity="other">Не удалось разморозить %1$d приложений</item>
     </plurals>
     <string name="suspend_app_description">Это самый слабый метод замораживания. Приостановленное приложение может по-прежнему отображаться в лончере, но будет выделено серым цветом и не может быть запущено.</string>
@@ -1386,7 +1361,6 @@
     <plurals name="alert_failed_to_optimize_apps">
         <item quantity="one">Не удалось оптимизировать %1$d приложение</item>
         <item quantity="few">Не удалось оптимизировать %1$d приложения</item>
-        <item quantity="many">Не удалось оптимизировать %1$d приложений</item>
         <item quantity="other">Не удалось оптимизировать %1$d приложений</item>
     </plurals>
     <string name="title_code_editor">Редактор кода</string>
@@ -1397,7 +1371,6 @@
     <plurals name="search_results">
         <item quantity="one">%d результат</item>
         <item quantity="few">%d результата</item>
-        <item quantity="many">%d результатов</item>
         <item quantity="other">%d результатов</item>
     </plurals>
     <string name="replacement_text">Заменить</string>
@@ -1425,13 +1398,11 @@
     <plurals name="folder_count">
         <item quantity="one">%d папка</item>
         <item quantity="few">%d папки</item>
-        <item quantity="many">%d папок</item>
         <item quantity="other">%d папок</item>
     </plurals>
     <plurals name="file_count">
         <item quantity="one">%%d файл</item>
         <item quantity="few">%d файла</item>
-        <item quantity="many">%d файлов</item>
         <item quantity="other">%d файлов</item>
     </plurals>
     <string name="go_to_path">Перейти к…</string>
@@ -1560,4 +1531,13 @@
     <string name="advanced_suspend_app_description">Принудительное завершение и приостановка приложения, чтобы не работало в фоновом режиме. Этот метод следует предпочесть обычному <b>“Приостановить”</b> методу.</string>
     <string name="freeze_prefer_per_app_option">Для каждого приложения</string>
     <string name="remember_option_for_this_app">Только для этого приложения</string>
+    <string name="no_overlay_permission">Нет разрешения на показ оверлев</string>
+    <string name="overlay_category">Категория</string>
+    <string name="overlay_target">Цель</string>
+    <string name="overlay_sdk_version_too_low">Оверлеи не поддерживаются.</string>
+    <string name="no_overlays">Нет оверлеев</string>
+    <string name="sort_by_overlay_names">Имя оверлея</string>
+    <string name="sort_by_priority">Приоритет</string>
+    <string name="overlays">Оверлеи</string>
+    <string name="title_overlay">Оверлей</string>
 </resources>
