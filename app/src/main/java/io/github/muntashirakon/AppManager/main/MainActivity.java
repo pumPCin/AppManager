@@ -286,7 +286,7 @@ public class MainActivity extends BaseActivity implements AdvancedSearchView.OnQ
             apkUpdaterMenu.setVisible(false);
         }
         MenuItem finderMenu = menu.findItem(R.id.action_finder);
-        finderMenu.setVisible(BuildConfig.DEBUG);
+        finderMenu.setVisible(true);
         return super.onCreateOptionsMenu(menu);
     }
 
