@@ -3,7 +3,18 @@ name: Release Build
 on:
   workflow_dispatch:
   push:
+    branches:
+      - 'master'
+      - 'main'
+    paths-ignore:
+      - 'fastlane/**'
+      - 'scripts/**'
+      - '*.md'
   pull_request:
+    paths-ignore:
+      - 'fastlane/**'
+      - 'scripts/**'
+      - '*.md'
   merge_group:
 
 jobs:
@@ -18,7 +29,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: 17
+          java-version: '21'
           cache: 'gradle'
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -36,5 +47,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.APP_NAME }}
-          path: ./${{ env.APP_NAME }}.apk          
+          path: ./${{ env.APP_NAME }}.apk
         continue-on-error: true

@@ -509,7 +509,7 @@
     <string name="run_in_termux">Run in Termux</string>
     <string name="website">Website</string>
     <string name="website_message" translatable="false">https://muntashirakon.github.io/AppManager</string>
-    <string name="discussions_site" translatable="false">https://github.com/MuntashirAkon/AppManager/discussions</string>
+    <string name="discussions_site" translatable="false">https://github.com/MuntashirAkon/AppManager/issues</string>
     <string name="pref_remove_all_rules">Remove all rules</string>
     <string name="pref_remove_all_rules_msg">Permissions will be granted, app ops and components will return to their default values.</string>
     <string name="are_you_sure">Are you sure?</string>
