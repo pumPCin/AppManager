@@ -39,6 +39,8 @@ public class DebloaterRecyclerViewAdapter extends MultiSelectionView.Adapter<Deb
     @ColorInt
     private final int mRemovalReplaceColor;
     @ColorInt
+    private final int mRemovalUnsafeColor;
+    @ColorInt
     private final int mRemovalCautionColor;
     @ColorInt
     private final int mColorSurface;
@@ -53,6 +55,7 @@ public class DebloaterRecyclerViewAdapter extends MultiSelectionView.Adapter<Deb
         mRemovalSafeColor = ColorCodes.getRemovalSafeIndicatorColor(activity);
         mRemovalReplaceColor = ColorCodes.getRemovalReplaceIndicatorColor(activity);
         mRemovalCautionColor = ColorCodes.getRemovalCautionIndicatorColor(activity);
+        mRemovalUnsafeColor = ColorCodes.getRemovalUnsafeIndicatorColor(activity);
         mColorSurface = MaterialColors.getColor(activity, com.google.android.material.R.attr.colorSurface,
                 DebloaterRecyclerViewAdapter.class.getCanonicalName());
         mViewModel = activity.viewModel;
@@ -99,12 +102,16 @@ public class DebloaterRecyclerViewAdapter extends MultiSelectionView.Adapter<Deb
                 removalColor = mRemovalReplaceColor;
                 removalRes = R.string.debloat_removal_replace_short_description;
                 break;
+            case DebloatObject.REMOVAL_UNSAFE:
+                removalColor = mRemovalUnsafeColor;
+                removalRes = R.string.debloat_removal_unsafe;
+                break;
         }
         sb.append(getColoredText(context.getString(removalRes), removalColor));
         if (!TextUtils.isEmpty(warning)) {
             sb.append(" — ").append(warning);
         }
-        CharSequence label = debloatObject.getLabel() != null ? debloatObject.getLabel() : debloatObject.packageName;
+        CharSequence label = debloatObject.getLabelOrPackageName();
         holder.iconView.setImageDrawable(icon);
         holder.listTypeView.setText(debloatObject.type);
         holder.packageNameView.setText(debloatObject.packageName);
