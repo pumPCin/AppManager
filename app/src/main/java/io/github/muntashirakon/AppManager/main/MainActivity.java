@@ -322,7 +322,7 @@ public class MainActivity extends BaseActivity implements AdvancedSearchView.OnQ
                 viewModel.loadApplicationItems();
             }
         } else if (id == R.id.action_settings) {
-            Intent settingsIntent = SettingsActivity.getIntent(this);
+            Intent settingsIntent = SettingsActivity.getSettingsIntent(this);
             startActivity(settingsIntent);
         } else if (id == R.id.action_app_usage) {
             Intent usageIntent = new Intent(this, AppUsageActivity.class);
@@ -517,7 +517,7 @@ public class MainActivity extends BaseActivity implements AdvancedSearchView.OnQ
                     .setMessage(R.string.backup_volume_unavailable_warning)
                     .setPositiveButton(R.string.close, null)
                     .setNeutralButton(R.string.change_backup_volume, (dialog, which) -> {
-                        Intent intent = SettingsActivity.getIntent(this, "backup_restore_prefs", "backup_volume");
+                        Intent intent = SettingsActivity.getSettingsIntent(this, "backup_restore_prefs", "backup_volume");
                         startActivity(intent);
                     })
                     .show();
@@ -610,7 +610,7 @@ public class MainActivity extends BaseActivity implements AdvancedSearchView.OnQ
         showProgressIndicator(true);
         BatchOpsManager.Result input = new BatchOpsManager.Result(viewModel.getSelectedPackagesWithUsers());
         BatchQueueItem item = BatchQueueItem.getBatchOpQueue(op, input.getFailedPackages(), input.getAssociatedUsers(), options);
-        Intent intent = BatchOpsService.getIntent(this, item);
+        Intent intent = BatchOpsService.getServiceIntent(this, item);
         ContextCompat.startForegroundService(this, intent);
     }
 
