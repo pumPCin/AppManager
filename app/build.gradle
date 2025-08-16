@@ -15,7 +15,7 @@ android {
         minSdk min_sdk
         targetSdk target_sdk
         versionCode 445
-        versionName "4.1.6"
+        versionName "4.1.7"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments += [
