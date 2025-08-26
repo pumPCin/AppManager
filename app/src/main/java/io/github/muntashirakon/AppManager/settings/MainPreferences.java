@@ -3,12 +3,9 @@
 package io.github.muntashirakon.AppManager.settings;
 
 import android.os.Bundle;
-import android.view.View;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.collection.ArrayMap;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.Preference;
@@ -16,6 +13,7 @@ import androidx.preference.Preference;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import io.github.muntashirakon.AppManager.R;
 import io.github.muntashirakon.AppManager.misc.DeviceInfo2;
@@ -24,7 +22,6 @@ import io.github.muntashirakon.AppManager.misc.DeviceInfo2;
 import io.github.muntashirakon.AppManager.utils.LangUtils;
 import io.github.muntashirakon.AppManager.utils.UIUtils;
 import io.github.muntashirakon.AppManager.utils.appearance.AppearanceUtils;
-import io.github.muntashirakon.dialog.AlertDialogBuilder;
 import io.github.muntashirakon.dialog.SearchableSingleChoiceDialogBuilder;
 import io.github.muntashirakon.preference.InfoAlertPreference;
 import io.github.muntashirakon.preference.WarningAlertPreference;
@@ -66,15 +63,17 @@ public class MainPreferences extends PreferenceFragment {
         //fundingCampaignNotice.setVisible(FundingCampaignChecker.campaignRunning());
         // Custom locale
         mCurrentLang = Prefs.Appearance.getLanguage();
-        ArrayMap<String, Locale> locales = LangUtils.getAppLanguages(mActivity);
+        Map<String, Locale> locales = LangUtils.getAppLanguages(mActivity);
         final CharSequence[] languageNames = getLanguagesL(locales);
         final String[] languages = new String[languageNames.length];
-        for (int i = 0; i < locales.size(); ++i) {
-            languages[i] = locales.keyAt(i);
-        }
-        int localeIndex = locales.indexOfKey(mCurrentLang);
-        if (localeIndex < 0) {
-            localeIndex = locales.indexOfKey(LangUtils.LANG_AUTO);
+        int i = 0;
+        int localeIndex = 0;
+        for (Map.Entry<String, Locale> localeEntry : locales.entrySet()) {
+            languages[i] = localeEntry.getKey();
+            if (languages[i].equals(mCurrentLang)) {
+                localeIndex = i;
+            }
+            ++i;
         }
         Preference locale = requirePreference("custom_locale");
         locale.setSummary(languageNames[localeIndex]);
@@ -97,30 +96,12 @@ public class MainPreferences extends PreferenceFragment {
         // Mode of operation
         mModePref = requirePreference("mode_of_operations");
         mModes = getResources().getStringArray(R.array.modes);
-        // About device
-        requirePreference("about_device").setOnPreferenceClickListener(preference -> {
-            mModel.loadDeviceInfo(new DeviceInfo2(mActivity));
-            return true;
-        });
 
         mModel.getOperationCompletedLiveData().observe(requireActivity(), completed -> {
             if (requireActivity() instanceof SettingsActivity) {
                 ((SettingsActivity) requireActivity()).progressIndicator.hide();
             }
             UIUtils.displayShortToast(R.string.the_operation_was_successful);
-        });
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        // Preference loaders
-        // Device info
-        mModel.getDeviceInfo().observe(getViewLifecycleOwner(), deviceInfo -> {
-            View v = View.inflate(mActivity, io.github.muntashirakon.ui.R.layout.dialog_scrollable_text_view, null);
-            ((TextView) v.findViewById(android.R.id.content)).setText(deviceInfo.toLocalizedString(mActivity));
-            v.findViewById(android.R.id.checkbox).setVisibility(View.GONE);
-            new AlertDialogBuilder(mActivity, true).setTitle(R.string.about_device).setView(v).show();
         });
     }
 
@@ -139,14 +120,16 @@ public class MainPreferences extends PreferenceFragment {
     }
 
     @NonNull
-    private CharSequence[] getLanguagesL(@NonNull ArrayMap<String, Locale> locales) {
+    private CharSequence[] getLanguagesL(@NonNull Map<String, Locale> locales) {
         CharSequence[] localesL = new CharSequence[locales.size()];
         Locale locale;
-        for (int i = 0; i < locales.size(); ++i) {
-            locale = locales.valueAt(i);
-            if (LangUtils.LANG_AUTO.equals(locales.keyAt(i))) {
+        int i = 0;
+        for (Map.Entry<String, Locale> localeEntry : locales.entrySet()) {
+            locale = localeEntry.getValue();
+            if (LangUtils.LANG_AUTO.equals(localeEntry.getKey())) {
                 localesL[i] = mActivity.getString(R.string.auto);
             } else localesL[i] = locale.getDisplayName(locale);
+            ++i;
         }
         return localesL;
     }
