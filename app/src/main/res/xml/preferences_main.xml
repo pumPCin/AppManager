@@ -2,7 +2,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
-
+<!--
     <io.github.muntashirakon.preference.WarningAlertPreference
         app:icon="@drawable/ic_caution"
         app:key="app_manager_expiring_notice"
@@ -14,7 +14,7 @@
         app:key="funding_campaign_notice"
         app:selectable="false"
         app:summary="@string/funding_campaign_text" />
-
+-->
     <Preference
         android:fragment="io.github.muntashirakon.AppManager.settings.ChangeLanguageFragment"
         app:icon="@drawable/ic_translate"
