@@ -15,9 +15,8 @@ import java.util.Objects;
 import io.github.muntashirakon.AppManager.backup.BackupItems;
 import io.github.muntashirakon.AppManager.backup.BackupFlags;
 import io.github.muntashirakon.AppManager.backup.CryptoUtils;
-import io.github.muntashirakon.AppManager.backup.MetadataManager;
+import io.github.muntashirakon.AppManager.backup.struct.BackupMetadataV2;
 import io.github.muntashirakon.AppManager.utils.TarUtils;
-import io.github.muntashirakon.io.Path;
 
 @SuppressWarnings("NotNullFieldNotInitialized")
 @Entity(tableName = "backup", primaryKeys = {"backup_name", "package_name"})
@@ -86,13 +85,9 @@ public class Backup {
     }
 
     @NonNull
-    public Path getBackupPath() throws IOException {
+    public BackupItems.BackupItem getItem() throws IOException {
         String backupUuid = TextUtils.isEmpty(uuid) ? null : uuid;
-        return BackupItems.findBackupDirectory(backupName, packageName, backupUuid);
-    }
-
-    public MetadataManager.Metadata getMetadata() throws IOException {
-        return MetadataManager.getMetadata(getBackupPath());
+        return BackupItems.findBackupItem(backupName, packageName, backupUuid);
     }
 
     @Override
@@ -109,7 +104,7 @@ public class Backup {
     }
 
     @NonNull
-    public static Backup fromBackupMetadata(@NonNull MetadataManager.Metadata metadata) {
+    public static Backup fromBackupMetadata(@NonNull BackupMetadataV2 metadata) {
         Backup backup = new Backup();
         backup.packageName = metadata.packageName;
         backup.backupName = metadata.backupName != null ? metadata.backupName : String.valueOf(metadata.userHandle);

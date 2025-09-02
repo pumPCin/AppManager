@@ -2,6 +2,10 @@
 
 package io.github.muntashirakon.AppManager.backup;
 
+import static io.github.muntashirakon.AppManager.backup.BackupManager.DATA_PREFIX;
+import static io.github.muntashirakon.AppManager.backup.BackupManager.KEYSTORE_PREFIX;
+import static io.github.muntashirakon.AppManager.backup.BackupManager.SOURCE_PREFIX;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -12,21 +16,24 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import io.github.muntashirakon.AppManager.backup.struct.BackupMetadataV2;
 import io.github.muntashirakon.AppManager.crypto.Crypto;
 import io.github.muntashirakon.AppManager.crypto.DummyCrypto;
+import io.github.muntashirakon.AppManager.logcat.helper.SaveLogHelper;
 import io.github.muntashirakon.AppManager.logs.Log;
 import io.github.muntashirakon.AppManager.settings.Prefs;
 import io.github.muntashirakon.io.Path;
 import io.github.muntashirakon.io.PathReader;
 import io.github.muntashirakon.io.PathWriter;
+import io.github.muntashirakon.io.Paths;
 
 public class BackupItems {
-    static final String APK_SAVING_DIRECTORY = "apks";
-    @Deprecated // No longer used
-    static final String TEMPORARY_DIRECTORY = ".tmp";
+    private static final String APK_SAVING_DIRECTORY = "apks";
 
     private static final String ICON_FILE = "icon.png";
     private static final String RULES_TSV = "rules.am.tsv";
@@ -36,20 +43,51 @@ public class BackupItems {
     private static final String NO_MEDIA = ".nomedia";
 
     @NonNull
-    public static Path getBaseDirectory() {
+    private static Path getBaseDirectory() {
         return Prefs.Storage.getAppManagerDirectory();
     }
 
     @NonNull
-    public static Path findBackupDirectory(@NonNull String backupName, @Nullable String packageName, @Nullable String backupUuid) throws FileNotFoundException {
+    public static BackupItem findBackupItem(@NonNull String backupName, @Nullable String packageName, @Nullable String backupUuid) throws IOException {
         if (packageName == null && backupUuid == null) {
             throw new IllegalArgumentException("Neither packageName nor backupUuid is set");
         }
+        Path backupPath;
         if (backupUuid != null) {
-            return getBaseDirectory().findFile(backupUuid);
+            backupPath = getBaseDirectory().findFile(backupUuid);
         } else {
-            return getBaseDirectory().findFile(packageName).findFile(backupName);
+            backupPath = getBaseDirectory().findFile(packageName).findFile(backupName);
         }
+        return new BackupItem(backupPath);
+    }
+
+    @NonNull
+    public static List<BackupItem> findAllBackupItems() {
+        Path baseDirectory = getBaseDirectory();
+        Path[] paths = baseDirectory.listFiles(Path::isDirectory);
+        List<BackupItem> backupItems = new ArrayList<>(paths.length);
+        for (Path path : paths) {
+            if (BackupUtils.isUuid(path.getName())) {
+                // UUID-based backups only store one backup per folder
+                backupItems.add(new BackupItem(path));
+            }
+            if (SaveLogHelper.SAVED_LOGS_DIR.equals(path.getName())) {
+                continue;
+            }
+            if (APK_SAVING_DIRECTORY.equals(path.getName())) {
+                continue;
+            }
+            if (".tmp".equals(path.getName())) {
+                continue;
+            }
+            // Other backups can store multiple backups per folder
+            backupItems.addAll(Arrays.stream(path.listFiles(Path::isDirectory))
+                    .map(BackupItem::new)
+                    .collect(Collectors.toList()));
+        }
+        // We don't need to check further at this stage.
+        // It's the caller's job to check the contents if needed.
+        return backupItems;
     }
 
     @Deprecated
@@ -58,6 +96,17 @@ public class BackupItems {
         if (create) {
             return getBaseDirectory().findOrCreateDirectory(packageName);
         } else return getBaseDirectory().findFile(packageName);
+    }
+
+    @NonNull
+    private static synchronized Path getTemporaryUnencryptedPath(@NonNull String backupName) throws IOException {
+        Path tmpDir = Prefs.Storage.getTempPath();
+        String newFilename = backupName;
+        int i = 0;
+        while (tmpDir.hasFile(newFilename)) {
+            newFilename = backupName + "_" + (++i);
+        }
+        return tmpDir.findOrCreateDirectory(newFilename);
     }
 
     @NonNull
@@ -93,16 +142,17 @@ public class BackupItems {
         private final Path mBackupPath;
         @NonNull
         private final Path mTempBackupPath;
-        private final boolean mBackupMode;
         private final Object mCryptoGuard = new Object();
         @Nullable
         private Crypto mCrypto;
         @CryptoUtils.Mode
         private String mCryptoMode = CryptoUtils.MODE_NO_ENCRYPTION;
+        private boolean mBackupMode;
         private boolean mBackupSuccess = false;
-        private List<Path> mTemporaryFiles = new ArrayList<>();
+        private final List<Path> mTemporaryFiles = new ArrayList<>();
+        private Path mTempUnencyptedPath;
 
-        public BackupItem(@NonNull Path backupPath, boolean backupMode) throws IOException {
+        private BackupItem(@NonNull Path backupPath, boolean backupMode) throws IOException {
             // For now, backup name is the same as the first path segment
             backupName = backupPath.getName();
             mBackupPath = backupPath;
@@ -111,6 +161,15 @@ public class BackupItems {
                 mBackupPath.mkdirs();  // Create backup path if not exists
                 mTempBackupPath = getTemporaryBackupPath(mBackupPath);
             } else mTempBackupPath = mBackupPath;
+        }
+
+        // Read-only instance: the point is not to throw IOException
+        private BackupItem(@NonNull Path backupPath) {
+            // For now, backup name is the same as the first path segment
+            backupName = backupPath.getName();
+            mBackupPath = backupPath;
+            mBackupMode = false;
+            mTempBackupPath = mBackupPath;
         }
 
         public void setCrypto(@Nullable Crypto crypto) {
@@ -133,8 +192,16 @@ public class BackupItems {
                 // Use real path for unencrypted backups
                 return getBackupPath();
             } else {
-                // TODO: 8/30/25 Always use temporary path for encrypted backups
-                return getBackupPath();
+                if (mTempUnencyptedPath == null) {
+                    // We can only do this once for each BackupItem
+                    try {
+                        mTempUnencyptedPath = getTemporaryUnencryptedPath(getBackupPath().getName());
+                    } catch (IOException e) {
+                        Log.w(TAG, "Could not create temporary unencrypted path, falling back to default path", e);
+                        mTempUnencyptedPath = getBackupPath();
+                    }
+                }
+                return mTempUnencyptedPath;
             }
         }
 
@@ -207,11 +274,15 @@ public class BackupItems {
         }
 
         @NonNull
-        public Path getMetadataFile() throws IOException {
+        public Path getMetadataV2File() throws IOException {
             // meta is never encrypted
             if (mBackupMode) {
-                return getBackupPath().findOrCreateFile(MetadataManager.META_FILE, null);
-            } else return getBackupPath().findFile(MetadataManager.META_FILE);
+                return getBackupPath().findOrCreateFile(MetadataManager.META_V2_FILE, null);
+            } else return getBackupPath().findFile(MetadataManager.META_V2_FILE);
+        }
+
+        public BackupMetadataV2 getMetadataV2() throws IOException {
+            return MetadataManager.readMetadataV2(this);
         }
 
         @NonNull
@@ -243,7 +314,7 @@ public class BackupItems {
         }
 
         @NonNull
-        public Path getRulesFile(@CryptoUtils.Mode String mode) throws IOException {
+        public Path getRulesFile() throws IOException {
             if (mBackupMode) {
                 // Needs to be encrypted in backup mode
                 return getUnencryptedBackupPath().findOrCreateFile(RULES_TSV, null);
@@ -251,6 +322,28 @@ public class BackupItems {
                 // Needs to be decrypted in restore mode
                 return getBackupPath().findFile(RULES_TSV + CryptoUtils.getExtension(mCryptoMode));
             }
+        }
+
+        @NonNull
+        public Path[] getSourceFiles() {
+            String ext = CryptoUtils.getExtension(mCryptoMode);
+            Path[] paths = getBackupPath().listFiles((dir, name) -> name.startsWith(SOURCE_PREFIX) && name.endsWith(ext));
+            return Paths.getSortedPaths(paths);
+        }
+
+        @NonNull
+        public Path[] getDataFiles(int index) {
+            String ext = CryptoUtils.getExtension(mCryptoMode);
+            final String dataPrefix = DATA_PREFIX + index;
+            Path[] paths = getBackupPath().listFiles((dir, name) -> name.startsWith(dataPrefix) && name.endsWith(ext));
+            return Paths.getSortedPaths(paths);
+        }
+
+        @NonNull
+        public Path[] getKeyStoreFiles() {
+            String ext = CryptoUtils.getExtension(mCryptoMode);
+            Path[] paths = getBackupPath().listFiles((dir, name) -> name.startsWith(KEYSTORE_PREFIX) && name.endsWith(ext));
+            return Paths.getSortedPaths(paths);
         }
 
         public void freeze() throws IOException {
@@ -261,7 +354,6 @@ public class BackupItems {
             getFreezeFile().delete();
         }
 
-        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
         public boolean isFrozen() {
             try {
                 return getFreezeFile().exists();
@@ -283,6 +375,8 @@ public class BackupItems {
                     throw new IOException("Could not move " + mTempBackupPath + " to " + mBackupPath);
                 }
                 mBackupSuccess = true;
+                // Set backup mode to false to make it read-only
+                mBackupMode = false;
             }
         }
 
@@ -297,9 +391,16 @@ public class BackupItems {
                 Log.d(TAG, "Deleting %s", file);
                 file.delete();
             }
+            if (mTempUnencyptedPath != null) {
+                mTempUnencyptedPath.delete();
+            }
             if (mCrypto != null) {
                 mCrypto.close();
             }
+        }
+
+        public boolean exists() {
+            return mBackupPath.exists();
         }
 
         public boolean delete() {
@@ -351,19 +452,25 @@ public class BackupItems {
         return mPackageName;
     }
 
-    public BackupItem[] getBackupPaths(boolean backupMode) throws IOException {
+    public BackupItem[] getExistingItems() throws FileNotFoundException {
         BackupItem[] backupFiles = new BackupItem[mBackupNames.length];
         for (int i = 0; i < mBackupNames.length; ++i) {
-            backupFiles[i] = new BackupItem(
-                    backupMode ?
-                            mPackagePath.findOrCreateDirectory(mBackupNames[i]) :
-                            mPackagePath.findFile(mBackupNames[i]),
-                    backupMode);
+            backupFiles[i] = new BackupItem(mPackagePath.findFile(mBackupNames[i]));
         }
         return backupFiles;
     }
 
-    BackupItem[] getFreshBackupPaths() throws IOException {
+    public BackupItem[] getOrCreateItems() throws IOException {
+        BackupItem[] backupFiles = new BackupItem[mBackupNames.length];
+        for (int i = 0; i < mBackupNames.length; ++i) {
+            backupFiles[i] = new BackupItem(
+                    mPackagePath.findOrCreateDirectory(mBackupNames[i]),
+                    true);
+        }
+        return backupFiles;
+    }
+
+    public BackupItem[] createItemsGracefully() throws IOException {
         BackupItem[] backupFiles = new BackupItem[mBackupNames.length];
         for (int i = 0; i < mBackupNames.length; ++i) {
             backupFiles[i] = new BackupItem(getFreshBackupPath(mBackupNames[i]), true);
@@ -428,7 +535,9 @@ public class BackupItems {
 
         public void add(@NonNull String fileName, @NonNull String checksum) {
             synchronized (mChecksums) {
-                if (!"w".equals(mMode)) throw new IllegalStateException("add is inaccessible in mode " + mMode);
+                if (!"w".equals(mMode)) {
+                    throw new IllegalStateException("add is inaccessible in mode " + mMode);
+                }
                 mWriter.println(String.format("%s\t%s", checksum, fileName));
                 mChecksums.put(fileName, checksum);
                 mWriter.flush();
