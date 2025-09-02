@@ -8,11 +8,13 @@ import androidx.annotation.Nullable;
 import java.io.IOException;
 import java.util.Arrays;
 
+import io.github.muntashirakon.AppManager.backup.struct.BackupMetadataV2;
 import io.github.muntashirakon.AppManager.logs.Log;
 import io.github.muntashirakon.AppManager.progress.ProgressHandler;
 import io.github.muntashirakon.AppManager.types.UserPackagePair;
 import io.github.muntashirakon.AppManager.utils.ContextUtils;
 import io.github.muntashirakon.AppManager.utils.DateUtils;
+import io.github.muntashirakon.AppManager.utils.ExUtils;
 import io.github.muntashirakon.AppManager.utils.TarUtils;
 
 /**
@@ -30,15 +32,16 @@ public class BackupManager {
     static final String KEYSTORE_PREFIX = "keystore";
     static final int KEYSTORE_PLACEHOLDER = -1000;
 
-    public static final String ICON_FILE = "icon.png";
     public static final String CERT_PREFIX = "cert_";
     static final String MASTER_KEY = ".masterkey";
 
     @NonNull
     public static String getExt(@TarUtils.TarType String tarType) {
-        if (TarUtils.TAR_BZIP2.equals(tarType)) return ".tar.bz2";
-        if (TarUtils.TAR_ZSTD.equals(tarType)) return ".tar.zst";
-        else return ".tar.gz";
+        if (TarUtils.TAR_BZIP2.equals(tarType)) {
+            return ".tar.bz2";
+        } else if (TarUtils.TAR_ZSTD.equals(tarType)) {
+            return ".tar.zst";
+        } else return ".tar.gz";
     }
 
     /**
@@ -54,21 +57,14 @@ public class BackupManager {
     @NonNull
     private final UserPackagePair mTargetPackage;
     @NonNull
-    private final MetadataManager mMetadataManager;
-    @NonNull
     private final BackupFlags mRequestedFlags;
 
     private boolean mRequiresRestart;
 
     protected BackupManager(@NonNull UserPackagePair targetPackage, int flags) {
         mTargetPackage = targetPackage;
-        mMetadataManager = MetadataManager.getNewInstance();
         mRequestedFlags = new BackupFlags(flags);
-        try {
-            BackupItems.createNoMediaIfNotExists();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        ExUtils.exceptionAsIgnored(BackupItems::createNoMediaIfNotExists);
         Log.d(TAG, "Package: %s, user: %d", targetPackage.getPackageName(), targetPackage.getUserId());
     }
 
@@ -93,15 +89,15 @@ public class BackupManager {
             // Get backup files based on the number of backupNames
             BackupItems backupItems = new BackupItems(mTargetPackage.getPackageName(), mTargetPackage.getUserId(), backupNames);
             BackupItems.BackupItem[] backupItemList = mRequestedFlags.backupMultiple() ?
-                    backupItems.getFreshBackupPaths() : backupItems.getBackupPaths(true);
+                    backupItems.createItemsGracefully() : backupItems.getOrCreateItems();
             if (progressHandler != null) {
                 int max = calculateMaxProgress(backupItemList.length);
                 progressHandler.setProgressTextInterface(ProgressHandler.PROGRESS_PERCENT);
                 progressHandler.postUpdate(max, 0f);
             }
             for (BackupItems.BackupItem backupItem : backupItemList) {
-                try (BackupOp backupOp = new BackupOp(mTargetPackage.getPackageName(), mMetadataManager, mRequestedFlags,
-                        backupItem, mTargetPackage.getUserId())) {
+                try (BackupOp backupOp = new BackupOp(mTargetPackage.getPackageName(),
+                        mRequestedFlags, backupItem, mTargetPackage.getUserId())) {
                     backupOp.runBackup(progressHandler);
                     BackupUtils.putBackupToDbAndBroadcast(ContextUtils.getContext(), backupOp.getMetadata());
                 }
@@ -169,7 +165,7 @@ public class BackupManager {
         BackupItems.BackupItem[] backupItemList;
         try {
             backupItems = new BackupItems(mTargetPackage.getPackageName(), backupUserId, backupNames);
-            backupItemList = backupItems.getBackupPaths(false);
+            backupItemList = backupItems.getExistingItems();
         } catch (IOException e) {
             throw new BackupException("Could not get backup files.", e);
         }
@@ -184,7 +180,7 @@ public class BackupManager {
                 progressHandler.postUpdate(max, 0f);
             }
             try (RestoreOp restoreOp = new RestoreOp(mTargetPackage.getPackageName(),
-                    mMetadataManager, mRequestedFlags, backupItemList[0],
+                    mRequestedFlags, backupItemList[0],
                     mTargetPackage.getUserId())) {
                 restoreOp.runRestore(progressHandler);
                 mRequiresRestart |= restoreOp.requiresRestart();
@@ -202,13 +198,13 @@ public class BackupManager {
             try {
                 backupItems = new BackupItems(mTargetPackage.getPackageName(),
                         mTargetPackage.getUserId(), null);
-                backupItemList = backupItems.getBackupPaths(false);
+                backupItemList = backupItems.getExistingItems();
             } catch (IOException e) {
                 throw new BackupException("Could not get backup files.", e);
             }
             for (BackupItems.BackupItem backupItem : backupItemList) {
                 try {
-                    MetadataManager.Metadata metadata = MetadataManager.getMetadata(backupItem);
+                    BackupMetadataV2 metadata = backupItem.getMetadataV2();
                     if (!backupItem.isFrozen() && !backupItem.delete()) {
                         throw new BackupException("Could not delete the selected backups");
                     }
@@ -220,13 +216,12 @@ public class BackupManager {
         } else {
             // backupNames is not null but that doesn't mean that it's not empty,
             // requested for only single backups
-            BackupItems.BackupItem backupItem;
             for (String backupName : backupNames) {
-                MetadataManager.Metadata metadata;
+                BackupItems.BackupItem backupItem;
+                BackupMetadataV2 metadata;
                 try {
-                    backupItem = new BackupItems.BackupItem(BackupItems.getPackagePath(mTargetPackage.getPackageName(),
-                            false).findFile(backupName), false);
-                    metadata = MetadataManager.getMetadata(backupItem);
+                    backupItem = BackupItems.findBackupItem(backupName, mTargetPackage.getPackageName(), null);
+                    metadata = backupItem.getMetadataV2();
                 } catch (IOException e) {
                     throw new BackupException("Could not get backup files.", e);
                 }
@@ -254,7 +249,7 @@ public class BackupManager {
         try {
             backupItems = new BackupItems(mTargetPackage.getPackageName(), backupUserHandle,
                     backupName == null ? null : new String[]{backupName});
-            backupItemList = backupItems.getBackupPaths(false);
+            backupItemList = backupItems.getExistingItems();
         } catch (IOException e) {
             throw new BackupException("Could not get backup files.", e);
         }
@@ -263,7 +258,7 @@ public class BackupManager {
             if (backupItemList.length > 1) {
                 Log.w(VerifyOp.TAG, "More than one backups found! Verifying only the first backup.");
             }
-            try (VerifyOp restoreOp = new VerifyOp(mMetadataManager, backupItemList[0])) {
+            try (VerifyOp restoreOp = new VerifyOp(backupItemList[0])) {
                 restoreOp.verify();
             }
         } else {
