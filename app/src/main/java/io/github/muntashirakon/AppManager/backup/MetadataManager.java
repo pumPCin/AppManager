@@ -5,8 +5,8 @@ package io.github.muntashirakon.AppManager.backup;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 import androidx.annotation.WorkerThread;
-import androidx.core.util.Pair;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,7 +17,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import io.github.muntashirakon.AppManager.backup.struct.BackupMetadataV2;
+import io.github.muntashirakon.AppManager.BuildConfig;
 import io.github.muntashirakon.AppManager.backup.struct.BackupMetadataV5;
 import io.github.muntashirakon.AppManager.crypto.CryptoException;
 import io.github.muntashirakon.AppManager.utils.DigestUtils;
@@ -26,7 +26,7 @@ import io.github.muntashirakon.io.Path;
 
 public final class MetadataManager {
     public static final String TAG = MetadataManager.class.getSimpleName();
-    public static final int CURRENT_BACKUP_META_VERSION = 4;
+    private static int currentBackupMetaVersion = BuildConfig.DEBUG ? 5 : 4;
 
     public static final String META_V2_FILE = "meta_v2.am.json";
     // New scheme
@@ -34,6 +34,15 @@ public final class MetadataManager {
     public static final String META_V5_FILE = "meta_v5.am.json"; // encrypted
 
     private MetadataManager() {
+    }
+
+    @VisibleForTesting
+    public static void setCurrentBackupMetaVersion(int version) {
+        currentBackupMetaVersion = version;
+    }
+
+    public static int getCurrentBackupMetaVersion() {
+        return currentBackupMetaVersion;
     }
 
     @NonNull
@@ -58,22 +67,22 @@ public final class MetadataManager {
 
     @NonNull
     @WorkerThread
-    public static BackupMetadataV5 readMetadataV5(@NonNull BackupItems.BackupItem backupItem) throws IOException {
+    public static BackupMetadataV5 readMetadata(@NonNull BackupItems.BackupItem backupItem) throws IOException {
         BackupMetadataV5.Info info = readInfo(backupItem);
-        return readMetadataV5(backupItem, info);
+        return readMetadata(backupItem, info);
     }
 
     @NonNull
     @WorkerThread
-    public static BackupMetadataV5 readMetadataV5(@NonNull BackupItems.BackupItem backupItem,
-                                                  @NonNull BackupMetadataV5.Info backupInfo)
+    public static BackupMetadataV5 readMetadata(@NonNull BackupItems.BackupItem backupItem,
+                                                @NonNull BackupMetadataV5.Info backupInfo)
             throws IOException {
         boolean v5AndUp = backupItem.isV5AndUp();
         if (v5AndUp) {
             // Need to setup crypto in order to decrypt meta_v5.am.json
             setCrypto(backupItem, backupInfo);
         }
-        Path metadataFile = v5AndUp ? backupItem.getMetadataV5File() : backupItem.getMetadataV2File();
+        Path metadataFile = v5AndUp ? backupItem.getMetadataV5File(true) : backupItem.getMetadataV2File();
         String metadataString = metadataFile.getContentAsString();
         JSONObject jsonObject;
         if (TextUtils.isEmpty(metadataString)) {
@@ -89,19 +98,6 @@ public final class MetadataManager {
             return new BackupMetadataV5(backupInfo, metadata);
         } catch (JSONException e) {
             throw new IOException(e.getMessage() + " for path " + metadataFile, e);
-        }
-    }
-
-    @WorkerThread
-    @NonNull
-    public static Pair<String, String> writeMetadataV2(@NonNull BackupMetadataV2 metadata, @NonNull BackupItems.BackupItem backupFile) throws IOException {
-        Path metadataFile = backupFile.getMetadataV2File();
-        try (OutputStream outputStream = metadataFile.openOutputStream()) {
-            outputStream.write(metadata.serializeToJson().toString(4).getBytes());
-            return new Pair<>(metadataFile.getName(), DigestUtils.getHexDigest(
-                    metadata.checksumAlgo, metadataFile));
-        } catch (JSONException e) {
-            throw new IOException(e.getMessage() + " for path " + backupFile.getBackupPath());
         }
     }
 
@@ -141,14 +137,16 @@ public final class MetadataManager {
     @NonNull
     private static Map<String, String> writeMetadataV5(@NonNull BackupMetadataV5 metadata, @NonNull BackupItems.BackupItem backupFile) throws IOException {
         Map<String, String> filenameChecksumMap = new LinkedHashMap<>(2);
-        Path metadataFile = backupFile.getMetadataV5File();
+        Path metadataFile = backupFile.getMetadataV5File(true);
         try (OutputStream outputStream = metadataFile.openOutputStream()) {
             outputStream.write(metadata.metadata.serializeToJson().toString(4).getBytes());
-            filenameChecksumMap.put(metadataFile.getName(), DigestUtils.getHexDigest(
-                    metadata.info.checksumAlgo, metadataFile));
         } catch (JSONException e) {
             throw new IOException(e.getMessage() + " for file " + metadataFile, e);
         }
+        // Encrypt the metadata
+        Path encryptedMetadataFile = backupFile.encrypt(new Path[]{metadataFile})[0];
+        filenameChecksumMap.put(encryptedMetadataFile.getName(), DigestUtils.getHexDigest(
+                metadata.info.checksumAlgo, encryptedMetadataFile));
         Path infoFile = backupFile.getInfoFile();
         try (OutputStream outputStream = infoFile.openOutputStream()) {
             outputStream.write(metadata.info.serializeToJson().toString(4).getBytes());
