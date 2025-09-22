@@ -1559,4 +1559,18 @@
     <string name="package_source_other">Другой</string>
     <string name="pref_disable_apk_verification">Отключить проверку</string>
     <string name="pref_disable_apk_verification_description">Пропустить запуск средства проверки APK (например Play Protect) во время установки.</string>
+    <string name="adb_data">Режим ADB</string>
+    <string name="adb_data_description">Резервирование через ADB. Это заменяет настройки для \"Внутренние данные\" и \"Внешние данные\".</string>
+    <string name="filter_unfrozen_apps">Размороженные приложения</string>
+    <string name="goto_previous">Предыдущее</string>
+    <string name="usage_this_week">Текущая неделя</string>
+    <string name="usage_last_week">Прошлая неделя</string>
+    <string name="bar_chart_content_description">Столбчатая диаграмма с %d точками данных.</string>
+    <string name="usage_daily_bar_chart_accessibility_description">Прошло %1$s из %2$.0f минут. Столб %3$d из %4$d</string>
+    <string name="usage_weekly_hours_bar_chart_accessibility_description">Прошло %1$s из %2$.lf часов. Столб %3$d из %4$d</string>
+    <string name="usage_weekly_minutes_bar_chart_accessibility_description">Прошло %1$s из %2$.0f минут. Столб %3$d из %4$d</string>
+    <string name="usage_bar_chart_y_axis_label_minute">%.0f мин</string>
+    <string name="usage_bar_chart_y_axis_label_hour">%.0 ч</string>
+    <string name="usage_bar_chart_tooltip_minutes">%s • %.0f минут</string>
+    <string name="usage_bar_chart_tooltip_hours">%s • %.1f часов</string>
 </resources>
