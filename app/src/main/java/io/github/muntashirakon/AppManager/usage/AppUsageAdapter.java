@@ -43,6 +43,7 @@ class AppUsageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         final MaterialTextView usageIntervalView;
         final MaterialButton previousButton;
         final MaterialButton nextButton;
+        final BarChartView barChartView;
 
         public ListHeaderViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -50,6 +51,7 @@ class AppUsageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             usageIntervalView = itemView.findViewById(R.id.time);
             previousButton = itemView.findViewById(R.id.action_previous);
             nextButton = itemView.findViewById(R.id.action_next);
+            barChartView = itemView.findViewById(R.id.bar_chart);
         }
     }
 
@@ -149,6 +151,7 @@ class AppUsageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         holder.nextButton.setVisibility(UsageUtils.hasNextDay(date) ? View.VISIBLE : View.INVISIBLE);
         holder.nextButton.setOnClickListener(v -> mActivity.viewModel.loadNext());
         holder.previousButton.setOnClickListener(v -> mActivity.viewModel.loadPrevious());
+        UsageDataProcessor.updateChartWithAppUsage(holder.barChartView, mActivity.viewModel.getPackageUsageEntries(), intervalType, date);
     }
 
     public void onBindViewHolder(@NonNull ListItemViewHolder holder, int position) {
