@@ -110,6 +110,9 @@
         android:name="android.permission.MANAGE_SENSORS"
         tools:ignore="ProtectedPermissions" />
     <uses-permission
+        android:name="android.permission.NETWORK_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -1288,6 +1291,11 @@
             android:name=".session.SessionMonitoringService"
             android:exported="false"
             android:foregroundServiceType="dataSync|specialUse" />
+        <service
+            android:name=".servermanager.WifiWaitService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync|specialUse"
+            tools:targetApi="30" />
         <service
             android:name=".adb.AdbPairingService"
             android:exported="false"
