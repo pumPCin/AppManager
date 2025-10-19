@@ -1576,4 +1576,10 @@
     <string name="modify_last_modification_time">Изменить время последнего изменения</string>
     <string name="modify_last_access_time">Изменить время последнего доступа</string>
     <string name="change_id">Изменить ID</string>
+    <string name="memory_usage_accessibility_description">В настоящее время система использует %s памяти из %s, а объем доступной памяти составляет %s. Из занятой памяти приложения используют %s, %s находится в кэше, а %s используется в качестве буферов памяти.</string>
+    <string name="memory_usage_unavailable">Использование памяти в данный момент недоступно.</string>
+    <string name="swap_usage_accessibility_description">Система выделила %s для подкачки и в настоящее время использует %s.</string>
+    <string name="selected_items_accessibility_description">Выбрано %d из %d элементов</string>
+    <string name="adb_local_server_port">Порт локального сервера ADB</string>
+    <string name="waiting_for_wifi">Ожидание Wi-Fi</string>
 </resources>
