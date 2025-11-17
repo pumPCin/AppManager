@@ -91,9 +91,9 @@ class AssetsUtils {
         if (ServerConfig.getAllowBgRunning()) {
             argsBuilder.append(',').append(ConfigParams.PARAM_RUN_IN_BACKGROUND).append(':').append(1);
         }
-        if (BuildConfig.DEBUG) {
-            argsBuilder.append(',').append(ConfigParams.PARAM_DEBUG).append(':').append(1);
-        }
+        //if (BuildConfig.DEBUG) {
+            //argsBuilder.append(',').append(ConfigParams.PARAM_DEBUG).append(':').append(1);
+        //}
         return argsBuilder.toString();
     }
 }

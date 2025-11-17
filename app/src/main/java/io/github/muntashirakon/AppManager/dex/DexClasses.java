@@ -46,7 +46,7 @@ public class DexClasses implements Closeable {
         mOptions.parameterRegisters = true;
         mOptions.localsDirective = true;
         mOptions.sequentialLabels = true;
-        mOptions.debugInfo = BuildConfig.DEBUG;
+        mOptions.debugInfo = false; //BuildConfig.DEBUG;
         mOptions.codeOffsets = false;
         mOptions.accessorComments = false;
         mOptions.registerInfo = 0;
@@ -93,7 +93,7 @@ public class DexClasses implements Closeable {
         mOptions.parameterRegisters = true;
         mOptions.localsDirective = true;
         mOptions.sequentialLabels = true;
-        mOptions.debugInfo = BuildConfig.DEBUG;
+        mOptions.debugInfo = false; //BuildConfig.DEBUG;
         mOptions.codeOffsets = false;
         mOptions.accessorComments = false;
         mOptions.registerInfo = 0;

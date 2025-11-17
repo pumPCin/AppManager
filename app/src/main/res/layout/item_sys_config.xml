@@ -44,7 +44,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
                     android:gravity="center"
-                    android:singleLine="true"
+                    android:maxLines="2"
                     android:textIsSelectable="true"
                     android:textAppearance="?android:attr/textAppearanceListItem"
                     tools:text="@tools:sample/lorem" />

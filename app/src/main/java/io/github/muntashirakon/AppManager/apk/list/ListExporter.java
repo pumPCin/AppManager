@@ -76,7 +76,7 @@ public final class ListExporter {
         XmlSerializer xmlSerializer = Xml.newSerializer();
         xmlSerializer.setOutput(writer);
         xmlSerializer.startDocument("UTF-8", true);
-        xmlSerializer.docdecl("packages SYSTEM \"https://raw.githubusercontent.com/MuntashirAkon/AppManager/master/schema/packages.dtd\"");
+        xmlSerializer.docdecl("packages SYSTEM \"https://raw.githubusercontent.com/pumPCin/AppManager/master/schema/packages.dtd\"");
         xmlSerializer.startTag("", "packages");
         xmlSerializer.attribute("", "version", String.valueOf(1));
         for (AppListItem appListItem : appListItems) {
