@@ -25,6 +25,7 @@
             android:layout_height="wrap_content"
             android:textIsSelectable="true"
             android:textAppearance="?android:attr/textAppearanceListItem"
+            android:textSize="16sp"
             tools:text="@tools:sample/lorem" />
 
         <androidx.appcompat.widget.AppCompatTextView
