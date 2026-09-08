@@ -12,7 +12,6 @@ import static io.github.muntashirakon.AppManager.utils.UIUtils.getSmallerText;
 import android.Manifest;
 import android.app.Application;
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -71,26 +70,30 @@ public class InstallerOptionsFragment extends DialogFragment {
     private static final String ARG_PACKAGE_NAME = "pkg";
     private static final String ARG_TEST_ONLY_APP = "test_only";
     private static final String ARG_REF_INSTALLER_OPTIONS = "ref_opt";
-
-    public interface OnClickListener {
-        void onClick(DialogInterface dialog, int which, @Nullable InstallerOptions options);
-    }
+    private static final String STATE_DRAFT_INSTALLER_OPTIONS = "draft_opt";
+    static final String REQUEST_KEY = BuildConfig.APPLICATION_ID + ".request.INSTALLER_OPTIONS";
+    private static final String RESULT_INSTALLER_OPTIONS = "options";
 
     @NonNull
     public static InstallerOptionsFragment getInstance(@Nullable String packageName,
                                                        @Nullable Boolean isTestOnly,
-                                                       @NonNull InstallerOptions options,
-                                                       @Nullable OnClickListener clickListener) {
+                                                       @NonNull InstallerOptions options) {
         InstallerOptionsFragment dialog = new InstallerOptionsFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PACKAGE_NAME, packageName);
         if (isTestOnly != null) {
             args.putBoolean(ARG_TEST_ONLY_APP, isTestOnly);
         }
-        args.putParcelable(ARG_REF_INSTALLER_OPTIONS, options);
+        args.putParcelable(ARG_REF_INSTALLER_OPTIONS, InstallerOptions.copyOf(options));
         dialog.setArguments(args);
-        dialog.setOnClickListener(clickListener);
         return dialog;
+    }
+
+    @Nullable
+    static InstallerOptions getResult(@NonNull Bundle result) {
+        InstallerOptions options = BundleCompat.getParcelable(result, RESULT_INSTALLER_OPTIONS,
+                InstallerOptions.class);
+        return options != null ? InstallerOptions.copyOf(options) : null;
     }
 
     private InstallerOptionsViewModel mModel;
@@ -101,29 +104,32 @@ public class InstallerOptionsFragment extends DialogFragment {
     private TextInputLayout mInstallerAppLayout;
     private EditText mInstallerAppField;
     private MaterialSwitch mBlockTrackersSwitch;
-    @Nullable
-    private OnClickListener mClickListener;
     private String mPackageName;
     private boolean mIsTestOnly;
     private InstallerOptions mOptions;
     private PackageManager mPm;
 
-    public void setOnClickListener(@Nullable OnClickListener clickListener) {
-        this.mClickListener = clickListener;
-    }
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mModel = new ViewModelProvider(this).get(InstallerOptionsViewModel.class);
+        InstallerOptions options = savedInstanceState != null
+                ? BundleCompat.getParcelable(savedInstanceState, STATE_DRAFT_INSTALLER_OPTIONS,
+                InstallerOptions.class)
+                : null;
+        if (options == null) {
+            options = BundleCompat.getParcelable(requireArguments(), ARG_REF_INSTALLER_OPTIONS,
+                    InstallerOptions.class);
+        }
+        mOptions = InstallerOptions.copyOf(Objects.requireNonNull(options));
     }
 
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        mPackageName = requireArguments().getString(ARG_PACKAGE_NAME);
+        mPackageName = Objects.requireNonNull(requireArguments().getString(ARG_PACKAGE_NAME));
         mIsTestOnly = requireArguments().getBoolean(ARG_TEST_ONLY_APP, true);
-        mOptions = Objects.requireNonNull(BundleCompat.getParcelable(requireArguments(), ARG_REF_INSTALLER_OPTIONS, InstallerOptions.class));
+        mOptions = InstallerOptions.resolveEffectiveOptions(mOptions, mPackageName, mIsTestOnly);
         mDialogView = View.inflate(requireActivity(), R.layout.dialog_installer_options, null);
         mUserSelectionSpinner = mDialogView.findViewById(R.id.user);
         mInstallLocationSpinner = mDialogView.findViewById(R.id.install_location);
@@ -140,7 +146,7 @@ public class InstallerOptionsFragment extends DialogFragment {
         mPm = requireContext().getPackageManager();
         boolean canInstallForOtherUsers = SelfPermissions.checkSelfOrRemotePermission(ManifestCompat.permission.INTERACT_ACROSS_USERS_FULL);
         int selectedUser = getSelectedUserId(canInstallForOtherUsers);
-        boolean canBlockTrackers = SelfPermissions.canModifyAppComponentStates(selectedUser, mPackageName, mIsTestOnly);
+        mOptions.setUserId(selectedUser);
         initUserSpinner(canInstallForOtherUsers);
         initInstallLocationSpinner();
         initPackageSourceSpinner();
@@ -158,24 +164,26 @@ public class InstallerOptionsFragment extends DialogFragment {
         forceDexOptSwitch.setVisibility(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N ? View.VISIBLE : View.GONE);
         forceDexOptSwitch.setChecked(mOptions.isForceDexOpt());
         forceDexOptSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> mOptions.setForceDexOpt(isChecked));
-        mBlockTrackersSwitch.setChecked(canBlockTrackers && mOptions.isBlockTrackers());
-        mBlockTrackersSwitch.setEnabled(canBlockTrackers);
+        updateBlockTrackersAvailability(selectedUser);
         mBlockTrackersSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> mOptions.setBlockTrackers(isChecked));
         return new MaterialAlertDialogBuilder(requireActivity())
                 .setTitle(R.string.installer_options)
                 .setView(mDialogView)
                 .setCancelable(false)
                 .setPositiveButton(R.string.ok, (dialog, which) -> {
-                    if (mClickListener != null) {
-                        mClickListener.onClick(dialog, which, mOptions);
-                    }
+                    Bundle result = new Bundle();
+                    result.putParcelable(RESULT_INSTALLER_OPTIONS,
+                            InstallerOptions.resolveEffectiveOptions(mOptions, mPackageName, mIsTestOnly));
+                    getParentFragmentManager().setFragmentResult(REQUEST_KEY, result);
                 })
-                .setNegativeButton(R.string.cancel, (dialog, which) -> {
-                    if (mClickListener != null) {
-                        mClickListener.onClick(dialog, which, null);
-                    }
-                })
+                .setNegativeButton(R.string.cancel, null)
                 .create();
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        outState.putParcelable(STATE_DRAFT_INSTALLER_OPTIONS, InstallerOptions.copyOf(mOptions));
+        super.onSaveInstanceState(outState);
     }
 
     @Nullable
@@ -216,13 +224,20 @@ public class InstallerOptionsFragment extends DialogFragment {
         mUserSelectionSpinner.setAdapter(userAdapter);
         mUserSelectionSpinner.setSelection(selectedUserPosition);
         mUserSelectionSpinner.setOnItemClickListener((parent, view, position, id) -> {
-            mOptions.setUserId(userIds[position]);
-            // Update block trackers option
-            boolean canBlockTrackers = SelfPermissions.canModifyAppComponentStates(selectedUser, mPackageName, mIsTestOnly);
-            mBlockTrackersSwitch.setChecked(canBlockTrackers && mOptions.isBlockTrackers());
-            mBlockTrackersSwitch.setEnabled(canBlockTrackers);
+            int selectedUserId = userIds[position];
+            mOptions.setUserId(selectedUserId);
+            updateBlockTrackersAvailability(selectedUserId);
         });
         mUserSelectionSpinner.setEnabled(canInstallForOtherUsers);
+    }
+
+    private void updateBlockTrackersAvailability(int selectedUserId) {
+        boolean canBlockTrackers = InstallerOptions.canBlockTrackers(selectedUserId, mPackageName, mIsTestOnly);
+        if (!canBlockTrackers) {
+            mOptions.setBlockTrackers(false);
+        }
+        mBlockTrackersSwitch.setChecked(mOptions.isBlockTrackers());
+        mBlockTrackersSwitch.setEnabled(canBlockTrackers);
     }
 
     private void initInstallLocationSpinner() {
@@ -258,7 +273,11 @@ public class InstallerOptionsFragment extends DialogFragment {
         mPackageSourceSpinner.setAdapter(pkgSourceAdapter);
         mPackageSourceSpinner.setSelection(pkgSource);
         mPackageSourceSpinner.setOnItemClickListener((parent, view, position, id) ->
-                mOptions.setInstallLocation(PKG_SOURCES[position]));
+                setPackageSourceFromPosition(mOptions, position));
+    }
+
+    static void setPackageSourceFromPosition(@NonNull InstallerOptions options, int position) {
+        options.setPackageSource(PKG_SOURCES[position]);
     }
 
     private void initInstallerAppSpinner() {

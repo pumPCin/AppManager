@@ -2,10 +2,10 @@
 
 package io.github.muntashirakon.AppManager.adb;
 
-import static io.github.muntashirakon.AppManager.types.ForegroundService.FOREGROUND_SERVICE_TYPE_DATA_SYNC;
 import static io.github.muntashirakon.AppManager.types.ForegroundService.FOREGROUND_SERVICE_TYPE_SPECIAL_USE;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -13,6 +13,8 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
@@ -24,8 +26,6 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.PendingIntentCompat;
 import androidx.core.app.RemoteInput;
 import androidx.core.app.ServiceCompat;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer;
 
 import io.github.muntashirakon.AppManager.BuildConfig;
 import io.github.muntashirakon.AppManager.R;
@@ -50,14 +50,19 @@ public class AdbPairingService extends Service {
     public static final String ACTION_START_PAIRING = BuildConfig.APPLICATION_ID + ".action.ENTER_CODE";
     public static final String EXTRA_PORT = "port";
     public static final String INPUT_CODE = "code";
+    private static final long PAIRING_TIMEOUT_MILLIS = 10 * 60 * 1000L;
 
     private NotificationCompat.Builder mNotificationBuilder;
     private boolean mStartedSearching = false;
+    private volatile boolean mPairingSucceeded = false;
+    @Nullable
     private AdbMdns mAdbMdnsPairing;
-    private final MutableLiveData<Integer> mAdbPairingPort = new MutableLiveData<>();
-    private final Observer<Integer> mAdbPairingPortObserver = port -> {
-        Log.i(TAG, "Found port %d", port);
-        inputPairingCode(port);
+    private volatile AdbConnectionManager.PairingSession mPairingSession;
+    private int mSearchGeneration;
+    private final Handler mHandler = new Handler(Looper.getMainLooper());
+    private final Runnable mPairingTimeout = () -> {
+        Log.w(TAG, "Pairing timed out.");
+        stopSelf();
     };
 
     @Override
@@ -89,7 +94,7 @@ public class AdbPairingService extends Service {
         switch (intent.getAction()) {
             case ACTION_START_SEARCHING:
                 startSearching();
-                return START_REDELIVER_INTENT;
+                return START_NOT_STICKY;
             case ACTION_START_PAIRING:
                 int port = intent.getIntExtra(EXTRA_PORT, -1);
                 Bundle remoteInputs = RemoteInput.getResultsFromIntent(intent);
@@ -100,7 +105,7 @@ public class AdbPairingService extends Service {
                     // Wrong inputs, continue searching
                     startSearching();
                 }
-                return START_REDELIVER_INTENT;
+                return START_NOT_STICKY;
             case ACTION_STOP_SEARCHING:
                 ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
                 stopSelf();
@@ -117,44 +122,71 @@ public class AdbPairingService extends Service {
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
-        if (mStartedSearching) {
-            // Still looking for a port, hence the pairing wasn't successful
-            // Fail intentionally to avoid looping forever
-            Log.i(TAG, "Stop searching for an active port...");
-            ThreadUtils.postOnBackgroundThread(() -> {
-                try {
-                    AdbConnectionManager.getInstance().pairLiveData(ServerConfig.getAdbHost(this), -1, "");
-                } catch (Exception ignore) {
+        mHandler.removeCallbacks(mPairingTimeout);
+        stopSearching();
+        if (!mPairingSucceeded) {
+            try {
+                if (mPairingSession != null) {
+                    mPairingSession.cancel();
                 }
-            });
-            stopSearching();
+            } catch (Exception e) {
+                Log.w(TAG, "Could not cancel pairing session.", e);
+            }
         }
+        super.onDestroy();
     }
 
     @MainThread
     private void startSearching() {
         if (mStartedSearching) {
+            AdbConnectionManager.PairingSession session = AdbConnectionManager.getPairingSession();
+            if (session != null && session != mPairingSession) {
+                mPairingSession = session;
+                ++mSearchGeneration;
+                mHandler.removeCallbacks(mPairingTimeout);
+                mHandler.postDelayed(mPairingTimeout, PAIRING_TIMEOUT_MILLIS);
+            }
             return;
         }
         mStartedSearching = true;
+        ++mSearchGeneration;
+        mPairingSession = AdbConnectionManager.getPairingSession();
+        mHandler.removeCallbacks(mPairingTimeout);
+        mHandler.postDelayed(mPairingTimeout, PAIRING_TIMEOUT_MILLIS);
         if (mAdbMdnsPairing == null) {
             mAdbMdnsPairing = new AdbMdns(getApplication(), AdbMdns.SERVICE_TYPE_TLS_PAIRING, (hostAddress, port) -> {
                 if (port != -1) {
-                    mAdbPairingPort.postValue(port);
+                    int generation = mSearchGeneration;
+                    ThreadUtils.postOnMainThread(() -> {
+                        if (mStartedSearching && generation == mSearchGeneration) {
+                            Log.i(TAG, "Found port %d", port);
+                            inputPairingCode(port);
+                        }
+                    });
                 }
             });
         }
-        mAdbPairingPort.observeForever(mAdbPairingPortObserver);
         PendingIntent stopPendingIntent = getStopIntent();
         NotificationCompat.Action stopAction = new NotificationCompat.Action.Builder(null, getString(R.string.adb_pairing_stop_searching), stopPendingIntent).build();
         mNotificationBuilder.setContentText(getText(R.string.adb_pairing_searching_for_port))
                 .clearActions()
                 .addAction(stopAction);
-        ServiceCompat.startForeground(this, 1, mNotificationBuilder.build(), FOREGROUND_SERVICE_TYPE_DATA_SYNC | FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
-        mAdbMdnsPairing.start();
+        ServiceCompat.startForeground(this, 1, mNotificationBuilder.build(), FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+        try {
+            mAdbMdnsPairing.start();
+        } catch (RuntimeException e) {
+            Log.e(TAG, "Could not start ADB pairing discovery.", e);
+            mHandler.removeCallbacks(mPairingTimeout);
+            stopSearching();
+            mAdbMdnsPairing = null;
+            if (mPairingSession != null) {
+                mPairingSession.cancel();
+            }
+            stopSelf();
+        }
     }
 
+    @SuppressLint("MissingPermission") // Already checked notification permission
     @MainThread
     private void inputPairingCode(int port) {
         Intent inputIntent = new Intent(this, getClass())
@@ -170,27 +202,45 @@ public class AdbPairingService extends Service {
         mNotificationBuilder.setContentText(getString(R.string.adb_pairing_found_pairing_service_with_port, port))
                 .clearActions()
                 .addAction(inputAction);
-        if (SelfPermissions.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)) {
+        if (canPostNotifications()) {
             NotificationManagerCompat.from(this).notify(1, mNotificationBuilder.build());
         }
     }
 
+    @SuppressLint("MissingPermission") // Already checked notification permission
     @MainThread
     private void startPairing(int port, String code) {
         mNotificationBuilder.setContentText(getString(R.string.adb_pairing_pairing_in_progress))
                 .clearActions();
-        ServiceCompat.startForeground(this, 1, mNotificationBuilder.build(), FOREGROUND_SERVICE_TYPE_DATA_SYNC | FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+        ServiceCompat.startForeground(this, 1, mNotificationBuilder.build(), FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+        final AdbConnectionManager.PairingSession session;
+        try {
+            session = mPairingSession != null ? mPairingSession : AdbConnectionManager.getPairingSession();
+        } catch (Exception e) {
+            Log.e(TAG, "Could not access pairing session.", e);
+            stopSelf();
+            return;
+        }
+        if (session == null) {
+            Log.e(TAG, "Pairing was started without an active session.");
+            stopSelf();
+            return;
+        }
         ThreadUtils.postOnBackgroundThread(() -> {
             boolean isSuccess;
             try {
-                AdbConnectionManager.getInstance().pairLiveData(ServerConfig.getAdbHost(this), port, code);
+                AdbConnectionManager.getInstance().pairAndReport(session, ServerConfig.getAdbHost(this), port, code);
                 isSuccess = true;
             } catch (Exception e) {
                 Log.w(TAG, "Pairing failed.", e);
                 isSuccess = false;
             }
+            if (session != mPairingSession) {
+                return;
+            }
             ThreadUtils.postOnMainThread(this::stopSearching);
             if (isSuccess) {
+                mPairingSucceeded = true;
                 mNotificationBuilder.setContentText(getString(R.string.paired_successfully)).clearActions();
                 stopSelf();
             } else {
@@ -203,7 +253,7 @@ public class AdbPairingService extends Service {
                         .setDeleteIntent(deleteIntent)
                         .addAction(retryAction);
             }
-            if (SelfPermissions.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)) {
+            if (canPostNotifications()) {
                 NotificationManagerCompat.from(this).notify(1, mNotificationBuilder.build());
             }
         });
@@ -215,13 +265,24 @@ public class AdbPairingService extends Service {
             return;
         }
         mStartedSearching = false;
-        mAdbMdnsPairing.stop();
-        mAdbPairingPort.removeObserver(mAdbPairingPortObserver);
+        ++mSearchGeneration;
+        if (mAdbMdnsPairing != null) {
+            try {
+                mAdbMdnsPairing.stop();
+            } catch (RuntimeException e) {
+                Log.w(TAG, "Could not stop ADB pairing discovery.", e);
+            }
+        }
     }
 
     @NonNull
     private PendingIntent getStopIntent() {
         Intent stopIntent = new Intent(this, getClass()).setAction(ACTION_STOP_SEARCHING);
         return PendingIntentCompat.getForegroundService(this, 1, stopIntent, 0, false);
+    }
+
+    private boolean canPostNotifications() {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
+                || SelfPermissions.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS);
     }
 }

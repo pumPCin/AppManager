@@ -89,6 +89,9 @@ import io.github.muntashirakon.AppManager.misc.AdvancedSearchView.ChoiceGenerato
 import io.github.muntashirakon.AppManager.permission.DevelopmentPermission;
 import io.github.muntashirakon.AppManager.permission.PermUtils;
 import io.github.muntashirakon.AppManager.permission.Permission;
+import io.github.muntashirakon.AppManager.permission.PermissionControllerRegistry;
+import io.github.muntashirakon.AppManager.permission.PermissionState;
+import io.github.muntashirakon.AppManager.permission.SpecialPermissionController;
 import io.github.muntashirakon.AppManager.permission.PermissionException;
 import io.github.muntashirakon.AppManager.permission.ReadOnlyPermission;
 import io.github.muntashirakon.AppManager.permission.RuntimePermission;
@@ -659,8 +662,9 @@ public class AppDetailsViewModel extends AndroidViewModel {
         if (mExternalApk) return false;
         PackageInfo packageInfo = getPackageInfoInternal();
         if (packageInfo == null) return false;
+        boolean wasGranted = permissionItem.isGranted();
         try {
-            if (!permissionItem.isGranted()) {
+            if (!wasGranted) {
                 Log.d(TAG, "Granting permission: %s", permissionItem.name);
                 permissionItem.grantPermission(packageInfo, mAppOpsManager);
             } else {
@@ -671,11 +675,16 @@ public class AppDetailsViewModel extends AndroidViewModel {
             e.printStackTrace();
             return false;
         }
+        // Controllers own platform mutations and do not all update the UI model in the same way.
+        // Record the successful user intent explicitly so rebinding never depends on a controller's
+        // incidental in-memory side effects. This also covers the first overlay toggle, where no
+        // override row existed when the item was loaded.
+        permissionItem.setEffectiveGranted(!wasGranted);
         mExecutor.submit(() -> {
             synchronized (mBlockerLocker) {
                 waitForBlockerOrExit();
                 mBlocker.setMutable();
-                mBlocker.setPermission(permissionItem.name, permissionItem.permission.isGranted(),
+                mBlocker.setPermission(permissionItem.name, permissionItem.isGranted(),
                         permissionItem.permission.getFlags());
                 mBlocker.commit();
                 mBlocker.setReadOnly();
@@ -1633,7 +1642,16 @@ public class AppDetailsViewModel extends AndroidViewModel {
             } else {
                 permission = new ReadOnlyPermission(permissionName, isGranted, appOp, appOpAllowed, permissionFlags);
             }
-            AppDetailsPermissionItem appDetailsItem = new AppDetailsPermissionItem(permissionInfo, permission, flags);
+            PermissionControllerRegistry controllerRegistry = PermissionControllerRegistry.getInstance();
+            AppDetailsPermissionItem appDetailsItem = new AppDetailsPermissionItem(permissionInfo, permission, flags,
+                    PermUtils.isModifiable(permission), controllerRegistry.isOverlayModifiable(permissionName),
+                    SpecialPermissionController.getInstance().getUserAction(permissionName));
+            PermissionState state = controllerRegistry.getOverlayState(
+                    packageInfo.packageName, mUserId, permissionName);
+            if (state == PermissionState.GRANTED || state == PermissionState.DENIED) {
+                // There is an overlay state
+                appDetailsItem.setInitialOverlayState(state.isGranted());
+            }
             appDetailsItem.name = permissionName;
             return appDetailsItem;
         } catch (Throwable th) {

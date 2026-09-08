@@ -28,7 +28,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.Process;
 import android.os.RemoteException;
 import android.os.UserHandleHidden;
 import android.provider.Settings;
@@ -50,9 +49,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import aosp.libcore.util.EmptyArray;
 import dev.rikka.tools.refine.Refine;
@@ -83,12 +84,17 @@ import io.github.muntashirakon.io.Path;
 @SuppressLint("ShiftFlags")
 public final class PackageInstallerCompat {
     public static final String TAG = PackageInstallerCompat.class.getSimpleName();
+    private static final long COMPLETION_WATCHDOG_MINUTES = 30;
 
     public static final String ACTION_INSTALL_STARTED = BuildConfig.APPLICATION_ID + ".action.INSTALL_STARTED";
     public static final String ACTION_INSTALL_COMPLETED = BuildConfig.APPLICATION_ID + ".action.INSTALL_COMPLETED";
     // For rootless installer to prevent PackageInstallerService from hanging
     public static final String ACTION_INSTALL_INTERACTION_BEGIN = BuildConfig.APPLICATION_ID + ".action.INSTALL_INTERACTION_BEGIN";
     public static final String ACTION_INSTALL_INTERACTION_END = BuildConfig.APPLICATION_ID + ".action.INSTALL_INTERACTION_END";
+    public static final String EXTRA_OPERATION_ID = BuildConfig.APPLICATION_ID + ".extra.OPERATION_ID";
+    static final String EXTRA_ABANDON_SESSION = BuildConfig.APPLICATION_ID + ".extra.ABANDON_SESSION";
+    private static final String OPERATION_URI_SCHEME = "appmanager";
+    private static final String OPERATION_URI_AUTHORITY = "package-installer";
 
     @IntDef({
             STATUS_SUCCESS,
@@ -480,34 +486,6 @@ public final class PackageInstallerCompat {
         @WorkerThread
         void onStartInstall(int sessionId, String packageName);
 
-        // MIUI-begin: MIUI 12.5+ workaround
-
-        /**
-         * MIUI 12.5+ may require more than one tries in order to have successful installations.
-         * This is only needed during APK installations, not APK uninstallations or install-existing
-         * attempts.
-         *
-         * @param apkFile Underlying APK file if available.
-         */
-        @WorkerThread
-        default void onAnotherAttemptInMiui(@Nullable ApkFile apkFile) {
-        }
-        // MIUI-end
-
-        // HyperOS-begin: HyperOS 2.0+ workaround
-
-        /**
-         * In HyperOS 2.0+, the installer for the system apps must be another system app. The
-         * overridden method must set the package installer to a valid system app. This is only
-         * needed during APK installations, not APK uninstallations or install-existing attempts.
-         *
-         * @param apkFile Underlying APK file if available.
-         */
-        @WorkerThread
-        default void onSecondAttemptInHyperOsWithoutInstaller(@Nullable ApkFile apkFile) {
-        }
-        // HyperOS-end
-
         @WorkerThread
         void onFinishedInstall(int sessionId, String packageName, int result, @Nullable String blockingPackage,
                                @Nullable String statusMessage);
@@ -521,8 +499,9 @@ public final class PackageInstallerCompat {
     private CountDownLatch mInstallWatcher;
     private CountDownLatch mInteractionWatcher;
 
-    private boolean mCloseApkFile = true;
-    private boolean mInstallCompleted = false;
+    @NonNull
+    private final String mOperationId = UUID.randomUUID().toString();
+    private final AtomicBoolean mInstallCompleted = new AtomicBoolean();
     @Nullable
     private ApkFile mApkFile;
     private String mPackageName;
@@ -539,6 +518,11 @@ public final class PackageInstallerCompat {
         public void onReceive(Context context, @NonNull Intent intent) {
             if (intent.getAction() == null) return;
             int sessionId = intent.getIntExtra(PackageInstaller.EXTRA_SESSION_ID, -1);
+            if (!isExpectedCallback(intent, sessionId)) {
+                Log.w(TAG, "Ignoring callback for another operation/session: %s/%d",
+                        intent.getStringExtra(EXTRA_OPERATION_ID), sessionId);
+                return;
+            }
             Log.d(TAG, "Action: %s", intent.getAction());
             Log.d(TAG, "Session ID: %d", sessionId);
             switch (intent.getAction()) {
@@ -553,23 +537,25 @@ public final class PackageInstallerCompat {
                     // Run indefinitely until user finally decides to do something about it
                     break;
                 case ACTION_INSTALL_INTERACTION_END:
-                    // The installation prompt is hidden by the user, either by clicking cancel or install,
-                    // or just clicking on some place else (latter is our main focus)
-                    if (mSessionId == sessionId) {
-                        // The user interaction is done, it doesn't take more than 1 minute now
-                        mInteractionWatcher.countDown();
-                    }
+                    // The package installer does not reliably deliver its terminal callback until its
+                    // confirmation activity has finished. Release the interaction phase, but do not
+                    // treat this as an installation result.
+                    mInteractionWatcher.countDown();
                     break;
                 case ACTION_INSTALL_COMPLETED:
                     // Either it failed to create a session or the installation was completed,
                     // regardless of the status: success or failure
-                    mFinalStatus = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, STATUS_FAILURE_INVALID);
+                    int status = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, STATUS_FAILURE_INVALID);
                     String blockingPackage = intent.getStringExtra(PackageInstaller.EXTRA_OTHER_PACKAGE_NAME);
-                    mStatusMessage = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE);
-                    // Run install completed
-                    mInstallCompleted = true;
-                    ThreadUtils.postOnBackgroundThread(() ->
-                            installCompleted(sessionId, mFinalStatus, blockingPackage, mStatusMessage));
+                    String statusMessage = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE);
+                    boolean abandonSession = intent.getBooleanExtra(EXTRA_ABANDON_SESSION, false);
+                    ThreadUtils.postOnBackgroundThread(() -> {
+                        if (abandonSession) {
+                            cancelAttempt(sessionId, status, blockingPackage, statusMessage);
+                        } else {
+                            completeAttempt(sessionId, status, blockingPackage, statusMessage);
+                        }
+                    });
                     break;
             }
         }
@@ -580,7 +566,8 @@ public final class PackageInstallerCompat {
     private IPackageInstaller mPackageInstaller;
     private PackageInstaller.Session mSession;
     // MIUI-added: Multiple attempts may be required
-    int mAttempts = 1;
+    private volatile PackageInstallerRetryPolicy.Action mRetryAction = PackageInstallerRetryPolicy.Action.FINISH;
+    private int mAttemptNumber = 1;
     private final Context mContext;
     private final boolean mHasInstallPackagePermission;
     private int mLastVerifyAdbInstallsResult;
@@ -600,6 +587,16 @@ public final class PackageInstallerCompat {
     }
 
     @NonNull
+    String getOperationId() {
+        return mOperationId;
+    }
+
+    boolean isExpectedCallback(@NonNull Intent intent, int sessionId) {
+        return mOperationId.equals(getOperationId(intent))
+                && mSessionId == sessionId;
+    }
+
+    @NonNull
     private static int[] getAllRequestedUsers(int userId) {
         switch (userId) {
             case UserHandleHidden.USER_ALL:
@@ -614,6 +611,28 @@ public final class PackageInstallerCompat {
     public boolean install(@NonNull ApkFile apkFile, @NonNull List<String> selectedSplitIds,
                            @NonNull InstallerOptions options, @Nullable ProgressHandler progressHandler) {
         ThreadUtils.ensureWorkerThread();
+        InstallerOptions attemptOptions = InstallerOptions.copyOf(options);
+        boolean disableVerification = options.isDisableApkVerification();
+        PackageVerifierSettingsCoordinator.acquire(disableVerification);
+        try {
+            mAttemptNumber = 1;
+            boolean copyObbFiles = true;
+            // Keep this call active across vendor retries and return only the final attempt's result.
+            while (true) {
+                boolean successful =
+                        installApkAttempt(apkFile, selectedSplitIds, attemptOptions, progressHandler, copyObbFiles);
+                copyObbFiles = false;
+                if (!prepareRetry(attemptOptions)) {
+                    return successful;
+                }
+            }
+        } finally {
+            PackageVerifierSettingsCoordinator.release(disableVerification);
+        }
+    }
+
+    private boolean installApkAttempt(@NonNull ApkFile apkFile, @NonNull List<String> selectedSplitIds,
+                                      @NonNull InstallerOptions options, @Nullable ProgressHandler progressHandler, boolean copyObbFiles) {
         try {
             mApkFile = apkFile;
             mPackageName = Objects.requireNonNull(apkFile.getPackageName());
@@ -629,41 +648,46 @@ public final class PackageInstallerCompat {
             Log.d(TAG, "Installing for users: %s", Arrays.toString(allRequestedUsers));
             for (int u : allRequestedUsers) {
                 if (!SelfPermissions.checkCrossUserPermission(u, true)) {
-                    installCompleted(mSessionId, STATUS_FAILURE_BLOCKED, "android", "STATUS_FAILURE_BLOCKED: Insufficient permission.");
+                    completeAttempt(mSessionId, STATUS_FAILURE_BLOCKED, "android",
+                            "STATUS_FAILURE_BLOCKED: Insufficient permission.");
                     Log.d(TAG, "Install: Requires INTERACT_ACROSS_USERS and INTERACT_ACROSS_USERS_FULL permissions.");
                     return false;
                 }
             }
-            ThreadUtils.postOnBackgroundThread(() -> {
-                // TODO: 6/6/23 Wait for this task to finish before returning
-                // FIXME: 16/6/23 Needed only for one user?
-                for (int u : allRequestedUsers) {
-                    copyObb(apkFile, u);
-                }
-            });
-            userId = allRequestedUsers[0];
-            String originatingPackage = options.isSetOriginatingPackage() ? options.getOriginatingPackage() : null;
-            Uri originatingUri = options.isSetOriginatingPackage() ? options.getOriginatingUri() : null;
-            Log.d(TAG, "Install: opening session...");
-            if (!openSession(userId, installFlags, options.getInstallerName(),
-                    options.getInstallLocation(), originatingPackage, originatingUri,
-                    options.getInstallScenario(), options.getPackageSource(),
-                    options.requestUpdateOwnership(), options.isDisableApkVerification())) {
-                return false;
-            }
             List<ApkFile.Entry> selectedEntries = new ArrayList<>();
-            long totalSize = 0;
+            long apkSize = 0;
             for (ApkFile.Entry entry : apkFile.getEntries()) {
                 if (selectedSplitIds.contains(entry.id)) {
                     selectedEntries.add(entry);
                     try {
-                        totalSize += entry.getFile(options.isSignApkFiles()).length();
+                        apkSize = addSizes(apkSize, entry.getFile(options.isSignApkFiles()).length());
                     } catch (IOException e) {
-                        callFinish(STATUS_FAILURE_INVALID);
                         Log.e(TAG, "Install: Cannot retrieve the selected APK files.", e);
-                        return abandon();
+                        callFinish(STATUS_FAILURE_INVALID);
+                        return false;
                     }
                 }
+            }
+            long obbSize = copyObbFiles ? getObbSize(apkFile) : 0;
+            long totalSize = multiplyAndAddSizes(obbSize, allRequestedUsers.length, apkSize);
+            long completedSize = 0;
+            if (progressHandler != null && totalSize > 0) {
+                progressHandler.postUpdate(100, 0);
+            }
+            if (copyObbFiles) {
+                for (int u : allRequestedUsers) {
+                    copyObb(apkFile, u, totalSize, completedSize, progressHandler);
+                    completedSize = addSizes(completedSize, obbSize);
+                }
+            }
+            userId = allRequestedUsers[0];
+            String originatingPackage = options.isSetOriginatingPackage() ? options.getOriginatingPackage() : null;
+            Uri originatingUri = options.isSetOriginatingPackage() ? options.getOriginatingUri() : null;
+            Log.d(TAG, "Install: opening session...");
+            if (!openSession(userId, installFlags, options.getInstallerName(), options.getInstallLocation(),
+                    originatingPackage, originatingUri, options.getInstallScenario(), options.getPackageSource(),
+                    options.requestUpdateOwnership(), options.isDisableApkVerification())) {
+                return false;
             }
             Log.d(TAG, "Install: selected entries: %s", selectedSplitIds);
             // Write apk files
@@ -671,23 +695,24 @@ public final class PackageInstallerCompat {
                 long entrySize = entry.getFileSize(options.isSignApkFiles());
                 try (InputStream apkInputStream = entry.getInputStream(options.isSignApkFiles());
                      OutputStream apkOutputStream = mSession.openWrite(entry.getFileName(), 0, entrySize)) {
-                    FileUtils.copy(apkInputStream, apkOutputStream, totalSize, progressHandler);
+                    completedSize += FileUtils.copy(apkInputStream, apkOutputStream, totalSize,
+                            completedSize, progressHandler);
                     mSession.fsync(apkOutputStream);
                     Log.d(TAG, "Install: copied entry %s", entry.name);
                 } catch (IOException e) {
-                    callFinish(STATUS_FAILURE_SESSION_WRITE);
                     Log.e(TAG, "Install: Cannot copy files to session.", e);
-                    return abandon();
+                    return failAndAbandon(STATUS_FAILURE_SESSION_WRITE);
                 } catch (SecurityException e) {
-                    callFinish(STATUS_FAILURE_SECURITY);
                     Log.e(TAG, "Install: Cannot access apk files.", e);
-                    return abandon();
+                    return failAndAbandon(STATUS_FAILURE_SECURITY);
                 }
             }
+            finishCopyProgress(totalSize, progressHandler);
             Log.d(TAG, "Install: Running installation...");
             // Commit
             return commit(userId);
         } finally {
+            closeSession();
             unregisterReceiver();
             restoreVerifySettings();
         }
@@ -700,6 +725,25 @@ public final class PackageInstallerCompat {
     public boolean install(@NonNull Path[] apkFiles, @NonNull String packageName, @NonNull InstallerOptions options,
                            @Nullable ProgressHandler progressHandler) {
         ThreadUtils.ensureWorkerThread();
+        InstallerOptions attemptOptions = InstallerOptions.copyOf(options);
+        boolean disableVerification = options.isDisableApkVerification();
+        PackageVerifierSettingsCoordinator.acquire(disableVerification);
+        try {
+            mAttemptNumber = 1;
+            // Keep this call active across vendor retries and return only the final attempt's result.
+            while (true) {
+                boolean successful = installPathsAttempt(apkFiles, packageName, attemptOptions, progressHandler);
+                if (!prepareRetry(attemptOptions)) {
+                    return successful;
+                }
+            }
+        } finally {
+            PackageVerifierSettingsCoordinator.release(disableVerification);
+        }
+    }
+
+    private boolean installPathsAttempt(@NonNull Path[] apkFiles, @NonNull String packageName,
+                                        @NonNull InstallerOptions options, @Nullable ProgressHandler progressHandler) {
         try {
             mApkFile = null;
             mPackageName = Objects.requireNonNull(packageName);
@@ -715,7 +759,8 @@ public final class PackageInstallerCompat {
             Log.d(TAG, "Installing for users: %s", Arrays.toString(allRequestedUsers));
             for (int u : allRequestedUsers) {
                 if (!SelfPermissions.checkCrossUserPermission(u, true)) {
-                    installCompleted(mSessionId, STATUS_FAILURE_BLOCKED, "android", "STATUS_FAILURE_BLOCKED: Insufficient permission.");
+                    completeAttempt(mSessionId, STATUS_FAILURE_BLOCKED, "android",
+                            "STATUS_FAILURE_BLOCKED: Insufficient permission.");
                     Log.d(TAG, "Install: Requires INTERACT_ACROSS_USERS and INTERACT_ACROSS_USERS_FULL permissions.");
                     return false;
                 }
@@ -723,35 +768,39 @@ public final class PackageInstallerCompat {
             userId = allRequestedUsers[0];
             String originatingPackage = options.isSetOriginatingPackage() ? options.getOriginatingPackage() : null;
             Uri originatingUri = options.isSetOriginatingPackage() ? options.getOriginatingUri() : null;
-            if (!openSession(userId, installFlags, options.getInstallerName(),
-                    options.getInstallLocation(), originatingPackage, originatingUri,
-                    options.getInstallScenario(), options.getPackageSource(),
+            if (!openSession(userId, installFlags, options.getInstallerName(), options.getInstallLocation(),
+                    originatingPackage, originatingUri, options.getInstallScenario(), options.getPackageSource(),
                     options.requestUpdateOwnership(), options.isDisableApkVerification())) {
                 return false;
             }
             long totalSize = 0;
             for (Path apkFile : apkFiles) {
-                totalSize += apkFile.length();
+                totalSize = addSizes(totalSize, apkFile.length());
+            }
+            long completedSize = 0;
+            if (progressHandler != null && totalSize > 0) {
+                progressHandler.postUpdate(100, 0);
             }
             // Write apk files
             for (Path apkFile : apkFiles) {
                 try (InputStream apkInputStream = apkFile.openInputStream();
                      OutputStream apkOutputStream = mSession.openWrite(apkFile.getName(), 0, apkFile.length())) {
-                    FileUtils.copy(apkInputStream, apkOutputStream, totalSize, progressHandler);
+                    completedSize += FileUtils.copy(apkInputStream, apkOutputStream, totalSize,
+                            completedSize, progressHandler);
                     mSession.fsync(apkOutputStream);
                 } catch (IOException e) {
-                    callFinish(STATUS_FAILURE_SESSION_WRITE);
                     Log.e(TAG, "Install: Cannot copy files to session.", e);
-                    return abandon();
+                    return failAndAbandon(STATUS_FAILURE_SESSION_WRITE);
                 } catch (SecurityException e) {
-                    callFinish(STATUS_FAILURE_SECURITY);
                     Log.e(TAG, "Install: Cannot access apk files.", e);
-                    return abandon();
+                    return failAndAbandon(STATUS_FAILURE_SECURITY);
                 }
             }
+            finishCopyProgress(totalSize, progressHandler);
             // Commit
             return commit(userId);
         } finally {
+            closeSession();
             unregisterReceiver();
             restoreVerifySettings();
         }
@@ -766,48 +815,33 @@ public final class PackageInstallerCompat {
                 intentReceiver = new LocalIntentReceiver();
                 sender = intentReceiver.getIntentSender();
             } catch (Exception e) {
-                callFinish(STATUS_FAILURE_SESSION_COMMIT);
                 Log.e(TAG, "Commit: Could not commit session.", e);
-                return false;
+                return failAndAbandon(STATUS_FAILURE_SESSION_COMMIT);
             }
         } else {
             Log.d(TAG, "Commit: Calling activity to request permission...");
             intentReceiver = null;
             Intent callbackIntent = new Intent(PackageInstallerBroadcastReceiver.ACTION_PI_RECEIVER);
             callbackIntent.setPackage(BuildConfig.APPLICATION_ID);
-            PendingIntent pendingIntent = PendingIntentCompat.getBroadcast(mContext, 0, callbackIntent, 0, true);
+            setOperationIdentity(callbackIntent, mOperationId, "install_callback");
+            PendingIntent pendingIntent = PendingIntentCompat.getBroadcast(mContext,
+                    getOperationRequestCode(mOperationId), callbackIntent, 0, true);
             sender = pendingIntent.getIntentSender();
         }
         Log.d(TAG, "Commit: Committing...");
         try {
             mSession.commit(sender);
         } catch (Throwable e) {  // primarily RemoteException
-            callFinish(STATUS_FAILURE_SESSION_COMMIT);
             Log.e(TAG, "Commit: Could not commit session.", e);
-            return false;
+            return failAndAbandon(STATUS_FAILURE_SESSION_COMMIT);
         }
         if (intentReceiver == null) {
-            Log.d(TAG, "Commit: Waiting for user interaction...");
-            // Wait for user interaction (if needed)
-            try {
-                // Wait for user interaction
-                mInteractionWatcher.await();
-                // Wait for the installation to complete
-                mInstallWatcher.await(1, TimeUnit.MINUTES);
-            } catch (InterruptedException e) {
-                Log.e(TAG, "Installation interrupted.", e);
-            }
+            Log.d(TAG, "Commit: Waiting for user interaction and terminal result...");
+            awaitBroadcastResult("installation", true);
         } else {
-            Intent resultIntent = intentReceiver.getResult();
-            mFinalStatus = resultIntent.getIntExtra(PackageInstaller.EXTRA_STATUS, 0);
-            mStatusMessage = resultIntent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE);
+            awaitLocalResult(intentReceiver, "installation", true);
         }
         Log.d(TAG, "Commit: Finishing...");
-        // We might want to use {@code callFinish(finalStatus);} here, but it doesn't always work
-        // since the object is garbage collected almost immediately.
-        if (!mInstallCompleted) {
-            installCompleted(mSessionId, mFinalStatus, null, mStatusMessage);
-        }
         if (mFinalStatus == PackageInstaller.STATUS_SUCCESS && userId != UserHandleHidden.myUserId()) {
             BroadcastUtils.sendPackageAltered(ContextUtils.getContext(), new String[]{mPackageName});
         }
@@ -832,8 +866,7 @@ public final class PackageInstallerCompat {
             Log.e(TAG, "OpenSession: Could not get PackageInstaller.", e);
             return false;
         }
-        // Clean old sessions
-        cleanOldSessions();
+        PackageInstallerSessionRegistry.cleanupOrphanedSessions(mPackageInstaller);
         // Create install session
         SessionParams sessionParams = new SessionParams(SessionParams.MODE_FULL_INSTALL);
         if (disableVerification) {
@@ -898,6 +931,8 @@ public final class PackageInstallerCompat {
                 //noinspection deprecation
                 mSessionId = mPackageInstaller.createSession(sessionParams, installerPackageName, userId);
             }
+            PackageInstallerSessionRegistry.record(mSessionId);
+            mPkgInstallerReceiver.setSessionId(mSessionId);
             Log.d(TAG, "OpenSession: session id %d", mSessionId);
         } catch (RemoteException e) {
             callFinish(STATUS_FAILURE_SESSION_CREATE);
@@ -909,9 +944,8 @@ public final class PackageInstallerCompat {
                     new ProxyBinder(mPackageInstaller.openSession(mSessionId).asBinder()))));
             Log.d(TAG, "OpenSession: session opened.");
         } catch (RemoteException e) {
-            callFinish(STATUS_FAILURE_SESSION_CREATE);
             Log.e(TAG, "OpenSession: Failed to open install session.", e);
-            return false;
+            return failAndAbandon(STATUS_FAILURE_SESSION_CREATE);
         }
         sendStartedBroadcast(mPackageName, mSessionId);
         return true;
@@ -925,6 +959,7 @@ public final class PackageInstallerCompat {
                 Settings.Global.putInt(mContext.getContentResolver(), SETTINGS_VERIFIER_VERIFY_ADB_INSTALLS, 1);
             }
         }
+        mLastVerifyAdbInstallsResult = -1;
     }
 
     @InstallFlags
@@ -948,13 +983,14 @@ public final class PackageInstallerCompat {
     public boolean installExisting(@NonNull String packageName, @UserIdInt int userId) {
         ThreadUtils.ensureWorkerThread();
         mPackageName = Objects.requireNonNull(packageName);
+        resetOperationState();
         if (mOnInstallListener != null) {
             mOnInstallListener.onStartInstall(mSessionId, packageName);
         }
         mInstallWatcher = new CountDownLatch(0);
         mInteractionWatcher = new CountDownLatch(0);
         if (!SelfPermissions.canInstallExistingPackages()) {
-            installCompleted(mSessionId, STATUS_FAILURE_BLOCKED, "android", "STATUS_FAILURE_BLOCKED: Insufficient permission.");
+            completeAttempt(mSessionId, STATUS_FAILURE_BLOCKED, "android", "STATUS_FAILURE_BLOCKED: Insufficient permission.");
             Log.d(TAG, "InstallExisting: Requires INSTALL_PACKAGES permission.");
             return false;
         }
@@ -974,14 +1010,14 @@ public final class PackageInstallerCompat {
                 break;
             }
             case UserHandleHidden.USER_NULL:
-                installCompleted(mSessionId, STATUS_FAILURE_INVALID, null, "STATUS_FAILURE_INVALID: No user is selected.");
+                completeAttempt(mSessionId, STATUS_FAILURE_INVALID, null, "STATUS_FAILURE_INVALID: No user is selected.");
                 Log.d(TAG, "InstallExisting: No user is selected.");
                 return false;
             default:
                 try {
                     PackageManagerCompat.getPackageInfo(packageName,
                             PackageManagerCompat.MATCH_STATIC_SHARED_AND_SDK_LIBRARIES, userId);
-                    installCompleted(mSessionId, STATUS_FAILURE_ABORTED, null, "STATUS_FAILURE_ABORTED: Already installed.");
+                    completeAttempt(mSessionId, STATUS_FAILURE_ABORTED, null, "STATUS_FAILURE_ABORTED: Already installed.");
                     Log.d(TAG, "InstallExisting: Already installed.");
                     return false;
                 } catch (Throwable th) {
@@ -989,7 +1025,7 @@ public final class PackageInstallerCompat {
                 }
         }
         if (userIdWithoutInstalledPkg.isEmpty()) {
-            installCompleted(mSessionId, STATUS_FAILURE_INVALID, null, "STATUS_FAILURE_INVALID: Could not find a valid user to perform install-existing.");
+            completeAttempt(mSessionId, STATUS_FAILURE_INVALID, null, "STATUS_FAILURE_INVALID: Could not find a valid user to perform install-existing.");
             Log.d(TAG, "InstallExisting: Could not find any valid user.");
             return false;
         }
@@ -1003,14 +1039,14 @@ public final class PackageInstallerCompat {
         } else installReason = 0;
         for (int u : userIdWithoutInstalledPkg) {
             if (!SelfPermissions.checkCrossUserPermission(u, true)) {
-                installCompleted(mSessionId, STATUS_FAILURE_BLOCKED, "android", "STATUS_FAILURE_BLOCKED: Insufficient permission.");
+                completeAttempt(mSessionId, STATUS_FAILURE_BLOCKED, "android", "STATUS_FAILURE_BLOCKED: Insufficient permission.");
                 Log.d(TAG, "InstallExisting: Requires INTERACT_ACROSS_USERS and INTERACT_ACROSS_USERS_FULL permissions.");
                 return false;
             }
             try {
                 int res = PackageManagerCompat.installExistingPackageAsUser(packageName, u, installFlags, installReason, null);
                 if (res != 1 /* INSTALL_SUCCEEDED */) {
-                    installCompleted(mSessionId, res, null, null);
+                    completeAttempt(mSessionId, res, null, null);
                     Log.e(TAG, "InstallExisting: Install failed with code %d", res);
                     return false;
                 }
@@ -1018,21 +1054,19 @@ public final class PackageInstallerCompat {
                     BroadcastUtils.sendPackageAdded(ContextUtils.getContext(), new String[]{packageName});
                 }
             } catch (Throwable th) {
-                installCompleted(mSessionId, STATUS_FAILURE_ABORTED, null, "STATUS_FAILURE_ABORTED: " + th.getMessage());
+                completeAttempt(mSessionId, STATUS_FAILURE_ABORTED, null, "STATUS_FAILURE_ABORTED: " + th.getMessage());
                 Log.e(TAG, "InstallExisting: Could not install package for user %s", th, u);
                 return false;
             }
         }
-        installCompleted(mSessionId, STATUS_SUCCESS, null, null);
+        completeAttempt(mSessionId, STATUS_SUCCESS, null, null);
         return true;
     }
 
     @WorkerThread
-    private void copyObb(@NonNull ApkFile apkFile, @UserIdInt int userId) {
+    private void copyObb(@NonNull ApkFile apkFile, @UserIdInt int userId, long totalSize,
+                         long completedSize, @Nullable ProgressHandler progressHandler) {
         if (!apkFile.hasObb()) return;
-        boolean tmpCloseApkFile = mCloseApkFile;
-        // Disable closing apk file in case the installation is finished already.
-        mCloseApkFile = false;
         try {
             // Get writable OBB directory
             Path writableObbDir = ApkUtils.getOrCreateObbDir(mPackageName, userId);
@@ -1040,56 +1074,296 @@ public final class PackageInstallerCompat {
             for (Path oldFile : writableObbDir.listFiles()) {
                 oldFile.delete();
             }
-            apkFile.extractObb(writableObbDir);
+            long copiedSize = 0;
+            for (ApkFile.ObbEntry obbEntry : apkFile.getObbEntries()) {
+                Path destination = writableObbDir.findOrCreateFile(obbEntry.getFileName(), null);
+                try (InputStream inputStream = obbEntry.openInputStream();
+                     OutputStream outputStream = destination.openOutputStream()) {
+                    copiedSize += FileUtils.copy(inputStream, outputStream, totalSize,
+                            completedSize + copiedSize, progressHandler);
+                }
+            }
             ThreadUtils.postOnMainThread(() -> UIUtils.displayLongToast(R.string.obb_files_extracted_successfully));
         } catch (Exception e) {
             Log.e(TAG, e);
             ThreadUtils.postOnMainThread(() -> UIUtils.displayLongToast(R.string.failed_to_extract_obb_files));
         } finally {
-            if (mInstallWatcher.getCount() != 0) {
-                // Reset close apk file if the installation isn't completed
-                mCloseApkFile = tmpCloseApkFile;
-            } else {
-                // Install completed, close apk file if requested
-                if (tmpCloseApkFile) apkFile.close();
+            long obbSize = getObbSize(apkFile);
+            if (totalSize > 0 && obbSize >= 0 && progressHandler != null) {
+                progressHandler.postUpdate(100, (completedSize + obbSize) * 100f / totalSize);
             }
         }
     }
 
-    private void cleanOldSessions() {
-        if (Users.getSelfOrRemoteUid() != Process.myUid()) {
-            // Only clean sessions for this UID
-            return;
-        }
-        List<PackageInstaller.SessionInfo> sessionInfoList;
-        try {
-            sessionInfoList = mPackageInstaller.getMySessions(mContext.getPackageName(), UserHandleHidden.myUserId()).getList();
-        } catch (Throwable e) {
-            Log.w(TAG, "CleanOldSessions: Could not get previous sessions.", e);
-            return;
-        }
-        for (PackageInstaller.SessionInfo sessionInfo : sessionInfoList) {
-            try {
-                mPackageInstaller.abandonSession(sessionInfo.getSessionId());
-            } catch (Throwable e) {
-                Log.w(TAG, "CleanOldSessions: Unable to abandon session", e);
+    private static long getObbSize(@NonNull ApkFile apkFile) {
+        long totalSize = 0;
+        for (ApkFile.ObbEntry obbEntry : apkFile.getObbEntries()) {
+            totalSize = addSizes(totalSize, obbEntry.getFileSize());
+            if (totalSize < 0) {
+                return -1;
             }
+        }
+        return totalSize;
+    }
+
+    private static long addSizes(long first, long second) {
+        if (first < 0 || second < 0 || Long.MAX_VALUE - first < second) {
+            return -1;
+        }
+        return first + second;
+    }
+
+    private static long multiplyAndAddSizes(long size, int count, long additionalSize) {
+        if (size < 0 || additionalSize < 0 || (size != 0 && count > Long.MAX_VALUE / size)) {
+            return -1;
+        }
+        return addSizes(size * count, additionalSize);
+    }
+
+    private static void finishCopyProgress(long totalSize, @Nullable ProgressHandler progressHandler) {
+        if (totalSize > 0 && progressHandler != null) {
+            progressHandler.postUpdate(100, 100);
         }
     }
 
-    private boolean abandon() {
-        if (mSession != null) {
-            try {
-                mSession.close();
-            } catch (Exception e) {  // RemoteException
-                Log.e(TAG, "Abandon: Failed to abandon session.");
-            }
+    private boolean failAndAbandon(@Status int finalStatus) {
+        if (!claimAttemptCompletion(mSessionId)) {
+            return false;
         }
+        boolean abandoned = abandonOwnedSession();
+        finishClaimedAttempt(mSessionId, finalStatus, null, null, abandoned);
         return false;
     }
 
+    private boolean abandonOwnedSession() {
+        boolean abandoned = false;
+        if (mSession != null) {
+            try {
+                mSession.abandon();
+                abandoned = true;
+            } catch (Exception e) {
+                Log.e(TAG, "Abandon: Failed to abandon session.", e);
+            }
+            try {
+                mSession.close();
+            } catch (Exception e) {  // RemoteException
+                Log.e(TAG, "Abandon: Failed to close session.", e);
+            }
+            mSession = null;
+        }
+        if (!abandoned && mPackageInstaller != null && mSessionId >= 0) {
+            try {
+                mPackageInstaller.abandonSession(mSessionId);
+                abandoned = true;
+            } catch (Throwable e) {
+                Log.e(TAG, "Abandon: Failed to abandon session %d.", e, mSessionId);
+            }
+        }
+        if (abandoned) {
+            PackageInstallerSessionRegistry.forget(mSessionId);
+        }
+        return abandoned;
+    }
+
+    private void closeSession() {
+        if (mSession == null) {
+            return;
+        }
+        try {
+            mSession.close();
+        } catch (Exception e) {
+            Log.e(TAG, "Could not close package installer session.", e);
+        }
+        mSession = null;
+    }
+
+    static void applyRetryOptions(@NonNull PackageInstallerRetryPolicy.Action retryAction,
+                                  @NonNull InstallerOptions options) {
+        // HyperOS-begin: system-app retries must use another system app as installer.
+        if (retryAction == PackageInstallerRetryPolicy.Action.RETRY_WITH_SHELL_INSTALLER) {
+            options.setInstallerName("com.android.shell");
+        }
+        // HyperOS-end
+    }
+
+    private boolean prepareRetry(@NonNull InstallerOptions options) {
+        PackageInstallerRetryPolicy.Action retryAction = mRetryAction;
+        if (retryAction == PackageInstallerRetryPolicy.Action.FINISH) {
+            return false;
+        }
+        ++mAttemptNumber;
+        applyRetryOptions(retryAction, options);
+        if (retryAction == PackageInstallerRetryPolicy.Action.RETRY_WITH_SHELL_INSTALLER) {
+            Log.i(TAG, "HyperOS: Retrying %s with the shell installer (attempt %d).",
+                    mPackageName, mAttemptNumber);
+        } else {
+            Log.i(TAG, "MIUI: Retrying %s (attempt %d).", mPackageName, mAttemptNumber);
+        }
+        return true;
+    }
+
     private void callFinish(int result) {
-        sendCompletedBroadcast(mContext, mPackageName, result, mSessionId);
+        completeAttempt(mSessionId, result, null, null);
+    }
+
+    private void completeAttempt(int sessionId, int finalStatus, @Nullable String blockingPackage,
+                                 @Nullable String statusMessage) {
+        if (mSessionId != sessionId) {
+            Log.w(TAG, "Ignoring completion for stale session %d; current session is %d.",
+                    sessionId, mSessionId);
+            return;
+        }
+        if (!claimAttemptCompletion(sessionId)) {
+            Log.w(TAG, "Ignoring duplicate completion for session %d.", sessionId);
+            return;
+        }
+        finishClaimedAttempt(sessionId, finalStatus, blockingPackage, statusMessage, true);
+    }
+
+    boolean claimAttemptCompletion(int sessionId) {
+        return mSessionId == sessionId && mInstallCompleted.compareAndSet(false, true);
+    }
+
+    private void cancelAttempt(int sessionId, int finalStatus, @Nullable String blockingPackage,
+                               @Nullable String statusMessage) {
+        if (!claimAttemptCompletion(sessionId)) {
+            Log.w(TAG, "Ignoring stale or duplicate cancellation for session %d.", sessionId);
+            return;
+        }
+        boolean abandoned = abandonOwnedSession();
+        finishClaimedAttempt(sessionId, finalStatus, blockingPackage, statusMessage, abandoned);
+    }
+
+    private void finishClaimedAttempt(int sessionId, int finalStatus, @Nullable String blockingPackage,
+                                      @Nullable String statusMessage, boolean forgetSession) {
+        if (forgetSession) {
+            PackageInstallerSessionRegistry.forget(sessionId);
+        }
+        mFinalStatus = finalStatus;
+        mStatusMessage = statusMessage;
+        installCompleted(sessionId, finalStatus, blockingPackage, statusMessage);
+    }
+
+    private void awaitBroadcastResult(@NonNull String operationName, boolean abandonSessionOnTimeout) {
+        long deadlineNanos = System.nanoTime()
+                + TimeUnit.MINUTES.toNanos(COMPLETION_WATCHDOG_MINUTES);
+        if (!awaitUntil(mInteractionWatcher, deadlineNanos)) {
+            completeWatchdogFailure(operationName, abandonSessionOnTimeout,
+                    Thread.currentThread().isInterrupted());
+            return;
+        }
+        if (!mInstallCompleted.get() && !awaitUntil(mInstallWatcher, deadlineNanos)) {
+            completeWatchdogFailure(operationName, abandonSessionOnTimeout,
+                    Thread.currentThread().isInterrupted());
+        }
+    }
+
+    private boolean awaitUntil(@NonNull CountDownLatch latch, long deadlineNanos) {
+        long remainingNanos = deadlineNanos - System.nanoTime();
+        if (remainingNanos <= 0) {
+            return false;
+        }
+        try {
+            return latch.await(remainingNanos, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
+    }
+
+    private void awaitLocalResult(@NonNull LocalIntentReceiver intentReceiver,
+                                  @NonNull String operationName,
+                                  boolean abandonSessionOnTimeout) {
+        long deadlineNanos = System.nanoTime()
+                + TimeUnit.MINUTES.toNanos(COMPLETION_WATCHDOG_MINUTES);
+        while (!mInstallCompleted.get()) {
+            long remainingNanos = deadlineNanos - System.nanoTime();
+            Intent resultIntent = remainingNanos > 0
+                    ? intentReceiver.getResult(remainingNanos, TimeUnit.NANOSECONDS)
+                    : null;
+            if (resultIntent == null) {
+                completeWatchdogFailure(operationName, abandonSessionOnTimeout,
+                        Thread.currentThread().isInterrupted());
+                return;
+            }
+            int status = resultIntent.getIntExtra(PackageInstaller.EXTRA_STATUS,
+                    STATUS_FAILURE_INVALID);
+            Log.d(TAG, "Received local callback for session %d with status %d.", mSessionId, status);
+            if (status == PackageInstaller.STATUS_PENDING_USER_ACTION) {
+                // Some ROMs require confirmation even for a privileged install. Add the operation
+                // identity omitted by the local IntentSender and use the normal confirmation flow.
+                resultIntent.putExtra(EXTRA_OPERATION_ID, mOperationId);
+                if (!resultIntent.hasExtra(PackageInstaller.EXTRA_SESSION_ID)) {
+                    resultIntent.putExtra(PackageInstaller.EXTRA_SESSION_ID, mSessionId);
+                }
+                ThreadUtils.postOnMainThread(() -> mPkgInstallerReceiver.onReceive(mContext, resultIntent));
+                continue;
+            }
+            completeAttempt(mSessionId, status,
+                    resultIntent.getStringExtra(PackageInstaller.EXTRA_OTHER_PACKAGE_NAME),
+                    resultIntent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE));
+        }
+    }
+
+    private void completeWatchdogFailure(@NonNull String operationName, boolean abandonSession,
+                                         boolean interrupted) {
+        if (!mInstallCompleted.compareAndSet(false, true)) {
+            // A callback won at the watchdog boundary. Do not let the operation return until that
+            // winner has published the final status and completed listener/retry bookkeeping.
+            awaitClaimedCompletion();
+            return;
+        }
+        boolean liveSession = false;
+        boolean sessionStateKnown = false;
+        boolean sessionResolved = !abandonSession;
+        boolean abandonmentAttempted = false;
+        boolean sessionAbandoned = false;
+        if (abandonSession && mSessionId >= 0 && mPackageInstaller != null) {
+            try {
+                liveSession = mPackageInstaller.getSessionInfo(mSessionId) != null;
+                sessionStateKnown = true;
+            } catch (Throwable e) {
+                Log.w(TAG, "Could not query timed-out session %d.", e, mSessionId);
+            }
+            if (!sessionStateKnown || liveSession) {
+                abandonmentAttempted = true;
+                sessionAbandoned = abandonOwnedSession();
+                sessionResolved = sessionAbandoned;
+            } else {
+                sessionResolved = true;
+            }
+        }
+        String reason;
+        if (interrupted) {
+            reason = "Interrupted while waiting for " + operationName + " result.";
+        } else if (sessionAbandoned) {
+            reason = "Timed out waiting for " + operationName + " result; the session was abandoned.";
+        } else if (abandonmentAttempted) {
+            reason = "Timed out waiting for " + operationName
+                    + " result; the session could not be abandoned and remains tracked.";
+        } else if (!abandonSession) {
+            reason = "Timed out waiting for " + operationName + " result.";
+        } else {
+            reason = "Timed out waiting for " + operationName + " result; no active session remained.";
+        }
+        Log.e(TAG, reason);
+        finishClaimedAttempt(mSessionId, STATUS_FAILURE_ABORTED, null,
+                "STATUS_FAILURE_ABORTED: " + reason, sessionResolved);
+    }
+
+    private void awaitClaimedCompletion() {
+        boolean interrupted = false;
+        while (true) {
+            try {
+                mInstallWatcher.await();
+                break;
+            } catch (InterruptedException e) {
+                interrupted = true;
+            }
+        }
+        if (interrupted) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     private void installCompleted(int sessionId,
@@ -1097,44 +1371,17 @@ public final class PackageInstallerCompat {
                                   @Nullable String blockingPackage,
                                   @Nullable String statusMessage) {
         ThreadUtils.ensureWorkerThread();
-        if (finalStatus == STATUS_FAILURE_ABORTED
-                && mSessionId == sessionId
-                && mOnInstallListener != null) {
+        if (finalStatus == STATUS_FAILURE_ABORTED && mSessionId == sessionId) {
             boolean privileged = SelfPermissions.checkSelfPermission(Manifest.permission.INSTALL_PACKAGES);
-            // MIUI-begin: In MIUI 12.5 and 20.2.0, it might be required to try installing the APK files more than once.
-            if (!privileged
-                    && MiuiUtils.isActualMiuiVersionAtLeast("12.5", "20.2.0")
-                    && Objects.equals(statusMessage, "INSTALL_FAILED_ABORTED: Permission denied")
-                    && mAttempts <= 3) {
-                // Try once more
-                ++mAttempts;
-                Log.i(TAG, "MIUI: Installation attempt no %d for package %s", mAttempts, mPackageName);
+            PackageInstallerRetryPolicy.Action retryAction = PackageInstallerRetryPolicy.getAction(
+                    finalStatus, statusMessage, privileged,
+                    MiuiUtils.isActualMiuiVersionAtLeast("12.5", "20.2.0"), mAttemptNumber);
+            if (retryAction != PackageInstallerRetryPolicy.Action.FINISH) {
+                mRetryAction = retryAction;
                 mInteractionWatcher.countDown();
                 mInstallWatcher.countDown();
-                // Remove old broadcast receivers
-                unregisterReceiver();
-                mOnInstallListener.onAnotherAttemptInMiui(mApkFile);
                 return;
             }
-            // MIUI-end
-            // HyperOS-begin: In HyperOS 2.0, installer package needs to be altered
-            if (privileged
-                    // TODO: 1/10/25 Check for HyperOS?
-                    && statusMessage != null
-                    && statusMessage.startsWith("INSTALL_FAILED_HYPEROS_ISOLATION_VIOLATION: ")
-                    && mAttempts <= 2) {
-                // Try a second time with installer set to shell
-                ++mAttempts;
-                Log.i(TAG, "HyperOS: %s", statusMessage);
-                Log.i(TAG, "HyperOS: Second attempt for %s", mPackageName);
-                mInteractionWatcher.countDown();
-                mInstallWatcher.countDown();
-                // Remove old broadcast receivers
-                unregisterReceiver();
-                mOnInstallListener.onSecondAttemptInHyperOsWithoutInstaller(mApkFile);
-                return;
-            }
-            // HyperOS-end
         }
         // No need to check package name since it's been checked before
         if (finalStatus == STATUS_FAILURE_SESSION_CREATE || (mSessionId == sessionId)) {
@@ -1142,7 +1389,7 @@ public final class PackageInstallerCompat {
                 mOnInstallListener.onFinishedInstall(sessionId, mPackageName, finalStatus,
                         blockingPackage, statusMessage);
             }
-            if (mCloseApkFile && mApkFile != null) {
+            if (mApkFile != null) {
                 mApkFile.close();
             }
             mInteractionWatcher.countDown();
@@ -1160,7 +1407,7 @@ public final class PackageInstallerCompat {
         try {
             if (userId == UserHandleHidden.USER_ALL && Users.getAllUserIds().length > 1
                     && !SelfPermissions.checkSelfOrRemotePermission(ManifestCompat.permission.INTERACT_ACROSS_USERS_FULL)) {
-                installCompleted(mSessionId, STATUS_FAILURE_BLOCKED, "android", "STATUS_FAILURE_BLOCKED: Insufficient permission.");
+                completeAttempt(mSessionId, STATUS_FAILURE_BLOCKED, "android", "STATUS_FAILURE_BLOCKED: Insufficient permission.");
                 Log.d(TAG, "Uninstall: Requires INTERACT_ACROSS_USERS and INTERACT_ACROSS_USERS_FULL permissions.");
                 return false;
             }
@@ -1199,7 +1446,9 @@ public final class PackageInstallerCompat {
                 intentReceiver = null;
                 Intent callbackIntent = new Intent(PackageInstallerBroadcastReceiver.ACTION_PI_RECEIVER);
                 callbackIntent.setPackage(BuildConfig.APPLICATION_ID);
-                PendingIntent pendingIntent = PendingIntentCompat.getBroadcast(mContext, 0, callbackIntent, 0, true);
+                setOperationIdentity(callbackIntent, mOperationId, "uninstall_callback");
+                PendingIntent pendingIntent = PendingIntentCompat.getBroadcast(mContext,
+                        getOperationRequestCode(mOperationId), callbackIntent, 0, true);
                 sender = pendingIntent.getIntentSender();
             }
             Log.d(TAG, "Uninstall: Uninstalling...");
@@ -1216,25 +1465,12 @@ public final class PackageInstallerCompat {
                 return false;
             }
             if (intentReceiver == null) {
-                Log.d(TAG, "Uninstall: Waiting for user interaction...");
-                // Wait for user interaction (if needed)
-                try {
-                    // Wait for user interaction
-                    mInteractionWatcher.await();
-                    // Wait for the installation to complete
-                    mInstallWatcher.await(1, TimeUnit.MINUTES);
-                } catch (InterruptedException e) {
-                    Log.e(TAG, "Installation interrupted.", e);
-                }
+                Log.d(TAG, "Uninstall: Waiting for user interaction and terminal result...");
+                awaitBroadcastResult("uninstallation", false);
             } else {
-                Intent resultIntent = intentReceiver.getResult();
-                mFinalStatus = resultIntent.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE);
-                mStatusMessage = resultIntent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE);
+                awaitLocalResult(intentReceiver, "uninstallation", false);
             }
             Log.d(TAG, "Uninstall: Finished with status %d", mFinalStatus);
-            if (!mInstallCompleted) {
-                installCompleted(mSessionId, mFinalStatus, null, mStatusMessage);
-            }
             if (mFinalStatus == PackageInstaller.STATUS_SUCCESS && userId != UserHandleHidden.myUserId()) {
                 BroadcastUtils.sendPackageAltered(ContextUtils.getContext(), new String[]{packageName});
             }
@@ -1283,35 +1519,31 @@ public final class PackageInstallerCompat {
     }
 
     // https://cs.android.com/android/platform/superproject/+/master:frameworks/base/services/core/java/com/android/server/pm/PackageManagerShellCommand.java;l=3855;drc=d31ee388115d17c2fd337f2806b37390c7d29834
-    private static class LocalIntentReceiver {
+    static class LocalIntentReceiver {
         private final LinkedBlockingQueue<Intent> mResult = new LinkedBlockingQueue<>();
 
         private final IIntentSender.Stub mLocalSender = new IIntentSender.Stub() {
             @Override
             public int send(int code, Intent intent, String resolvedType, IIntentReceiver finishedReceiver, String requiredPermission) {
-                send(intent);
+                offerResult(intent);
                 return 0;
             }
 
             @Override
             public int send(int code, Intent intent, String resolvedType, IIntentReceiver finishedReceiver, String requiredPermission, Bundle options) {
-                send(intent);
+                offerResult(intent);
                 return 0;
             }
 
             @Override
             public void send(int code, Intent intent, String resolvedType, IBinder whitelistToken, IIntentReceiver finishedReceiver, String requiredPermission, Bundle options) {
-                send(intent);
-            }
-
-            public void send(Intent intent) {
-                try {
-                    mResult.offer(intent, 5, TimeUnit.SECONDS);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+                offerResult(intent);
             }
         };
+
+        void offerResult(@NonNull Intent intent) {
+            mResult.offer(intent);
+        }
 
         @SuppressWarnings("JavaReflectionMemberAccess")
         public IntentSender getIntentSender() throws Exception {
@@ -1319,11 +1551,13 @@ public final class PackageInstallerCompat {
                     .newInstance(mLocalSender.asBinder());
         }
 
-        public Intent getResult() {
+        @Nullable
+        public Intent getResult(long timeout, @NonNull TimeUnit unit) {
             try {
-                return mResult.take();
+                return mResult.poll(timeout, unit);
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                Thread.currentThread().interrupt();
+                return null;
             }
         }
     }
@@ -1336,14 +1570,15 @@ public final class PackageInstallerCompat {
     }
 
     private void initBroadcastReceiver() {
+        resetOperationState();
         mInstallWatcher = new CountDownLatch(1);
         mInteractionWatcher = new CountDownLatch(1);
         mPkgInstallerReceiver = new PackageInstallerBroadcastReceiver();
+        mPkgInstallerReceiver.setOperationId(mOperationId);
         mPkgInstallerReceiver.setAppLabel(mAppLabel);
         mPkgInstallerReceiver.setPackageName(mPackageName);
         ContextCompat.registerReceiver(mContext, mPkgInstallerReceiver,
-                new IntentFilter(PackageInstallerBroadcastReceiver.ACTION_PI_RECEIVER),
-                ContextCompat.RECEIVER_NOT_EXPORTED);
+                getPackageInstallerCallbackFilter(), ContextCompat.RECEIVER_NOT_EXPORTED);
         // Add receivers
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(ACTION_INSTALL_COMPLETED);
@@ -1353,21 +1588,70 @@ public final class PackageInstallerCompat {
         ContextCompat.registerReceiver(mContext, mBroadcastReceiver, intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED);
     }
 
+    private void resetOperationState() {
+        mSessionId = -1;
+        mFinalStatus = STATUS_FAILURE_INVALID;
+        mStatusMessage = null;
+        mInstallCompleted.set(false);
+        mRetryAction = PackageInstallerRetryPolicy.Action.FINISH;
+        mLastVerifyAdbInstallsResult = -1;
+    }
+
     private void sendStartedBroadcast(@NonNull String packageName, int sessionId) {
         Intent broadcastIntent = new Intent(ACTION_INSTALL_STARTED);
         broadcastIntent.setPackage(mContext.getPackageName());
+        broadcastIntent.putExtra(EXTRA_OPERATION_ID, mOperationId);
         broadcastIntent.putExtra(PackageInstaller.EXTRA_PACKAGE_NAME, packageName);
         broadcastIntent.putExtra(PackageInstaller.EXTRA_SESSION_ID, sessionId);
         mContext.sendBroadcast(broadcastIntent);
     }
 
-    static void sendCompletedBroadcast(@NonNull Context context, @NonNull String packageName, @Status int status,
-                                       int sessionId) {
+    static void sendCompletedBroadcast(@NonNull Context context, @NonNull String operationId,
+                                       @NonNull String packageName, @Status int status, int sessionId) {
         Intent broadcastIntent = new Intent(ACTION_INSTALL_COMPLETED);
         broadcastIntent.setPackage(context.getPackageName());
+        broadcastIntent.putExtra(EXTRA_OPERATION_ID, operationId);
         broadcastIntent.putExtra(PackageInstaller.EXTRA_PACKAGE_NAME, packageName);
         broadcastIntent.putExtra(PackageInstaller.EXTRA_STATUS, status);
         broadcastIntent.putExtra(PackageInstaller.EXTRA_SESSION_ID, sessionId);
         context.sendBroadcast(broadcastIntent);
+    }
+
+    static void setOperationIdentity(@NonNull Intent intent, @NonNull String operationId,
+                                     @NonNull String kind) {
+        intent.putExtra(EXTRA_OPERATION_ID, operationId);
+        // Use a unique data to let Android know that the intents are different.
+        intent.setData(new Uri.Builder()
+                .scheme(OPERATION_URI_SCHEME)
+                .authority(OPERATION_URI_AUTHORITY)
+                .appendPath(operationId)
+                .appendPath(kind)
+                .build());
+    }
+
+    @NonNull
+    static IntentFilter getPackageInstallerCallbackFilter() {
+        IntentFilter filter = new IntentFilter(PackageInstallerBroadcastReceiver.ACTION_PI_RECEIVER);
+        // An action-only filter does not match an intent carrying a data URI. PackageInstaller
+        // callbacks carry the operation URI used to keep their PendingIntents distinct.
+        filter.addDataScheme(OPERATION_URI_SCHEME);
+        filter.addDataAuthority(OPERATION_URI_AUTHORITY, null);
+        return filter;
+    }
+
+    @Nullable
+    static String getOperationId(@NonNull Intent intent) {
+        Uri data = intent.getData();
+        if (data != null
+                && OPERATION_URI_SCHEME.equals(data.getScheme())
+                && OPERATION_URI_AUTHORITY.equals(data.getAuthority())
+                && data.getPathSegments().size() >= 2) {
+            return data.getPathSegments().get(0);
+        }
+        return intent.getStringExtra(EXTRA_OPERATION_ID);
+    }
+
+    static int getOperationRequestCode(@NonNull String operationId) {
+        return operationId.hashCode() & Integer.MAX_VALUE;
     }
 }
