@@ -109,7 +109,8 @@ public class ImportExportRulesPreferences extends PreferenceFragment {
         mActivity = (SettingsActivity) requireActivity();
         ((Preference) Objects.requireNonNull(findPreference("export")))
                 .setOnPreferenceClickListener(preference -> {
-                    final String fileName = "app_manager_rules_export-" + DateUtils.formatDateTime(mActivity, System.currentTimeMillis()) + ".am.tsv";
+                    final String fileName = "app_manager_rules_export-"
+                            + DateUtils.formatDateTimeForFilename(mActivity, System.currentTimeMillis()) + ".am.tsv";
                     mExportRules.launch(fileName);
                     return true;
                 });
@@ -143,8 +144,6 @@ public class ImportExportRulesPreferences extends PreferenceFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setEnterTransition(new MaterialSharedAxis(MaterialSharedAxis.Z, true));
-        setReturnTransition(new MaterialSharedAxis(MaterialSharedAxis.Z, false));
     }
 
     @Override

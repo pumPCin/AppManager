@@ -124,10 +124,12 @@ public class InstallerPreferences extends PreferenceFragment {
             return true;
         });
         // Set installer app
+        boolean canSetInstallerApp = SelfPermissions.checkSelfOrRemotePermission(Manifest.permission.INSTALL_PACKAGES);
         mInstallerAppPref = Objects.requireNonNull(findPreference("installer_installer_app"));
-        mInstallerAppPref.setEnabled(SelfPermissions.checkSelfOrRemotePermission(Manifest.permission.INSTALL_PACKAGES));
+        mInstallerAppPref.setEnabled(canSetInstallerApp);
         mInstallerApp = Prefs.Installer.getInstallerPackageName();
-        mInstallerAppPref.setSummary(PackageUtils.getPackageLabel(mPm, mInstallerApp));
+        mInstallerAppPref.setSummary(PackageUtils.getPackageLabel(mPm,
+                canSetInstallerApp ? mInstallerApp : BuildConfig.APPLICATION_ID));
         mInstallerAppPref.setOnPreferenceClickListener(preference -> {
             new MaterialAlertDialogBuilder(requireActivity())
                     .setTitle(R.string.installer_app)
@@ -158,9 +160,10 @@ public class InstallerPreferences extends PreferenceFragment {
             return true;
         });
         // Disable verification
+        boolean canDisableVerification = SelfPermissions.isSystemOrRootOrShell();
         SwitchPreferenceCompat disableVerification = Objects.requireNonNull(findPreference("installer_disable_verification"));
-        disableVerification.setEnabled(SelfPermissions.isSystemOrRootOrShell());
-        disableVerification.setChecked(Prefs.Installer.isDisableApkVerification());
+        disableVerification.setEnabled(canDisableVerification);
+        disableVerification.setChecked(canDisableVerification && Prefs.Installer.isDisableApkVerification());
         // Update ownership
         SwitchPreferenceCompat updateOwnership = Objects.requireNonNull(findPreference("installer_update_ownership"));
         updateOwnership.setVisible(Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE);
@@ -217,9 +220,11 @@ public class InstallerPreferences extends PreferenceFragment {
         ((SwitchPreferenceCompat) Objects.requireNonNull(findPreference("installer_display_changes")))
                 .setChecked(Prefs.Installer.displayChanges());
         // Block trackers
+        boolean canBlockTrackers = SelfPermissions.canModifyAppComponentStates(
+                UserHandleHidden.myUserId(), null, true);
         SwitchPreferenceCompat blockTrackersPref = Objects.requireNonNull(findPreference("installer_block_trackers"));
-        blockTrackersPref.setVisible(SelfPermissions.canModifyAppComponentStates(UserHandleHidden.myUserId(), null, true));
-        blockTrackersPref.setChecked(Prefs.Installer.blockTrackers());
+        blockTrackersPref.setVisible(canBlockTrackers);
+        blockTrackersPref.setChecked(canBlockTrackers && Prefs.Installer.blockTrackers());
         // Running installer in the background
         SwitchPreferenceCompat backgroundPref = Objects.requireNonNull(findPreference("installer_always_on_background"));
         backgroundPref.setVisible(Utils.canDisplayNotification(requireContext()));
@@ -236,8 +241,6 @@ public class InstallerPreferences extends PreferenceFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setEnterTransition(new MaterialSharedAxis(MaterialSharedAxis.Z, true));
-        setReturnTransition(new MaterialSharedAxis(MaterialSharedAxis.Z, false));
     }
 
     @Override

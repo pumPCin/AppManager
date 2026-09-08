@@ -2,7 +2,11 @@
 
 package io.github.muntashirakon.AppManager.apk.installer;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.annotation.UserIdInt;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageInstaller;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -19,15 +23,130 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import io.github.muntashirakon.AppManager.BuildConfig;
+import io.github.muntashirakon.AppManager.apk.signing.Signer;
 import io.github.muntashirakon.AppManager.history.IJsonSerializer;
 import io.github.muntashirakon.AppManager.history.JsonDeserializer;
+import io.github.muntashirakon.AppManager.self.SelfPermissions;
 import io.github.muntashirakon.AppManager.settings.Prefs;
+import io.github.muntashirakon.AppManager.users.Users;
+import io.github.muntashirakon.AppManager.utils.ArrayUtils;
 import io.github.muntashirakon.AppManager.utils.JSONUtils;
 
 public class InstallerOptions implements Parcelable, IJsonSerializer {
     @NonNull
     public static InstallerOptions getDefault() {
         return new InstallerOptions();
+    }
+
+    @NonNull
+    public static InstallerOptions copyOf(@NonNull InstallerOptions options) {
+        return new InstallerOptions(options);
+    }
+
+    /**
+     * Returns a snapshot containing only options that can be honored with the current privileges.
+     * The requested options are not modified.
+     */
+    @NonNull
+    public static InstallerOptions resolveEffectiveOptions(@NonNull InstallerOptions requestedOptions,
+                                                            @Nullable String packageName,
+                                                            boolean isTestOnly) {
+        int requestedUserId = requestedOptions.getUserId();
+        int currentUserId = UserHandleHidden.myUserId();
+        boolean canTargetRequestedUser;
+        try {
+            canTargetRequestedUser = requestedUserId != UserHandleHidden.USER_NULL
+                    && SelfPermissions.checkCrossUserPermission(requestedUserId, true);
+        } catch (IllegalArgumentException ignore) {
+            canTargetRequestedUser = false;
+        }
+        if (canTargetRequestedUser && requestedUserId >= 0 && requestedUserId != currentUserId
+                && !ArrayUtils.contains(Users.getAllUserIds(), requestedUserId)) {
+            canTargetRequestedUser = false;
+        }
+        int effectiveUserId = canTargetRequestedUser ? requestedUserId : currentUserId;
+        return resolveEffectiveOptions(requestedOptions, currentUserId,
+                canTargetRequestedUser,
+                SelfPermissions.checkSelfOrRemotePermission(Manifest.permission.INSTALL_PACKAGES),
+                SelfPermissions.isSystemOrRootOrShell(), Signer.canSign(),
+                canBlockTrackers(effectiveUserId, packageName, isTestOnly));
+    }
+
+    @NonNull
+    static InstallerOptions resolveEffectiveOptions(@NonNull InstallerOptions requestedOptions,
+                                                     @UserIdInt int currentUserId,
+                                                     boolean canTargetRequestedUser,
+                                                     boolean canSetInstallerName,
+                                                     boolean canDisableVerification,
+                                                     boolean canSignApks,
+                                                     boolean canBlockTrackers) {
+        InstallerOptions effectiveOptions = copyOf(requestedOptions);
+        if (!canTargetRequestedUser) {
+            effectiveOptions.setUserId(currentUserId);
+        }
+        if (!canSetInstallerName) {
+            effectiveOptions.setInstallerName(BuildConfig.APPLICATION_ID);
+        }
+        if (!canDisableVerification) {
+            effectiveOptions.setDisableApkVerification(false);
+        }
+        if (!canSignApks) {
+            effectiveOptions.setSignApkFiles(false);
+        }
+        if (!canBlockTrackers) {
+            effectiveOptions.setBlockTrackers(false);
+        }
+        return effectiveOptions;
+    }
+
+    public static boolean canBlockTrackers(@UserIdInt int userId, @Nullable String packageName,
+                                           boolean isTestOnly) {
+        if (userId != UserHandleHidden.USER_ALL) {
+            return SelfPermissions.canModifyAppComponentStates(userId, packageName, isTestOnly);
+        }
+        for (int targetUserId : Users.getAllUserIds()) {
+            if (!SelfPermissions.canModifyAppComponentStates(targetUserId, packageName, isTestOnly)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static int normalizeInstallLocation(int installLocation) {
+        switch (installLocation) {
+            case PackageInfo.INSTALL_LOCATION_AUTO:
+            case PackageInfo.INSTALL_LOCATION_INTERNAL_ONLY:
+            case PackageInfo.INSTALL_LOCATION_PREFER_EXTERNAL:
+                return installLocation;
+            default:
+                return PackageInfo.INSTALL_LOCATION_AUTO;
+        }
+    }
+
+    @SuppressLint("InlinedApi")
+    public static int normalizePackageSource(int packageSource) {
+        switch (packageSource) {
+            case PackageInstaller.PACKAGE_SOURCE_UNSPECIFIED:
+            case PackageInstaller.PACKAGE_SOURCE_OTHER:
+            case PackageInstaller.PACKAGE_SOURCE_STORE:
+            case PackageInstaller.PACKAGE_SOURCE_LOCAL_FILE:
+            case PackageInstaller.PACKAGE_SOURCE_DOWNLOADED_FILE:
+                return packageSource;
+            default:
+                return PackageInstaller.PACKAGE_SOURCE_UNSPECIFIED;
+        }
+    }
+
+    @SuppressLint("InlinedApi")
+    public static int normalizeInstallScenario(int installScenario) {
+        switch (installScenario) {
+            case PackageManager.INSTALL_SCENARIO_DEFAULT:
+            case PackageManager.INSTALL_SCENARIO_FAST:
+            case PackageManager.INSTALL_SCENARIO_BULK:
+                return installScenario;
+            default:
+                return PackageManager.INSTALL_SCENARIO_DEFAULT;
+        }
     }
 
     @UserIdInt
@@ -50,12 +169,12 @@ public class InstallerOptions implements Parcelable, IJsonSerializer {
 
     private InstallerOptions() {
         mUserId = UserHandleHidden.myUserId();
-        mInstallLocation = Prefs.Installer.getInstallLocation();
+        setInstallLocation(Prefs.Installer.getInstallLocation());
         mInstallerName = Prefs.Installer.getInstallerPackageName();
         mOriginatingPackage = null;
         mOriginatingUri = null;
         mSetOriginatingPackage = Prefs.Installer.isSetOriginatingPackage();
-        mPackageSource = Prefs.Installer.getPackageSource();
+        setPackageSource(Prefs.Installer.getPackageSource());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             // If the user is always installing apps in the background, we expect that the user does
             // want to install an app quite fast.
@@ -72,13 +191,13 @@ public class InstallerOptions implements Parcelable, IJsonSerializer {
 
     protected InstallerOptions(@NonNull Parcel in) {
         mUserId = in.readInt();
-        mInstallLocation = in.readInt();
+        setInstallLocation(in.readInt());
         mInstallerName = in.readString();
         mOriginatingPackage = in.readString();
         mOriginatingUri = ParcelCompat.readParcelable(in, Uri.class.getClassLoader(), Uri.class);
         mSetOriginatingPackage = ParcelCompat.readBoolean(in);
-        mPackageSource = in.readInt();
-        mInstallScenario = in.readInt();
+        setPackageSource(in.readInt());
+        setInstallScenario(in.readInt());
         mRequestUpdateOwnership = ParcelCompat.readBoolean(in);
         mDisableApkVerification = ParcelCompat.readBoolean(in);
         mSignApkFiles = ParcelCompat.readBoolean(in);
@@ -86,15 +205,15 @@ public class InstallerOptions implements Parcelable, IJsonSerializer {
         mBlockTrackers = ParcelCompat.readBoolean(in);
     }
 
-    public void copy(@NonNull InstallerOptions options) {
+    private InstallerOptions(@NonNull InstallerOptions options) {
         mUserId = options.mUserId;
-        mInstallLocation = options.mInstallLocation;
+        setInstallLocation(options.mInstallLocation);
         mInstallerName = options.mInstallerName;
         mOriginatingPackage = options.mOriginatingPackage;
         mOriginatingUri = options.mOriginatingUri;
         mSetOriginatingPackage = options.mSetOriginatingPackage;
-        mPackageSource = options.mPackageSource;
-        mInstallScenario = options.mInstallScenario;
+        setPackageSource(options.mPackageSource);
+        setInstallScenario(options.mInstallScenario);
         mRequestUpdateOwnership = options.mRequestUpdateOwnership;
         mDisableApkVerification = options.mDisableApkVerification;
         mSignApkFiles = options.mSignApkFiles;
@@ -121,14 +240,15 @@ public class InstallerOptions implements Parcelable, IJsonSerializer {
 
     protected InstallerOptions(@NonNull JSONObject jsonObject) throws JSONException {
         mUserId = jsonObject.getInt("user_id");
-        mInstallLocation = jsonObject.getInt("install_location");
+        setInstallLocation(jsonObject.getInt("install_location"));
         mInstallerName = JSONUtils.optString(jsonObject, "installer_name", null);
         mOriginatingPackage = JSONUtils.optString(jsonObject, "originating_package");
         String originatingUri = JSONUtils.optString(jsonObject, "originating_uri", null);
         mOriginatingUri = originatingUri != null ? Uri.parse(originatingUri) : null;
-        mSetOriginatingPackage = jsonObject.optBoolean("set_originating_package", Prefs.Installer.isSetOriginatingPackage());
-        mPackageSource = jsonObject.getInt("package_source");
-        mInstallScenario = jsonObject.getInt("install_scenario");
+        mSetOriginatingPackage = jsonObject.optBoolean("set_originating_package",
+                Prefs.Installer.isSetOriginatingPackage());
+        setPackageSource(jsonObject.getInt("package_source"));
+        setInstallScenario(jsonObject.getInt("install_scenario"));
         mRequestUpdateOwnership = jsonObject.getBoolean("request_update_ownership");
         mDisableApkVerification = jsonObject.getBoolean("disable_apk_verification");
         mSignApkFiles = jsonObject.getBoolean("sign_apk_files");
@@ -190,7 +310,7 @@ public class InstallerOptions implements Parcelable, IJsonSerializer {
     }
 
     public void setInstallLocation(int installLocation) {
-        mInstallLocation = installLocation;
+        mInstallLocation = normalizeInstallLocation(installLocation);
     }
 
     @NonNull
@@ -233,7 +353,7 @@ public class InstallerOptions implements Parcelable, IJsonSerializer {
     }
 
     public void setPackageSource(int packageSource) {
-        mPackageSource = packageSource;
+        mPackageSource = normalizePackageSource(packageSource);
     }
 
     public int getInstallScenario() {
@@ -241,7 +361,7 @@ public class InstallerOptions implements Parcelable, IJsonSerializer {
     }
 
     public void setInstallScenario(int installScenario) {
-        mInstallScenario = installScenario;
+        mInstallScenario = normalizeInstallScenario(installScenario);
     }
 
     public boolean requestUpdateOwnership() {

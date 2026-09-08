@@ -64,9 +64,6 @@
         android:name="android.permission.GRANT_RUNTIME_PERMISSIONS"
         tools:ignore="ProtectedPermissions" />
     <uses-permission
-        android:name="android.permission.INJECT_EVENTS"
-        tools:ignore="ProtectedPermissions" />
-    <uses-permission
         android:name="com.android.permission.INSTALL_EXISTING_PACKAGES"
         tools:ignore="ProtectedPermissions" />
     <uses-permission
@@ -324,6 +321,12 @@
                 <data android:pathPattern="/.*\..*\.SMALI" />
                 <data android:pathPattern="/.*\..*\.smali" />
                 <data android:pathPattern="/.*\..*\.smali?.*" />
+                <data android:pathPattern="/.*\.BAT" />
+                <data android:pathPattern="/.*\.bat" />
+                <data android:pathPattern="/.*\.bat?.*" />
+                <data android:pathPattern="/.*\..*\.BAT" />
+                <data android:pathPattern="/.*\..*\.bat" />
+                <data android:pathPattern="/.*\..*\.bat?.*" />
                 <data android:pathPattern="/.*\.CSS" />
                 <data android:pathPattern="/.*\.css" />
                 <data android:pathPattern="/.*\.css?.*" />
@@ -1120,6 +1123,22 @@
                 <category android:name="android.intent.category.APP_MUSIC" />
             </intent-filter>
         </activity>
+        <activity-alias
+            android:name=".intercept.BrowserInterceptor"
+            android:enabled="true"
+            android:exported="true"
+            android:label="@string/interceptor"
+            android:targetActivity=".intercept.ActivityInterceptor">
+            <intent-filter android:order="100">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+            </intent-filter>
+        </activity-alias>
         <activity
             android:name=".misc.HelpActivity"
             android:enableOnBackInvokedCallback="true"
@@ -1370,13 +1389,21 @@
         <service
             android:name=".servermanager.WifiWaitService"
             android:exported="false"
-            android:foregroundServiceType="dataSync|specialUse"
-            tools:targetApi="30" />
+            android:foregroundServiceType="specialUse"
+            tools:targetApi="30">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Wait for Wi-Fi after boot and restore the user-configured wireless ADB connection" />
+        </service>
         <service
             android:name=".adb.AdbPairingService"
             android:exported="false"
-            android:foregroundServiceType="dataSync|specialUse"
-            tools:targetApi="r" />
+            android:foregroundServiceType="specialUse"
+            tools:targetApi="r">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Discover and pair with this device's wireless ADB daemon using a user-provided pairing code" />
+        </service>
 
         <receiver
             android:name=".servermanager.ServerStatusChangeReceiver"

@@ -865,6 +865,13 @@
     <string name="has_net_policy">Net policy</string>
     <string name="net_policy">Net policy</string>
     <string name="initializing">Initializing…</string>
+    <string name="determining_working_mode">Determining working mode…</string>
+    <string name="enabling_wireless_debugging">Enabling wireless debugging…</string>
+    <string name="wireless_debugging_setup_required">Wireless debugging setup required…</string>
+    <string name="connecting_to_adb">Connecting to ADB…</string>
+    <string name="pairing_with_adb">Pairing with ADB…</string>
+    <string name="incomplete_usb_debugging">USB debugging setup incomplete…</string>
+    <string name="launching">Launching…</string>
     <string name="add_to_profile">Add to profile</string>
     <string name="add">Add</string>
     <string name="os_version">OS version</string>
@@ -1444,8 +1451,6 @@
     <string name="choose_a_profile_state">Select a profile state</string>
     <string name="profile_id">Profile ID</string>
     <string name="copy_profile_id">Copy profile ID</string>
-    <string name="launch_activity_dialog_title">Launch activity: action required</string>
-    <string name="launch_activity_dialog_message">App Manager is trying to launch the activity via <b>Search assistant</b> (usually Google Assistant), but it\'s unable to do so due to insufficient permission. To open the activity, please activate <b>Search assistant</b> manually (which is usually done by long clicking on the Home button). Click on the <b>Close</b> button after you\'ve finished launching the activity to revert back to the original assistant.</string>
     <string name="finder_title">Finder</string>
     <string name="select_filter">Select a filter</string>
     <string name="size_in_bytes">Size (bytes)</string>
@@ -1474,6 +1479,15 @@
     <string name="adb_pairing_found_pairing_service_with_port">Found a service with port %d</string>
     <string name="adb_pairing_pairing_in_progress">Pairing…</string>
     <string name="adb_pairing_retry_pairing">Retry</string>
+    <string name="adb_pairing_notifications_required_title">Notifications required</string>
+    <string name="adb_pairing_notifications_required_message">Wireless debugging pairing requires notifications so that App Manager can securely ask for the pairing code. Enable notifications, then try pairing again.</string>
+    <string name="adb_pairing_split_screen_title">Pair using split screen</string>
+    <string name="adb_pairing_split_screen_message">App Manager and the Wireless debugging pairing dialog must remain visible at the same time. Keep this window open while App Manager opens Developer options beside it.</string>
+    <string name="adb_pairing_enable_split_screen_message">This device cannot use notification-based pairing. Enable split-screen or freeform mode for App Manager, keep App Manager open in that mode, and then try pairing again.</string>
+    <string name="adb_pairing_unavailable_title">Wireless pairing unavailable</string>
+    <string name="adb_pairing_unavailable_message">This device supports neither notification-based pairing nor the multi-window mode required to enter a pairing code. As an alternative, you can use ADB over TCP if it has already been enabled.</string>
+    <string name="adb_pairing_code_or_port_empty">Pairing code and port cannot be empty.</string>
+    <string name="adb_pairing_code_invalid">The pairing code must contain six digits.</string>
     <string name="mode_of_op_custom_command_title">Custom command</string>
     <string name="mode_of_op_custom_command">If you are unable to use any of the modes, you can run the following command in any supported shell to run App Manager in privileged mode:</string>
     <string name="sensors">Sensors</string>
@@ -1557,4 +1571,6 @@
     <string name="adb_pairing_title">Pair App Manager using Wi-Fi</string>
     <string name="manual_wireless_debugging_instructions">App Manager was unable to connect automatically using wireless debugging. Click <b>Pair</b> if you haven\'t paired App Manager using Wi-Fi or if the authorization was revoked. Otherwise click <b>Connect</b> to manually enter the port number. You can also use the button at the top to navigate to the wireless debugging setting.</string>
     <string name="manual_wireless_debugging_title">Connect using Wireless Debugging</string>
+    <string name="launch_activity_dialog_title">Launch activity: action required</string>
+    <string name="launch_activity_dialog_message">Android 5.x cannot trigger the <b>Search assistant</b> automatically. To open the activity, activate the Search assistant manually (usually by long-pressing the Home button). Tap <b>Close</b> after the activity opens to restore the original assistant.</string>
 </resources>
