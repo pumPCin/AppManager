@@ -39,7 +39,7 @@ class LoggerImpl implements Logger {
     }
 
     public boolean isDebugEnabled() {
-        return BuildConfig.DEBUG;
+        return false; //BuildConfig.DEBUG;
     }
 
     public void debug(String msg) {
