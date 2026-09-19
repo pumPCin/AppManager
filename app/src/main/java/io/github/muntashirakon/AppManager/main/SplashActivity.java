@@ -38,7 +38,7 @@ import io.github.muntashirakon.AppManager.crypto.ks.KeyStoreActivity;
 import io.github.muntashirakon.AppManager.crypto.ks.KeyStoreManager;
 import io.github.muntashirakon.AppManager.logs.Log;
 import io.github.muntashirakon.AppManager.self.SelfPermissions;
-import io.github.muntashirakon.AppManager.self.life.BuildExpiryChecker;
+//import io.github.muntashirakon.AppManager.self.life.BuildExpiryChecker;
 import io.github.muntashirakon.AppManager.settings.Ops;
 import io.github.muntashirakon.AppManager.settings.Prefs;
 import io.github.muntashirakon.AppManager.settings.SecurityAndOpsViewModel;
@@ -82,11 +82,11 @@ public class SplashActivity extends AppCompatActivity {
             finish();
             return;
         }
-        if (Boolean.TRUE.equals(BuildExpiryChecker.buildExpired())) {
+        //if (Boolean.TRUE.equals(BuildExpiryChecker.buildExpired())) {
             // Build has expired
-            BuildExpiryChecker.getBuildExpiredDialog(this, (dialog, which) -> doAuthenticate()).show();
-            return;
-        }
+            //BuildExpiryChecker.getBuildExpiredDialog(this, (dialog, which) -> doAuthenticate()).show();
+            //return;
+        //}
         // Init permission checks
         if (!initPermissionChecks()) {
             // Run authentication

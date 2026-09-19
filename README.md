@@ -8,7 +8,7 @@
 
 <p align=center>
   <a href="https://muntashirakon.github.io/AppManager">Docs</a> ·
-  <a href="https://github.com/MuntashirAkon/AppManager/releases">Releases</a> ·
+  <a href="https://github.com/pumPCin/AppManager/releases">Releases</a> ·
   <a href="https://t.me/AppManagerChannel">Telegram Channel</a>
 </p>
 

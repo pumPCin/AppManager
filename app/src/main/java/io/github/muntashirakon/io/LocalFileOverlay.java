@@ -84,11 +84,11 @@ final class LocalFileOverlay {
     private static final HashMap<String, String[]> sPathReadOnlyMap = new HashMap<String, String[]>() {{
         int userId = UserHandleHidden.myUserId();
         String appId;
-        try {
-            appId = (String) Class.forName("io.github.muntashirakon.AppManager.BuildConfig").getDeclaredField("APPLICATION_ID").get(null);
-        } catch (Exception e) {
-            appId = "io.github.muntashirakon.AppManager" + (BuildConfig.DEBUG ? ".debug" : "");
-        }
+        //try {
+            //appId = (String) Class.forName("io.github.muntashirakon.AppManager.BuildConfig").getDeclaredField("APPLICATION_ID").get(null);
+        //} catch (Exception e) {
+            appId = "io.github.muntashirakon.AppManager"; // + (BuildConfig.DEBUG ? ".debug" : "");
+        //}
         put("/", ROOT_FILES); // Permission denied
         put("/apex", APEX_PKGS); // Permission denied
         put("/data", DATA_FILES); // Permission denied

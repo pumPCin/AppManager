@@ -30,7 +30,7 @@ const BASE_DIR = RAW_DIR . '/en';
 
 // Deployment
 const DIST_DIR = './docs/dist';
-const DIST_REPO = 'git@github.com:MuntashirAkon/AppManager.git';
+const DIST_REPO = 'git@github.com:pumPCin/AppManager.git';
 const DIST_BRANCH = 'pages';
 
 /**
