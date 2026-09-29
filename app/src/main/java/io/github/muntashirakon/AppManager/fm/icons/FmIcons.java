@@ -12,6 +12,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.pdf.PdfRenderer;
 import android.net.Uri;
+import android.os.ParcelFileDescriptor;
 import android.provider.DocumentsContract;
 
 import androidx.annotation.DrawableRes;
@@ -21,6 +22,7 @@ import androidx.core.util.Pair;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -322,7 +324,13 @@ final class FmIcons {
         }
         try {
             Typeface typeface = Typeface.createFromFile(file.first);
+            if (typeface == null || Typeface.DEFAULT.equals(typeface)) {
+                return null;
+            }
             return UIUtils.generateBitmapFromText(text, typeface);
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            return null;
         } finally {
             if (file.second) {
                 file.first.delete();
@@ -332,29 +340,22 @@ final class FmIcons {
 
     @Nullable
     public static Bitmap generatePdfBitmap(@NonNull Context context, @NonNull Uri uri) {
-        PdfRenderer renderer;
-        try {
-            renderer = new PdfRenderer(FileUtils.getFdFromUri(context, uri, "r"));
-        } catch (IOException e) {
+        try (ParcelFileDescriptor descriptor = FileUtils.getFdFromUri(context, uri, "r");
+             PdfRenderer renderer = new PdfRenderer(descriptor);
+             PdfRenderer.Page page = renderer.openPage(0)) {
+            int srcWidth = page.getWidth();
+            int srcHeight = page.getHeight();
+            if (srcWidth <= 0 || srcHeight <= 0) {
+                return null;
+            }
+            Bitmap bitmap = Bitmap.createBitmap(srcWidth, srcHeight, Bitmap.Config.ARGB_8888);
+            bitmap.eraseColor(Color.WHITE);
+            page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+            return bitmap;
+        } catch (IOException | RuntimeException e) {
             e.printStackTrace();
             return null;
         }
-        PdfRenderer.Page page;
-        try {
-            page = renderer.openPage(0);
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-            return null;
-        }
-        int srcWidth = page.getWidth();
-        int srcHeight = page.getHeight();
-        if (srcWidth <= 0 || srcHeight <= 0) {
-            return null;
-        }
-        Bitmap bitmap = Bitmap.createBitmap(srcWidth, srcHeight, Bitmap.Config.ARGB_8888);
-        bitmap.eraseColor(Color.WHITE);
-        page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
-        return bitmap;
     }
 
     @Nullable
@@ -396,7 +397,9 @@ final class FmIcons {
         try (ZipFile zipFile = new ZipFile(file.first)) {
             ZipEntry coverEntry = zipFile.getEntry("Thumbnails/thumbnail.png");
             if (coverEntry != null) {
-                return BitmapFactory.decodeStream(zipFile.getInputStream(coverEntry));
+                try (InputStream input = zipFile.getInputStream(coverEntry)) {
+                    return BitmapFactory.decodeStream(input);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -432,7 +435,9 @@ final class FmIcons {
         try (ZipFile zipFile = new ZipFile(file.first)) {
             ZipEntry iconEntry = zipFile.getEntry("icon.png");
             if (iconEntry != null) {
-                return BitmapFactory.decodeStream(zipFile.getInputStream(iconEntry));
+                try (InputStream input = zipFile.getInputStream(iconEntry)) {
+                    return BitmapFactory.decodeStream(input);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -453,7 +458,9 @@ final class FmIcons {
         try (ZipFile zipFile = new ZipFile(file.first)) {
             ZipEntry iconEntry = zipFile.getEntry("icon.png");
             if (iconEntry != null) {
-                return BitmapFactory.decodeStream(zipFile.getInputStream(iconEntry));
+                try (InputStream input = zipFile.getInputStream(iconEntry)) {
+                    return BitmapFactory.decodeStream(input);
+                }
             }
             // Load as ApkFile
             UriApkSource apkSource = new UriApkSource(Uri.fromFile(file.first), path.getType());
