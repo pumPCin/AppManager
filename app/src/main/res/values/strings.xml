@@ -89,7 +89,7 @@
     <string name="license">License</string>
     <string name="license_message" translatable="false"><a href="https://www.gnu.org/licenses/gpl-3.0.html">GNU General
         Public License v3.0</a></string>
-    <string name="copyright_message" translatable="false">© 2020–2025 <a href="https://github.com/MuntashirAkon">Muntashir Al-Islam</a></string>
+    <string name="copyright_message" translatable="false">© 2020–2026 <a href="https://github.com/MuntashirAkon">Muntashir Al-Islam</a></string>
     <string name="third_party">Third-party libraries and icons</string>
     <string name="third_party_message" translatable="false">-
         <a href="https://github.com/zhanghai/AndroidFastScroll">AndroidFastScroll</a> (Apache 2.0)
@@ -1405,8 +1405,7 @@
         <item quantity="other">%d files</item>
     </plurals>
     <string name="go_to_path">Go to…</string>
-    <string name="pdf_zoom_in">Zoom in</string>
-    <string name="pdf_zoom_out">Zoom out</string>
+    <string name="pdf_fit_width">Fit to width</string>
     <string name="pdf_go_to_page">Go to page…</string>
     <string name="pdf_print">Print</string>
     <string name="pdf_export_format">Export format</string>
