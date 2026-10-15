@@ -89,7 +89,7 @@
     <string name="license">Лицензия</string>
     <string name="license_message" translatable="false"><a href="https://www.gnu.org/licenses/gpl-3.0.html">GNU General
         Public License v3.0</a></string>
-    <string name="copyright_message" translatable="false">© 2020–2025 <a href="https://github.com/MuntashirAkon">Muntashir Al-Islam</a></string>
+    <string name="copyright_message" translatable="false">© 2020–2026 <a href="https://github.com/MuntashirAkon">Muntashir Al-Islam</a></string>
     <string name="third_party">Сторонние библиотеки и значки</string>
     <string name="third_party_message" translatable="false">-
         <a href="https://github.com/zhanghai/AndroidFastScroll">AndroidFastScroll</a> (Apache 2.0)
@@ -1154,9 +1154,12 @@
     <string name="vt_uploading">VirusTotal: загрузка…</string>
     <string name="vt_queued">VirusTotal: в очереди</string>
     <string name="vt_failed">VirusTotal: сбой</string>
+    <string name="vt_pending_consent">VirusTotal: ожидание согласия на загрузку</string>
+    <string name="vt_cancelled">VirusTotal: отменено</string>
     <string name="vt_success">VirusTotal: %1$d/%2$d</string>
     <string name="vt_scan_date">Дата сканирования: %1$s</string>
     <string name="vt_permalink">Постоянная ссылка на VirusTotal</string>
+    <string name="vt_engine_results">Результаты сканирования антивирусами</string>
     <string name="vt_slowness_warning">В зависимости от скорости интернета и нагрузки на сервер, это может занять некоторое время.</string>
     <string name="vt_disclaimer">VirusTotal и его логотипы являются торговой маркой компании Chronicle LLC. Ни App Manager - клиент API, ни его авторы не несут ответственности за любые данные, которые вы можете отправить в VirusTotal.</string>
     <string name="pref_vt_apikey">VirusTotal API-ключ</string>
@@ -1422,8 +1425,7 @@
         <item quantity="other">%d файлов</item>
     </plurals>
     <string name="go_to_path">Перейти к…</string>
-    <string name="pdf_zoom_in">Увеличить</string>
-    <string name="pdf_zoom_out">Уменьшить</string>
+    <string name="pdf_fit_width">По ширине</string>
     <string name="pdf_go_to_page">Перейти к странице…</string>
     <string name="pdf_print">Печать</string>
     <string name="pdf_export_format">Формат экспорта</string>
@@ -1441,6 +1443,24 @@
     <string name="pdf_viewer_error">Не удалось открыть этот PDF-файл.</string>
     <string name="title_image_viewer">Просмотр изображений</string>
     <string name="image_viewer_error">Не удалось открыть это изображение.</string>
+    <string name="title_font_viewer">Просмотр шрифтов</string>
+    <string name="font_viewer_error">Не удалось открыть этот шрифт.</string>
+    <string name="font_viewer_preview_text">Образец текста</string>
+    <string name="font_viewer_face">Шрифт %1$d</string>
+    <string name="font_viewer_style_regular">Обычный</string>
+    <string name="font_viewer_style_bold">Полужирный</string>
+    <string name="font_viewer_style_italic">Курсив</string>
+    <string name="font_viewer_style_bold_italic">Полужирный курсив</string>
+    <string name="font_viewer_weight">Насыщенность %1$d</string>
+    <string name="font_viewer_ttc_index">Индекс TTC %1$d</string>
+    <string name="font_viewer_variations">Вариации %1$s</string>
+    <string name="font_viewer_text_size_decrease">Уменьшить размер текста</string>
+    <string name="font_viewer_text_size_increase">Увеличить размер текста</string>
+    <string name="font_viewer_text_size_reset">Сбросить размер текста</string>
+    <string name="font_viewer_sample_text">Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz
+0123456789
+\nСъешь же ещё этих мягких французских булок, да выпей чаю.
+\n! ? @ # $ % &amp; * ( ) [ ] { } / \\ &lt; &gt; + - =</string>
     <string name="image_reset_zoom">По размеру экрана</string>
     <string name="image_rotate_left">Повернуть влево</string>
     <string name="image_rotate_right">Повернуть вправо</string>
@@ -1521,6 +1541,14 @@
     <string name="date">Дата</string>
     <string name="pref_use_vt">Использовать VirusTotal</string>
     <string name="virus_total">VirusTotal</string>
+    <string name="vt_view_report">Посмотреть отчет</string>
+    <string name="vt_rescan">Перепроверить</string>
+    <string name="vt_retry">Повторить</string>
+    <string name="vt_cancel_scan">Отменить сканирование</string>
+    <string name="vt_update_report">Обновить отчет</string>
+    <string name="vt_report_unavailable">Отчет недоступен</string>
+    <string name="mark_as_read">Отметить как прочитанное</string>
+    <string name="mark_as_unread">Отметить как непрочитанное</string>
     <string name="pref_use_vt_no_internet">Для работы VirusTotal требуется интернет, который не включен. Пожалуйста, сначала включите <a href="app-manager://settings/privacy_prefs/toggle_internet">“Использовать Интернет”</a>.</string>
     <string name="pref_use_log_viewer">Использовать Просмотр логов</string>
     <string name="pref_installer">Использовать Установщик</string>
