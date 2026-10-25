@@ -538,6 +538,14 @@
     <string name="failed_to_fetch_package_info">Не удалось получить информацию о пакете</string>
     <string name="batch_ops">Пакетные операции</string>
     <string name="operation_running">Выполнение операции…</string>
+    <string name="action_running">Выполняется %1$s…</string>
+    <string name="action_progress_with_percent">%1$s · %2$s</string>
+    <string name="action_running_on_package">Выполняется на %1$s…</string>
+    <string name="action_running_for_package">Выполняется %1$s для %2$s…</string>
+    <string name="action_install_existing">Установить приложение</string>
+    <string name="action_device_state">Статус устройства</string>
+    <string name="action_run_script">Запустить скрипт</string>
+    <string name="action_send_broadcast">Отправить рассылку</string>
     <string name="full_stop_tap_to_see_details">. Нажмите, чтобы увидеть детали.</string>
     <string name="try_again">Попробуйте снова</string>
     <string name="install_app_message">Вы хотите установить это приложение?</string>
