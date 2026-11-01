@@ -8,10 +8,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 
 import io.github.muntashirakon.AppManager.types.UserPackagePair;
+import io.github.muntashirakon.AppManager.utils.ContextUtils;
+import io.github.muntashirakon.AppManager.utils.PackageUtils;
+import io.github.muntashirakon.AppManager.R;
 
 /**
  * Common base for Actions whose state belongs to a package/user pair.
@@ -42,20 +44,32 @@ public abstract class PackageScopedAction extends Action {
 
     @NonNull
     protected final List<UserPackagePair> resolveTargets(@NonNull ActionContext context) {
-        PackageTargetSpec targetSpec = getTarget().getPackageTarget();
-        LinkedHashSet<UserPackagePair> targets = new LinkedHashSet<>(targetSpec.getConfiguredTargets());
-        if (targetSpec.includesSelected()) {
-            targets.addAll(context.selectedTargets);
-        }
-        if (targetSpec.includesInherited() && context.triggerTarget != null) {
-            targets.add(context.triggerTarget);
-        }
-        return new ArrayList<>(targets);
+        return context.resolveTargets(this);
     }
 
     @Override
     public final int getProgressMax(@NonNull ActionContext context) {
-        return Math.max(1, resolveTargets(context).size());
+        return resolveTargets(context).size();
+    }
+
+    @NonNull
+    protected CharSequence getProgressLabel(@NonNull ActionContext context,
+                                            @NonNull UserPackagePair target) {
+        Context ctx = ContextUtils.getContext();
+        CharSequence appLabel = PackageUtils.getPackageLabel(ctx.getPackageManager(),
+                target.getPackageName(), target.getUserId());
+        return context.executionMode == ActionExecutionMode.SINGLETON
+                ? ctx.getString(R.string.action_running_on_package, appLabel)
+                : ctx.getString(R.string.action_running_for_package, toLocalizedString(ctx), appLabel);
+    }
+
+    @Nullable
+    private CharSequence progressLabel(@NonNull ActionContext context, @NonNull UserPackagePair target) {
+        try {
+            return getProgressLabel(context, target);
+        } catch (RuntimeException ignored) {
+            return target.getPackageName();
+        }
     }
 
     @NonNull
@@ -72,8 +86,8 @@ public abstract class PackageScopedAction extends Action {
 
     @NonNull
     protected abstract ActionResult onExecute(@NonNull ActionContext context, @NonNull ActionMode mode,
-                                     @NonNull UserPackagePair target,
-                                     @NonNull List<ActionExecutionRecord> previousRecords) throws Throwable;
+                                              @NonNull UserPackagePair target,
+                                              @NonNull List<ActionExecutionRecord> previousRecords) throws Throwable;
 
     protected void onPostExecute(@NonNull ActionContext context, @NonNull ActionMode mode,
                                  @NonNull List<UserPackagePair> targets,
@@ -98,12 +112,17 @@ public abstract class PackageScopedAction extends Action {
     @NonNull
     @Override
     public final List<ActionResult> execute(@NonNull ActionContext context, @NonNull ActionMode mode,
-                                      @NonNull List<ActionExecutionRecord> previousRecords) {
+                                            @NonNull List<ActionExecutionRecord> previousRecords) {
         List<UserPackagePair> targets = resolveTargets(context);
         List<ActionResult> results = new ArrayList<>(targets.size());
+        int progressMax = targets.size();
+        int targetIndex = 0;
+        reportProgress(context, null, progressMax, 0, ActionProgress.State.STARTED, results);
         try {
             onPreExecute(context, mode, targets, previousRecords);
             for (UserPackagePair target : targets) {
+                CharSequence label = progressLabel(context, target);
+                reportProgress(context, label, progressMax, targetIndex);
                 ActionResult result;
                 ActionState currentState = null;
                 try {
@@ -148,17 +167,25 @@ public abstract class PackageScopedAction extends Action {
                             currentState, null, throwable.getMessage());
                 }
                 results.add(result);
+                targetIndex++;
+                reportProgress(context, label, progressMax, targetIndex);
             }
         } catch (Throwable throwable) {
-            for (UserPackagePair target : targets) {
+            for (; targetIndex < targets.size(); targetIndex++) {
+                UserPackagePair target = targets.get(targetIndex);
                 results.add(actionResult(target, ActionResultStatus.FAILED,
                         throwable.getMessage()));
+                reportProgress(context, progressLabel(context, target), progressMax,
+                        targetIndex + 1);
             }
         } finally {
             try {
                 onPostExecute(context, mode, targets, results);
             } catch (Throwable ignored) {
                 // Cleanup failures must not discard per-target execution results.
+            } finally {
+                reportProgress(context, null, progressMax, progressMax,
+                        ActionProgress.State.COMPLETED, results);
             }
         }
         return results;

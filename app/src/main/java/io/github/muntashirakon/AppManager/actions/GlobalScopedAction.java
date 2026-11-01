@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 package io.github.muntashirakon.AppManager.actions;
 
+import android.content.Context;
 import android.os.Parcel;
 import android.text.TextUtils;
 
@@ -11,6 +12,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.List;
+
+import io.github.muntashirakon.AppManager.R;
+import io.github.muntashirakon.AppManager.utils.ContextUtils;
 
 public abstract class GlobalScopedAction extends Action {
     protected GlobalScopedAction(@NonNull ActionKind kind, @NonNull ActionTargetSpec target,
@@ -106,6 +110,17 @@ public abstract class GlobalScopedAction extends Action {
         return null;
     }
 
+    @NonNull
+    protected CharSequence getProgressLabel(@NonNull ActionContext context) {
+        Context ctx = ContextUtils.getContext();
+        return ctx.getString(R.string.action_running, toLocalizedString(ctx));
+    }
+
+    @Override
+    public int getProgressMax(@NonNull ActionContext context) {
+        return ActionProgress.INDETERMINATE;
+    }
+
     @Override
     @NonNull
     public final List<ActionResult> execute(@NonNull ActionContext context,
@@ -113,6 +128,17 @@ public abstract class GlobalScopedAction extends Action {
                                             @NonNull List<ActionExecutionRecord> previousRecords) {
         List<ActionResult> results = new java.util.ArrayList<>(1);
         ActionState currentState = null;
+        int progressMax = getProgressMax(context);
+        if (progressMax < ActionProgress.INDETERMINATE) {
+            throw new IllegalStateException("Invalid global action progress maximum: " + progressMax);
+        }
+        CharSequence label;
+        try {
+            label = getProgressLabel(context);
+        } catch (RuntimeException ignored) {
+            label = getName();
+        }
+        reportProgress(context, label, progressMax, 0, ActionProgress.State.STARTED, results);
         try {
             onPreExecute(context, mode, previousRecords);
             ActionResult result;
@@ -161,6 +187,10 @@ public abstract class GlobalScopedAction extends Action {
                 onPostExecute(context, mode, results);
             } catch (Throwable ignored) {
                 // Cleanup failures must not discard the execution result.
+            } finally {
+                reportProgress(context, label, progressMax,
+                        progressMax == ActionProgress.INDETERMINATE ? 0 : progressMax,
+                        ActionProgress.State.COMPLETED, results);
             }
         }
         return results;

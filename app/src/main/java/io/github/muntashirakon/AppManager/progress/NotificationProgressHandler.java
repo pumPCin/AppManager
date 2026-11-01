@@ -9,6 +9,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.text.TextUtils;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
@@ -30,6 +31,7 @@ import io.github.muntashirakon.AppManager.types.ForegroundService;
 import io.github.muntashirakon.AppManager.utils.NotificationUtils;
 
 public class NotificationProgressHandler extends QueuedProgressHandler {
+    private static final int NOTIFICATION_PROGRESS_MAX = 10_000;
     private static final String TAG_PROGRESS = null;
     private static final String TAG_QUEUE = "queue";
     private static final String TAG_ALERT = "alert";
@@ -93,6 +95,7 @@ public class NotificationProgressHandler extends QueuedProgressHandler {
                     .setLocalOnly(true)
                     .setOngoing(true)
                     .setOnlyAlertOnce(true)
+                    .setUsesChronometer(true)
                     .setProgress(0, 0, false)
                     .build();
             ForegroundService.start(service, mProgressNotificationId, notification,
@@ -116,23 +119,35 @@ public class NotificationProgressHandler extends QueuedProgressHandler {
         mLastMax = max;
         mLastProgress = current;
         CharSequence progressText = progressTextInterface.getProgressText(this);
+        CharSequence taskLabel = progressTextInterface.getCurrentTaskLabel(this);
+        CharSequence title = progressTextInterface.getTitle(this);
+        CharSequence operationName = mLastProgressNotification.operationName;
         boolean indeterminate = max == -1;
-        int newMax = Math.max(max, 0);
-        int newCurrent = max < 0 ? 0 : (int) current;
+        int newMax = max > 0 ? NOTIFICATION_PROGRESS_MAX : 0;
+        int newCurrent = max > 0 ? (int) Math.max(0, Math.min(newMax,
+                Math.round((double) current / max * newMax))) : 0;
         NotificationCompat.Builder builder = mLastProgressNotification
                 .getBuilder(mContext, mProgressNotificationManagerInfo)
                 .setLocalOnly(true)
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
+                .setUsesChronometer(true)
                 .setProgress(newMax, newCurrent, indeterminate);
-        if (progressText != null) {
-            if (max > 0) {
-                builder.setContentText(progressText);
-            } else if (max == MAX_FINISHED) {
-                builder.setContentText(mContext.getString(R.string.done));
-            } else {
-                builder.setContentText(mContext.getString(R.string.operation_running));
+        if (max == MAX_FINISHED) {
+            builder.setContentText(mContext.getString(R.string.done));
+        } else {
+            if (taskLabel != null) {
+                builder.setContentText(taskLabel);
             }
+        }
+        if (title != null) {
+            builder.setContentTitle(title);
+        }
+        if (progressText != null) {
+            builder.setSubText(TextUtils.isEmpty(operationName) ? progressText
+                    : mContext.getString(R.string.progress_operation_with_text, operationName, progressText));
+        } else {
+            builder.setSubText(operationName);
         }
         notify(mContext, mProgressNotificationManager, TAG_PROGRESS, mProgressNotificationId, builder.build());
     }
@@ -190,6 +205,10 @@ public class NotificationProgressHandler extends QueuedProgressHandler {
         // Update values immediately to avoid issues
         mLastMax = max;
         mLastProgress = current;
+        if (message instanceof NotificationInfo) {
+            // Must be thread-safe
+            mLastProgressNotification = (NotificationInfo) message;
+        }
         super.postUpdate(max, current, message);
     }
 
@@ -251,6 +270,7 @@ public class NotificationProgressHandler extends QueuedProgressHandler {
         @Nullable
         private NotificationCompat.Style style;
         private boolean autoCancel;
+        private boolean usesChronometer;
         @Nullable
         private PendingIntent defaultAction;
         @Nullable
@@ -272,6 +292,7 @@ public class NotificationProgressHandler extends QueuedProgressHandler {
             statusBarText = notificationInfo.statusBarText;
             style = notificationInfo.style;
             autoCancel = notificationInfo.autoCancel;
+            usesChronometer = notificationInfo.usesChronometer;
             defaultAction = notificationInfo.defaultAction;
             groupId = notificationInfo.groupId;
             actions.addAll(notificationInfo.actions);
@@ -322,6 +343,11 @@ public class NotificationProgressHandler extends QueuedProgressHandler {
             return this;
         }
 
+        public NotificationInfo setUsesChronometer(boolean usesChronometer) {
+            this.usesChronometer = usesChronometer;
+            return this;
+        }
+
         public NotificationInfo setTime(long time) {
             this.time = time;
             return this;
@@ -345,6 +371,7 @@ public class NotificationProgressHandler extends QueuedProgressHandler {
                 contentIntent = PendingIntentCompat.getActivity(context, 0, new Intent(), 0, false);
             } else contentIntent = defaultAction;
             NotificationCompat.Builder builder = new NotificationCompat.Builder(context, info.channelId)
+                    .setCategory(NotificationCompat.CATEGORY_PROGRESS)
                     .setLocalOnly(!Prefs.Misc.sendNotificationsToConnectedDevices())
                     .setPriority(NotificationUtils.importanceToPriority(info.importance))
                     .setDefaults(Notification.DEFAULT_ALL)
@@ -355,6 +382,7 @@ public class NotificationProgressHandler extends QueuedProgressHandler {
                     .setContentText(body)
                     .setContentIntent(contentIntent)
                     .setAutoCancel(autoCancel)
+                    .setUsesChronometer(usesChronometer)
                     .setGroup(groupId)
                     .setStyle(style);
             if (groupId == null) {

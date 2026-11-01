@@ -528,7 +528,8 @@
     <string name="batch_ops">Batch operations</string>
     <string name="operation_running">Operation running…</string>
     <string name="action_running">Running %1$s…</string>
-    <string name="action_progress_with_percent">%1$s · %2$s</string>
+    <string name="progress_operation_with_text">%1$s · %2$s</string>
+    <string name="progress_percent_complete">%1$d%% complete</string>
     <string name="action_running_on_package">Running on %1$s…</string>
     <string name="action_running_for_package">Running %1$s for %2$s…</string>
     <string name="action_install_existing">Install existing app</string>

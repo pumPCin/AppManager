@@ -3,11 +3,15 @@ package io.github.muntashirakon.AppManager.actions;
 
 import static org.junit.Assert.assertEquals;
 
+import android.app.Application;
+
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -21,6 +25,7 @@ import io.github.muntashirakon.AppManager.types.UserPackagePair;
 import io.github.muntashirakon.AppManager.utils.FreezeUtils;
 
 @RunWith(RobolectricTestRunner.class)
+@Config(application = Application.class)
 public class ActionPlanTest {
     @Test
     public void executesActionsInOrderAndKeepsStateRecords() throws IOException {
@@ -30,7 +35,8 @@ public class ActionPlanTest {
         ActionPlan plan = new ActionPlan("plan", Arrays.asList(first, second));
 
         List<ActionResult> results = plan.execute(
-                new ActionContext(null, Collections.emptyList(), plan.getId(), 1L, false),
+                new ActionContext(null, Collections.emptyList(), plan.getId(),
+                        ActionExecutionMode.BATCH, 1L, false),
                 ActionMode.ON, new EmptyLogger());
 
         assertEquals(Arrays.asList("first", "second"), order);
@@ -48,11 +54,11 @@ public class ActionPlanTest {
                 new RecordingAction("action", "state", order)));
 
         ActionContext context = new ActionContext(null, Collections.emptyList(), plan.getId(),
-                1L, false, progressHandler);
+                ActionExecutionMode.BATCH, 1L, false, progressHandler);
         plan.execute(context, ActionMode.ON, new EmptyLogger());
 
         assertEquals(1, progressHandler.startedMax);
-        assertEquals(Collections.singletonList(1f), progressHandler.updates);
+        assertEquals(Arrays.asList(0f, 1f), progressHandler.updates);
         assertEquals(1, plan.getExecutionRecords().size());
         assertEquals("state", plan.getExecutionRecords().get(0).stateKey);
         assertEquals(1, progressHandler.resultCount);
@@ -92,6 +98,7 @@ public class ActionPlanTest {
             return this;
         }
 
+        @Nullable
         @Override
         public Object getLastMessage() {
             return null;
@@ -129,6 +136,8 @@ public class ActionPlanTest {
         public List<ActionResult> execute(@NonNull ActionContext context, @NonNull ActionMode mode,
                                           @NonNull List<ActionExecutionRecord> previousRecords) {
             mOrderList.add(mOrder);
+            reportProgress(context, mOrder, 1, 0);
+            reportProgress(context, mOrder, 1, 1);
             ActionState state = new ActionState(mStateKey, ActionValue.of(true));
             return Collections.singletonList(new ActionResult(getId(),
                     new UserPackagePair("com.example", 0), ActionResultStatus.SUCCESS,
