@@ -539,7 +539,8 @@
     <string name="batch_ops">Пакетные операции</string>
     <string name="operation_running">Выполнение операции…</string>
     <string name="action_running">Выполняется %1$s…</string>
-    <string name="action_progress_with_percent">%1$s · %2$s</string>
+    <string name="progress_operation_with_text">%1$s · %2$s</string>
+    <string name="progress_percent_complete">%1$d%% выполнено</string>
     <string name="action_running_on_package">Выполняется на %1$s…</string>
     <string name="action_running_for_package">Выполняется %1$s для %2$s…</string>
     <string name="action_install_existing">Установить приложение</string>
