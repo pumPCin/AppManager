@@ -14,6 +14,7 @@ import androidx.annotation.Nullable;
 import java.util.Locale;
 
 import io.github.muntashirakon.AppManager.utils.ThreadUtils;
+import io.github.muntashirakon.AppManager.actions.ActionProgress;
 
 /**
  * A generic class to handle any kind of progress. Progress can be handled in various ways such as using notifications
@@ -21,17 +22,40 @@ import io.github.muntashirakon.AppManager.utils.ThreadUtils;
  */
 public abstract class ProgressHandler {
     public interface ProgressTextInterface {
+        /**
+         * Optional title of the operation.
+         */
         @Nullable
-        CharSequence getProgressText(@NonNull ProgressHandler progressHandler);
+        default CharSequence getTitle(@NonNull ProgressHandler progressHandler) {
+            return null;
+        }
+
+        /**
+         * Current task name, e.g., Updating App Manager...
+         */
+        @Nullable
+        CharSequence getCurrentTaskLabel(@NonNull ProgressHandler progressHandler);
+
+        /**
+         * Actual progress text, e.g., 10% complete, 2 of 12 done, 12 MB / 50 MB.
+         */
+        @Nullable
+        default CharSequence getProgressText(@NonNull ProgressHandler progressHandler) {
+            return null;
+        }
     }
 
     public static final ProgressTextInterface PROGRESS_PERCENT = progressHandler -> {
+        if (progressHandler.getLastMax() <= 0) {
+            return null;
+        }
         float current = progressHandler.getLastProgress() / progressHandler.getLastMax() * 100;
         return String.format(Locale.getDefault(), "%d%%", (int) current);
     };
     public static final ProgressTextInterface PROGRESS_REGULAR = progressHandler ->
-            String.format(Locale.getDefault(), "%d/%d", (int) progressHandler.getLastProgress(),
-                    progressHandler.getLastMax());
+            progressHandler.getLastMax() <= 0 ? null :
+                    String.format(Locale.getDefault(), "%d/%d", (int) progressHandler.getLastProgress(),
+                            progressHandler.getLastMax());
     protected static final ProgressTextInterface PROGRESS_DEFAULT = progressHandler -> null;
 
     protected static final int MAX_INDETERMINATE = -1;
@@ -40,6 +64,8 @@ public abstract class ProgressHandler {
 
     @NonNull
     protected ProgressTextInterface progressTextInterface = PROGRESS_DEFAULT;
+    @Nullable
+    private volatile ActionProgress mLastActionProgress;
 
     /**
      * Call this function if the progress handler is backed by a foreground service and a progressbar is needed to be
@@ -119,6 +145,48 @@ public abstract class ProgressHandler {
     }
 
     /**
+     * Posts all Action lifecycle events to the main thread in execution order.
+     */
+    @AnyThread
+    public final void postActionProgress(@NonNull ActionProgress progress) {
+        ThreadUtils.postOrRunOnMainThread(() -> {
+            mLastActionProgress = progress;
+            try {
+                onActionProgress(progress);
+            } catch (RuntimeException ignored) {
+                // Failure here must not stop actual execution.
+            }
+        });
+    }
+
+    /**
+     * Latest event.
+     */
+    @Nullable
+    public final ActionProgress getLastActionProgress() {
+        return mLastActionProgress;
+    }
+
+    /**
+     * Override to render labels or results. The default preserves the parent's message and
+     * adapts numeric progress to the existing lifecycle.
+     */
+    @MainThread
+    public void onActionProgress(@NonNull ActionProgress progress) {
+        switch (progress.state) {
+            case STARTED:
+                onProgressStart(progress.max, progress.current, getLastMessage());
+                break;
+            case UPDATED:
+                onProgressUpdate(progress.max, progress.current, getLastMessage());
+                break;
+            case COMPLETED:
+                onResult(null);
+                break;
+        }
+    }
+
+    /**
      * Update progress from any thread.
      *
      * @param max     Max progress values. Use {@code -1} to switch to non-determinate mode.
@@ -129,10 +197,6 @@ public abstract class ProgressHandler {
     @AnyThread
     @CallSuper
     public void postUpdate(int max, float current, @Nullable Object message) {
-        if (ThreadUtils.isMainThread()) {
-            onProgressUpdate(max, current, message);
-        } else {
-            ThreadUtils.postOnMainThread(() -> onProgressUpdate(max, current, message));
-        }
+        ThreadUtils.postOrRunOnMainThread(() -> onProgressUpdate(max, current, message));
     }
 }

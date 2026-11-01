@@ -14,13 +14,11 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 import io.github.muntashirakon.AppManager.history.IJsonSerializer;
 import io.github.muntashirakon.AppManager.history.JsonDeserializer;
 import io.github.muntashirakon.AppManager.logs.Logger;
-import io.github.muntashirakon.AppManager.progress.ProgressHandler;
 import io.github.muntashirakon.util.LocalizedString;
 
 /**
@@ -97,18 +95,46 @@ public final class ActionPlan implements IJsonSerializer, Parcelable, LocalizedS
                                                    @NonNull ActionMode mode,
                                                    @NonNull Logger logger) {
         List<ActionResult> results = new ArrayList<>();
-        ProgressHandler progressHandler = context.progressHandler;
-        int progressMax = 0;
+        List<ActionWork> actionWork = new ArrayList<>(mActions.size());
+        int offset = 0;
+        boolean singleIndeterminate = context.executionMode == ActionExecutionMode.SINGLETON
+                && mActions.size() == 1;
         for (Action action : mActions) {
-            progressMax += Math.max(1, action.getProgressMax(context));
+            int maxProgress = action.getProgressMax(context);
+            if (maxProgress < ActionProgress.INDETERMINATE) {
+                throw new IllegalStateException("Invalid Action progress maximum: " + maxProgress);
+            }
+            int workload = maxProgress == ActionProgress.INDETERMINATE ? 1 : maxProgress;
+            actionWork.add(new ActionWork(action, offset, workload));
+            offset += workload;
+            if (maxProgress != ActionProgress.INDETERMINATE) {
+                singleIndeterminate = false;
+            }
         }
-        int progress = 0;
-        if (progressHandler != null) {
-            progressHandler.onProgressStart(progressMax, 0, progressHandler.getLastMessage());
+        int progressMax = singleIndeterminate ? ActionProgress.INDETERMINATE : offset;
+        if (context.progressHandler != null) {
+            context.addProgressListener(new ActionContext.ProgressListener() {
+                @Override
+                public void onProgress(@NonNull ActionProgress progress) {
+                    try {
+                        context.progressHandler.postActionProgress(progress);
+                    } finally {
+                        if (progress.state == ActionProgress.State.COMPLETED) {
+                            // The terminal event may still be queued when execute() returns.
+                            context.removeProgressListener(this);
+                        }
+                    }
+                }
+            });
         }
-        logger.println("====> Started action plan: " + mName + " with mode: " + mode);
+        // Dispatch initial progress, 0
+        context.dispatch(new ActionProgress(null, progressMax, 0,
+                ActionProgress.State.STARTED, context.executionMode, results));
+        int completedWork = 0;
         try {
-            for (Action action : mActions) {
+            logger.println("====> Started action plan: " + mName + " with mode: " + mode);
+            for (ActionWork work : actionWork) {
+                Action action = work.action;
                 logger.println("====> Started action: " + action.getKind() + " (" + action.getId() + ")");
                 List<ActionExecutionRecord> previous = new ArrayList<>();
                 for (ActionExecutionRecord record : mExecutionRecords) {
@@ -116,12 +142,15 @@ public final class ActionPlan implements IJsonSerializer, Parcelable, LocalizedS
                         previous.add(record);
                     }
                 }
-                List<ActionResult> actionResults = action.execute(context, mode, previous);
-                results.addAll(actionResults);
-                progress += Math.max(1, action.getProgressMax(context));
-                if (progressHandler != null) {
-                    progressHandler.postUpdate(progressMax, progress, action);
+                List<ActionResult> actionResults;
+                context.beginActionProgress(progressMax, work.offset, work.workload);
+                try {
+                    actionResults = action.execute(context, mode, previous);
+                } finally {
+                    context.endActionProgress();
                 }
+                results.addAll(actionResults);
+                completedWork += work.workload;
                 for (ActionResult result : actionResults) {
                     if (result.status != ActionResultStatus.SUCCESS) {
                         logger.println("[!] action=" + action.getKind() + ", target=" + result.target
@@ -139,11 +168,25 @@ public final class ActionPlan implements IJsonSerializer, Parcelable, LocalizedS
                 }
             }
         } finally {
-            if (progressHandler != null) {
-                progressHandler.onResult(progressHandler.getLastMessage());
-            }
+            // Dispatch final progress, completedWork
+            context.dispatch(new ActionProgress(null, progressMax,
+                    progressMax == ActionProgress.INDETERMINATE ? 0 : completedWork,
+                    ActionProgress.State.COMPLETED, context.executionMode, results));
         }
         return Collections.unmodifiableList(results);
+    }
+
+    private static final class ActionWork {
+        @NonNull
+        final Action action;
+        final int offset;
+        final int workload;
+
+        ActionWork(@NonNull Action action, int offset, int workload) {
+            this.action = action;
+            this.offset = offset;
+            this.workload = workload;
+        }
     }
 
     @NonNull

@@ -21,7 +21,8 @@ public class ActionResultTest {
     public void resolverDeduplicatesConfiguredSelectedAndInheritedTargets() {
         UserPackagePair configured = new UserPackagePair("configured", 0);
         UserPackagePair inherited = new UserPackagePair("trigger", 10);
-        ActionContext context = new ActionContext(inherited, Arrays.asList(configured, inherited), "plan", 1L, true);
+        ActionContext context = new ActionContext(inherited, Arrays.asList(configured, inherited),
+                "plan", ActionExecutionMode.SINGLETON, 1L, true);
         PackageTargetSpec spec = new PackageTargetSpec(Collections.singletonList(configured), true, true);
         LinkedHashSet<UserPackagePair> targets = new LinkedHashSet<>(spec.getConfiguredTargets());
         if (spec.includesSelected()) {

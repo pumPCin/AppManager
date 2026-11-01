@@ -99,6 +99,15 @@ public class ThreadUtils {
     }
 
     /**
+     * Posts the runnable on the main thread, or executes it if it is the main thread
+     */
+    public static void postOrRunOnMainThread(Runnable runnable) {
+        if (isMainThread()) {
+            runnable.run();
+        } else getUiThreadHandler().post(runnable);
+    }
+
+    /**
      * Posts the runnable on the main thread with a delay.
      */
     public static void postOnMainThreadDelayed(Runnable runnable, long delayMillis) {

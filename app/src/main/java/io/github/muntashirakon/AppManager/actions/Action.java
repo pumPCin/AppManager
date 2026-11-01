@@ -4,6 +4,7 @@ package io.github.muntashirakon.AppManager.actions;
 import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -150,6 +151,30 @@ public abstract class Action implements IJsonSerializer, Parcelable, LocalizedSt
         return 1;
     }
 
+    protected final void reportProgress(@NonNull ActionContext context,
+                                        @NonNull ActionProgress progress) {
+        context.dispatch(progress);
+    }
+
+    protected final void reportProgress(@NonNull ActionContext context,
+                                        @Nullable CharSequence label, int max, float current,
+                                        @NonNull ActionProgress.State state,
+                                        @NonNull List<ActionResult> results) {
+        reportProgress(context, new ActionProgress(label, max, current, state,
+                context.executionMode, results));
+    }
+
+    protected final void reportProgress(@NonNull ActionContext context,
+                                        @Nullable CharSequence label, int max, float current) {
+        reportProgress(context, label, max, current, ActionProgress.State.UPDATED,
+                java.util.Collections.emptyList());
+    }
+
+    protected final void reportIndeterminateProgress(@NonNull ActionContext context,
+                                                     @Nullable CharSequence label) {
+        reportProgress(context, label, ActionProgress.INDETERMINATE, 0);
+    }
+
     @NonNull
     protected final ActionResult actionResult(@Nullable UserPackagePair target,
                                               @NonNull ActionResultStatus status,
@@ -196,7 +221,7 @@ public abstract class Action implements IJsonSerializer, Parcelable, LocalizedSt
     @NonNull
     @Override
     public CharSequence toLocalizedString(@NonNull Context context) {
-        return mName == null || mName.isEmpty() ? mKind.name() : mName;
+        return TextUtils.isEmpty(mName) ? mKind.toLocalizedString(context) : mName;
     }
 
     @NonNull
