@@ -590,7 +590,7 @@ public class BatchOpsManager {
             updateProgress(lastProgress, i + 1);
             pair = info.getPair(i);
             int type;
-            if (options.isPreferCustom()) {
+            if (options.isPreferPerApp()) {
                 type = Optional.ofNullable(FreezeUtils.loadFreezeMethod(pair.getPackageName()))
                         .orElse(options.getType());
             } else type = options.getType();
@@ -987,7 +987,7 @@ public class BatchOpsManager {
         if (message == null) {
             return null;
         }
-        ProgressHandler p = mProgressHandler.newSubProgressHandler();
+        ProgressHandler p = mProgressHandler.newSubProgressHandler(operationName);
         if (p instanceof NotificationProgressHandler) {
             NotificationInfo parentNotificationInfo = (NotificationInfo) message;
             NotificationInfo notificationInfo = new NotificationInfo(parentNotificationInfo)
